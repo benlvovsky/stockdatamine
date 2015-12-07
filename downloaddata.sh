@@ -11,6 +11,7 @@ IFS=,
 cat $INPUT | while read stockName
 do
 	echo "Downloading $stockName..."
+	rm models/${stockName}*.csv
 	maxDatePlusOne ${stockName}
 	url="http://real-chart.finance.yahoo.com/table.csv?s=$stockName&a=${monthfixed}&b=${day}&c=${year}&d=11&e=4&f=2025&g=d&ignore=.csv"
 	echo $url
