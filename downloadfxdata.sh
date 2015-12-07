@@ -11,6 +11,7 @@ IFS=,
 cat $INPUT | while read stockName
 do
 	echo "Downloading $stockName..."
+	rm models/${stockName}*.csv
 	#psql -h localhost -U postgres -d postgres -c "delete from stocks where stock='$stockName'"
 	maxDatePlusOne ${stockName}
 	url="http://195.128.78.52/${stockName}.csv?market=5\&em=181410\&code=${stockName}\&df=${day}\&mf=${monthfixed}\&yf=${year}\&from=${day}.${month}.${year}\&dt=31\&mt=11\&yt=2025\&to=31.12.2025\&p=8\&f=${stockName}\&e=.csv\&cn=${stockName}\&dtf=1\&tmf=4\&MSOR=0\&mstimever=0\&sep=1\&sep2=3\&datf=5\&at=1"
