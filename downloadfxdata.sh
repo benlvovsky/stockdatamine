@@ -21,7 +21,8 @@ do
 	tail -n +2 models/${stockName}.csv | while read date time open high low close vol tail
 	do
 		volfixed=$(echo ${vol} | tr -d '\r')
-		printf "\"$stockName\",\"${date:0:4}-${date:4:2}-${date:6:2}\",\"${open}\",\"${high}\",\"${low}\",\"${close}\",\"${volfixed}\"\n"
+		#twice close to make up "Adjusted close"
+		printf "\"$stockName\",\"${date:0:4}-${date:4:2}-${date:6:2}\",\"${open}\",\"${high}\",\"${low}\",\"${close}\",\"${volfixed}\",\"${close}\"\n"
 	done > models/${stockName}_fixed.csv
 	importIntoDB ${stockName}
 done
