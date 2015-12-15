@@ -22,7 +22,8 @@ chmod 777 -R ./extracts
 cat $INPUT | while read stockName
 do
 	echo "Extracting $stockName..."
-	sql="COPY (select DATE,price,$(attributeList) FROM datamining_stocks_view where stockName='${stockName}') TO '$(pwd)/extracts/${stockName}.csv' DELIMITER ',' CSV HEADER"
+#	sql="COPY (select DATE,price,$(attributeList) FROM datamining_stocks_view where stockName='${stockName}' offset 7) TO '$(pwd)/extracts/${stockName}.csv' DELIMITER ',' CSV HEADER"
+	sql="COPY (select $(attributeList) FROM datamining_stocks_view where stockName='${stockName}' offset 7) TO '$(pwd)/extracts/${stockName}.csv' DELIMITER ',' CSV HEADER"
 	printf "${sql}\n"
 	psql -h localhost -U postgres -d postgres -c "${sql}"
 done

@@ -19,8 +19,8 @@ function maxDatePlusOne() {
 }
 
 function importIntoDB() {
-	echo "Importing $1 into DB from models/${1}_fixed.csv"
-	sql="COPY stocks (stock,date,open,high,low,close,volume,\"Adj Close\") FROM '$(pwd)/models/${1}_fixed.csv' WITH CSV delimiter as ','"
+	echo "Importing $1 into DB from downloads/${1}_fixed.csv"
+	sql="COPY stocks (stock,date,open,high,low,close,volume,\"Adj Close\") FROM '$(pwd)/downloads/${1}_fixed.csv' WITH CSV delimiter as ','"
 	printf "${sql}\n"
 	#	psql -h localhost -U postgres -d postgres -c "delete from stocks where stock='$1'"
 	psql -h localhost -U postgres -d postgres -c "${sql}"
