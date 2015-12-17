@@ -1,5 +1,7 @@
 #!/bin/bash
 export PGPASSWORD='postgres'
+export WEKA_PATH=/media/bigdrive/dev/weka-3-7-13/*.jar
+export CP=$WEKA_PATH:/home/ben/wekafiles/packages/LibSVM/LibSVM.jar:/home/ben/wekafiles/packages/LibSVM/lib/libsvm.jar:/media/bigdrive/dev/weka-3-7-13/weka.jar:$CLASSPATH
 
 function maxDatePlusOne() {
 	maxdate=`psql -t -h localhost -U postgres -d postgres -c "select max(date + interval '1 day') from stocks where stock='$1';"`
@@ -25,4 +27,8 @@ function importIntoDB() {
 	#	psql -h localhost -U postgres -d postgres -c "delete from stocks where stock='$1'"
 	psql -h localhost -U postgres -d postgres -c "${sql}"
 	echo "Importing $1 into DB finished"
+}
+
+function arAsCommaSep() {
+	local IFS=",";echo "$*"
 }
