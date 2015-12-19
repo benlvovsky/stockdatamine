@@ -32,3 +32,4 @@ function importIntoDB() {
 function arAsCommaSep() {
 	local IFS=",";echo "$*"
 }
+#cat dataminestocklist.csv | psql -h localhost -U postgres -d postgres -c "TRUNCATE dataminestocks;COPY dataminestocks FROM STDIN WITH CSV delimiter as ','"
