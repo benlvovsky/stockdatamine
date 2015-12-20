@@ -33,3 +33,21 @@ function arAsCommaSep() {
 	local IFS=",";echo "$*"
 }
 #cat dataminestocklist.csv | psql -h localhost -U postgres -d postgres -c "TRUNCATE dataminestocks;COPY dataminestocks FROM STDIN WITH CSV delimiter as ','"
+
+function dmStocks() {
+	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks) to STDOUT WITH CSV delimiter as ','"
+}
+
+function dmStocksOrd() {
+	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks order by correlation desc) to STDOUT WITH CSV delimiter as ','"
+}
+
+function attributeList() {
+	local filename="attributelist.csv"
+	local delim='' # no comma at start
+	cat $filename | while read attr alias
+	do
+		printf "${delim}${attr} as ${alias}"
+		delim=',' #ecerysubsequest attribute has to have comma in front
+	done
+}
