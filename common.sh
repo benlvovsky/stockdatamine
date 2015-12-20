@@ -57,11 +57,14 @@ function downloadInstruments() {
 }
 
 function attributeList() {
+	OLDIFS=$IFS
+	IFS=,
 	local filename="attributelist.csv"
 	local delim='' # no comma at start
-	cat $filename | while read attr alias
+	cat $filename | while read attr alias tail
 	do
 		printf "${delim}${attr} as ${alias}"
-		delim=',' #ecerysubsequest attribute has to have comma in front
+		delim=", " #ecerysubsequest attribute has to have comma in front
 	done
+	IFS=$OLDIFS
 }
