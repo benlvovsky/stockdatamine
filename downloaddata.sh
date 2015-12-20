@@ -1,14 +1,10 @@
 #!/bin/bash
 source ./common.sh
 
-#downloadlist="downloadstocklist_test.csv"
-downloadlist="downloadstocklist.csv"
-
-INPUT=$downloadlist
 OLDIFS=$IFS
 IFS=,
-[ ! -f $INPUT ] && { echo "$INPUT file not found"; exit 99; }
-cat $INPUT | while read stockName
+
+downloadInstruments YAHOO | while read stockName tail
 do
 	echo "Downloading $stockName..."
 	rm downloads/${stockName}*.csv
@@ -22,9 +18,9 @@ do
 	curl -o downloads/$stockName.csv ${url}
 	echo "Adding Code field..."
 	tail -n +2 downloads/${stockName}.csv | while read date open high low close vol adjclose tail
-	do
-		printf "\"$stockName\",\"${date}\",\"${open}\",\"${high}\",\"${low}\",\"${close}\",\"${vol}\",\"${adjclose}\"\n"
-	done > downloads/${stockName}_fixed.csv
+		do
+			printf "\"$stockName\",\"${date}\",\"${open}\",\"${high}\",\"${low}\",\"${close}\",\"${vol}\",\"${adjclose}\"\n"
+		done > downloads/${stockName}_fixed.csv
 
 	importIntoDB ${stockName}
 done

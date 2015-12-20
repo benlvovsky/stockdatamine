@@ -1,14 +1,9 @@
 #!/bin/bash
 source ./common.sh
 
-downloadlist="downloadfxlist.csv"
-#downloadlist="downloadfxlist_test.csv"
-
-INPUT=$downloadlist
 OLDIFS=$IFS
 IFS=,
-[ ! -f $INPUT ] && { echo "$INPUT file not found"; exit 99; }
-cat $INPUT | while read stockName
+downloadInstruments FM | while read stockName
 do
 	echo "Downloading $stockName..."
 	rm downloads/${stockName}*.csv
