@@ -6,7 +6,7 @@ OLDIFS=$IFS
 IFS=,
 
 #psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks) to STDOUT WITH CSV delimiter as ','"
-dmStocks | while read stockName tail
+dmStocksNoAttr | while read stockName tail
 do
 	printf "Building model for $stockName..."
 	java -classpath $CP weka.core.converters.CSVLoader -B 1000 extracts/${stockName}.csv > models/${stockName}.arff;

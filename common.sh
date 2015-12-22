@@ -52,6 +52,10 @@ function dmStocksAbsPredOrd() {
 	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks order by abs(prediction) desc) to STDOUT WITH CSV delimiter as ','"
 }
 
+function dmStocksNoAttr() {
+	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks where bestattributes is null or bestattributes ='') to STDOUT WITH CSV delimiter as ','"
+}
+
 function downloadInstruments() {
 	psql -h localhost -U postgres -d postgres -c "COPY (select instrument from downloadinstruments where type='$1') to STDOUT WITH CSV delimiter as ','"
 }
@@ -67,4 +71,36 @@ function attributeList() {
 		delim=", " #ecerysubsequest attribute has to have comma in front
 	done
 	IFS=$OLDIFS
+}
+
+function calcModel() {
+#	echo "param1='$1', param2='$2', param3='$3'"
+	if [ -z "$3" ]
+	then
+		cv=10
+	else
+		cv=$3
+	fi
+	
+	if [ "$2" != "-" ]
+	then
+		OIFS=$IFS
+		IFS=
+		#echo "::::::::::"$(echo $2)
+		echo -n "Remove attribute indexes $2. "
+		#'cat extracts/${1}.csv | cut --complement -d, -f $2 > extracts/${1}_currtrialattr.csv' "
+		cat extracts/${1}.csv | cut --complement -d, -f $(echo $2) > extracts/${1}_currtrialattr.csv
+		IFS=$OIFS
+	else
+		echo -n "copy no index removal.       "
+		cat extracts/${1}.csv > extracts/${1}_currtrialattr.csv
+	fi
+	java -classpath $CP weka.core.converters.CSVLoader -B 1000 extracts/${1}_currtrialattr.csv > models/${1}_currtrialattr.arff;
+	correlation=$(java -classpath $CP -Xmx1000m weka.classifiers.functions.LibSVM -S 4 -K 2 -D 3 -G 0.0 \
+			-R 0.0 -N 0.74 -M 40.0 -C 5.0 -E 0.001 -P 0.1 \
+			-seed 1 \
+			-x $cv \
+			-t "models/${1}_currtrialattr.arff" \
+			-d "models/${1}_currtrialattr.model" | tee "models/${1}_currtrialattr.model.output" \
+				| grep "Correlation coefficient" | tail -1 | tr -s ' ' | cut -d " " -f 3)
 }
