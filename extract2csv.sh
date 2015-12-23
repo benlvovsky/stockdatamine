@@ -1,16 +1,6 @@
 #!/bin/bash
 source ./common.sh
 
-#function attributeList() {
-#	local filename="attributelist.csv"
-#	local delim='' # no comma at start
-#	cat $filename | while read attr alias
-#	do
-#		printf "${delim}${attr} as ${alias}"
-#		delim=',' #ecerysubsequest attribute has to have comma in front
-#	done
-#}
-
 #INPUT="dataminestocklist_test.csv"
 #INPUT="dataminestocklist.csv"
 OLDIFS=$IFS
@@ -25,7 +15,7 @@ then
 elif [ "$1" = '-m' ]
 then
 	offset=30
-	limit=400
+	limit=200
 	fileSuffix=''
 	extraAttributes=""
 	echo "	-m for models"

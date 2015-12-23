@@ -88,7 +88,6 @@ function calcModel() {
 		IFS=
 		#echo "::::::::::"$(echo $2)
 		echo -n "Remove attribute indexes $2. "
-		#'cat extracts/${1}.csv | cut --complement -d, -f $2 > extracts/${1}_currtrialattr.csv' "
 		cat extracts/${1}.csv | cut --complement -d, -f $(echo $2) > extracts/${1}_currtrialattr.csv
 		IFS=$OIFS
 	else
@@ -103,4 +102,25 @@ function calcModel() {
 			-t "models/${1}_currtrialattr.arff" \
 			-d "models/${1}_currtrialattr.model" | tee "models/${1}_currtrialattr.model.output" \
 				| grep "Correlation coefficient" | tail -1 | tr -s ' ' | cut -d " " -f 3)
+}
+
+offset=30
+limit=200
+
+#sets variable 'date' to date and STDOUT attributeList stock in parameter $1
+function extractStock() {
+	dt=$(psql -h localhost -U postgres -d postgres -c \
+		"COPY (select date FROM datamining_stocks_view where stockName='${1}' limit 1) \
+		TO STDOUT DELIMITER ',' CSV")
+	psql -h localhost -U postgres -d postgres -c \
+		"COPY (select $(attributeList) FROM datamining_stocks_view where stockName='${1}' \
+		offset ${offset} limit ${limit}) TO STDOUT DELIMITER ',' CSV HEADER"
+	#echo "${date}"
+
+	#psql -h localhost -U postgres -d postgres -c "COPY (select date FROM datamining_stocks_view where stockName='CBA.AX' limit 1) TO STDOUT DELIMITER ',' CSV"
+}
+function extractLastDate() {
+	psql -h localhost -U postgres -d postgres -c \
+		"COPY (select date FROM datamining_stocks_view where stockName='${1}' limit 1) \
+		TO STDOUT DELIMITER ',' CSV"
 }
