@@ -29,12 +29,21 @@ function importIntoDB() {
 	echo "Importing $1 into DB finished"
 }
 
+function dbImportTmp() {
+	tblName="tmpinstr"
+	psql -h localhost -U postgres -d postgres -c "DROP TABLE IF EXISTS $tblName;CREATE TABLE $tblName (instrument text);COPY $tblName (instrument) FROM STDIN WITH CSV delimiter as ','"
+}
+
 function arAsCommaSep() {
 	local IFS=",";echo "$*"
 }
 #cat dataminestocklist.csv | psql -h localhost -U postgres -d postgres -c "TRUNCATE dataminestocks;COPY dataminestocks FROM STDIN WITH CSV delimiter as ','"
 #cat downloadstocklist.csv | psql -h localhost -U postgres -d postgres -c "TRUNCATE downloadinstruments;COPY downloadinstruments (instrument) FROM STDIN WITH CSV delimiter as ','"
 #cat downloadfxlist.csv | psql -h localhost -U postgres -d postgres -c "COPY downloadinstruments (instrument) FROM STDIN WITH CSV delimiter as ','"
+
+function dmTheStocks() {
+	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks where stockname in ('$1') order by stockname asc) to STDOUT WITH CSV delimiter as ','"
+}
 
 function dmStocks() {
 	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks order by stockname asc) to STDOUT WITH CSV delimiter as ','"

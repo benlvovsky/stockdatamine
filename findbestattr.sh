@@ -4,12 +4,13 @@ source ./common.sh
 
 OLDIFS=$IFS
 IFS=,
-crossvalidation=2
+crossvalidation=3
 #psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks) to STDOUT WITH CSV delimiter as ','"
 #dmStocks
 dmStocksNoAttr | while read stockName tail
 do
 	echo "$stockName..."
+	extractStock ${stockName} > extracts/${stockName}.csv
 	calcModel ${stockName} "-" $crossvalidation
 	bestCorrelation=$correlation
 	echo "Original correlation=$bestCorrelation"

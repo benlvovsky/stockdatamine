@@ -5,16 +5,7 @@ suffix="_test"
 
 OLDIFS=$IFS
 IFS=,
-#	bestAttributeList=$(psql -h localhost -U postgres -d postgres -c \
-#		"COPY ( \
-#			select bestattributes FROM dataminestocks where stockName='CBA.AX' \
-#			) TO STDOUT")
-#	echo "bestAttributeList=$bestAttributeList"
-#	sql="COPY (select date,price,${bestAttributeList} FROM datamining_stocks_view where stockName='${stockName}' offset 0 limit 1) \
-#		TO STDOUT DELIMITER ',' CSV HEADER"
-#	psql -h localhost -U postgres -d postgres -c "${sql}"
-#
-#	exit 99;
+
 dmStocksOrd | while read stockName tail
 do
 	excludeAttributeList=$(psql -h localhost -U postgres -d postgres -c \

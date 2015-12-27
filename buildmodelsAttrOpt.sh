@@ -25,7 +25,8 @@ do
 	psql -h localhost -U postgres -d postgres -c "update dataminestocks set correlation=${correlation}, corrdate='$date'::date where stockname='${stockName}'"
 
 	echo " correlation ${correlation}. done."
-done < <(dmStocks)
+done < <(dmTheStocks "^AXJO")
+#(dmStocks)
 
 #echo "Sorted stocks by correlation:"
 #dmStocksOrd
