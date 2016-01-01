@@ -683,3 +683,29 @@ Trial correlation=0.2278. Not better. Still on 0.228
 Trying attribute 'aord_a1' index 7
 Trial correlation=0.2259. Not better. Still on 0.228
 Trying attribute 'aord_a2' index 8
+Trial correlation=0.228. Not better. Still on 0.228
+Trying attribute 'aord_a3' index 9
+Trial correlation=0.2282. It is better with removed attribute 9 aord_a3
+Trying attribute 'aord_a4' index 10
+Trial correlation=0.2282. Not better. Still on 0.2282
+Trying attribute 'aord_a5' index 11
+Trial correlation=0.2282. Not better. Still on 0.2282
+Trying attribute 'aord_a6' index 12
+Trial correlation=0.2279. Not better. Still on 0.2282
+Trying attribute 'n225_a1' index 13
+Trial correlation=0.2281. Not better. Still on 0.2282
+Trying attribute 'n225_a2' index 14
+Trial correlation=0.2285. It is better with removed attribute 14 n225_a2
+Trying attribute 'n225_a3' index 15
+Trial correlation=0.2294. It is better with removed attribute 15 n225_a3
+Trying attribute 'n225_a4' index 16
+Trial correlation=0.2293. Not better. Still on 0.2294
+Trying attribute 'n225_a5' index 17
+Trial correlation=0.2293. Not better. Still on 0.2294
+Trying attribute 'n225_a6' index 18
+Trial correlation=0.2297. It is better with removed attribute 18 n225_a6
+Trying attribute 'ndx_a1' index 19
+Trial correlation=0.2294. Not better. Still on 0.2297
+Trying attribute 'ndx_a2' index 20
+Trial correlation=0.2298. It is better with removed attribute 20 ndx_a2
+Trying attribute 'ndx_a3' index 21
