@@ -8,8 +8,8 @@ IFS=,
 crossvalidation=2
 #psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks) to STDOUT WITH CSV delimiter as ','"
 #dmStocks
-limit=1000
-wkCost=1
+limit=480
+wkCost=100
 wkNu=0.5615
 while read stockName tail
 do
@@ -61,7 +61,8 @@ do
 	done
 	echo "Best attrbutes list for $stockName calculated"
 	psql -h localhost -U postgres -d postgres -c "update dataminestocks set bestattributes='${bestAttributes}', excludedattributes='${excludedAttrs}', bestCorrelation=$bestCorrelation where stockname='${stockName}'"
-done  < <(printf "^AXJO\nBHP.AX\nCBA.AX\n")
+done  < <(printf "CBA.AX\n")
+#< <(printf "^AXJO\nBHP.AX\nCBA.AX")
 # < (dmStocksNoAttr)
 
 IFS=$OLDIFS

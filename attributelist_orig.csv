@@ -340,4 +340,7 @@
 (cmd_uhn).a4,cmd_uhn_a4
 (cmd_uhn).a5,cmd_uhn_a5
 (cmd_uhn).a6,cmd_uhn_a6
+dow,dow
+week,week
+optexpday,optexpday
 next5,next5

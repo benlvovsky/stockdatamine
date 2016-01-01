@@ -5,7 +5,7 @@ source ./wekacommon.sh
 
 OLDIFS=$IFS
 IFS=,
-limit=1000
+limit=480
 wkCost=100
 wkNu=0.5615
 
@@ -17,7 +17,7 @@ do
 	excludeAttrList=$(psql -h localhost -U postgres -d postgres -c "COPY (select excludedattributes from dataminestocks where stockname='$stockName') to STDOUT")
 	date=$(extractLastDate ${stockName})
 	wkCalcModel $stockName "$excludeAttrList" 2
-	echo "$excludeAttrList"
+	#echo "$excludeAttrList"
 	mv models/${stockName}_currtrialattr.model models/${stockName}_bestattr.model
 
 	psql -h localhost -U postgres -d postgres -c "update dataminestocks set correlation=${correlation}, corrdate='$date'::date where stockname='${stockName}'"
@@ -27,8 +27,4 @@ do
 done < <(printf "^AXJO\nBHP.AX\nCBA.AX\n")
 #<(dmTheStocks "^AXJO")
 #(dmStocks)
-
-#echo "Sorted stocks by correlation:"
-#dmStocksOrd
 IFS=$OLDIFS
-#psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks) to STDOUT WITH CSV delimiter as ','"
