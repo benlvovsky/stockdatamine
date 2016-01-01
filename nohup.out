@@ -1,0 +1,685 @@
+CBA.AX...
+copy no index removal.       Original correlation=0.4412
+classAttribute='next5'
+Trying attribute 'a1' index 1
+Trial correlation=0.439. Not better. Still on 0.4412
+Trying attribute 'a2' index 2
+Trial correlation=0.4425. It is better with removed attribute 2 a2
+Trying attribute 'a3' index 3
+Trial correlation=0.443. It is better with removed attribute 3 a3
+Trying attribute 'a4' index 4
+Trial correlation=0.4436. It is better with removed attribute 4 a4
+Trying attribute 'a5' index 5
+Trial correlation=0.4444. It is better with removed attribute 5 a5
+Trying attribute 'a6' index 6
+Trial correlation=0.446. It is better with removed attribute 6 a6
+Trying attribute 'aord_a1' index 7
+Trial correlation=0.4429. Not better. Still on 0.446
+Trying attribute 'aord_a2' index 8
+Trial correlation=0.4462. It is better with removed attribute 8 aord_a2
+Trying attribute 'aord_a3' index 9
+Trial correlation=0.4474. It is better with removed attribute 9 aord_a3
+Trying attribute 'aord_a4' index 10
+Trial correlation=0.4481. It is better with removed attribute 10 aord_a4
+Trying attribute 'aord_a5' index 11
+Trial correlation=0.4482. It is better with removed attribute 11 aord_a5
+Trying attribute 'aord_a6' index 12
+Trial correlation=0.448. Not better. Still on 0.4482
+Trying attribute 'n225_a1' index 13
+Trial correlation=0.4503. It is better with removed attribute 13 n225_a1
+Trying attribute 'n225_a2' index 14
+Trial correlation=0.4498. Not better. Still on 0.4503
+Trying attribute 'n225_a3' index 15
+Trial correlation=0.4505. It is better with removed attribute 15 n225_a3
+Trying attribute 'n225_a4' index 16
+Trial correlation=0.4513. It is better with removed attribute 16 n225_a4
+Trying attribute 'n225_a5' index 17
+Trial correlation=0.4527. It is better with removed attribute 17 n225_a5
+Trying attribute 'n225_a6' index 18
+Trial correlation=0.4531. It is better with removed attribute 18 n225_a6
+Trying attribute 'ndx_a1' index 19
+Trial correlation=0.4532. It is better with removed attribute 19 ndx_a1
+Trying attribute 'ndx_a2' index 20
+Trial correlation=0.4539. It is better with removed attribute 20 ndx_a2
+Trying attribute 'ndx_a3' index 21
+Trial correlation=0.4543. It is better with removed attribute 21 ndx_a3
+Trying attribute 'ndx_a4' index 22
+Trial correlation=0.4533. Not better. Still on 0.4543
+Trying attribute 'ndx_a5' index 23
+Trial correlation=0.4518. Not better. Still on 0.4543
+Trying attribute 'ndx_a6' index 24
+Trial correlation=0.4528. Not better. Still on 0.4543
+Trying attribute 'dji_a1' index 25
+Trial correlation=0.4536. Not better. Still on 0.4543
+Trying attribute 'dji_a2' index 26
+Trial correlation=0.4539. Not better. Still on 0.4543
+Trying attribute 'dji_a3' index 27
+Trial correlation=0.4544. It is better with removed attribute 27 dji_a3
+Trying attribute 'dji_a4' index 28
+Trial correlation=0.4544. Not better. Still on 0.4544
+Trying attribute 'dji_a5' index 29
+Trial correlation=0.453. Not better. Still on 0.4544
+Trying attribute 'dji_a6' index 30
+Trial correlation=0.4541. Not better. Still on 0.4544
+Trying attribute 'ftse_a1' index 31
+Trial correlation=0.4541. Not better. Still on 0.4544
+Trying attribute 'ftse_a2' index 32
+Trial correlation=0.4547. It is better with removed attribute 32 ftse_a2
+Trying attribute 'ftse_a3' index 33
+Trial correlation=0.4551. It is better with removed attribute 33 ftse_a3
+Trying attribute 'ftse_a4' index 34
+Trial correlation=0.4547. Not better. Still on 0.4551
+Trying attribute 'ftse_a5' index 35
+Trial correlation=0.4553. It is better with removed attribute 35 ftse_a5
+Trying attribute 'ftse_a6' index 36
+Trial correlation=0.4552. Not better. Still on 0.4553
+Trying attribute 'gdaxi_a1' index 37
+Trial correlation=0.4569. It is better with removed attribute 37 gdaxi_a1
+Trying attribute 'gdaxi_a2' index 38
+Trial correlation=0.4567. Not better. Still on 0.4569
+Trying attribute 'gdaxi_a3' index 39
+Trial correlation=0.4559. Not better. Still on 0.4569
+Trying attribute 'gdaxi_a4' index 40
+Trial correlation=0.4565. Not better. Still on 0.4569
+Trying attribute 'gdaxi_a5' index 41
+Trial correlation=0.4574. It is better with removed attribute 41 gdaxi_a5
+Trying attribute 'gdaxi_a6' index 42
+Trial correlation=0.4579. It is better with removed attribute 42 gdaxi_a6
+Trying attribute 'ssec_a1' index 43
+Trial correlation=0.4573. Not better. Still on 0.4579
+Trying attribute 'ssec_a2' index 44
+Trial correlation=0.4572. Not better. Still on 0.4579
+Trying attribute 'ssec_a3' index 45
+Trial correlation=0.4577. Not better. Still on 0.4579
+Trying attribute 'ssec_a4' index 46
+Trial correlation=0.4579. Not better. Still on 0.4579
+Trying attribute 'ssec_a5' index 47
+Trial correlation=0.4576. Not better. Still on 0.4579
+Trying attribute 'ssec_a6' index 48
+Trial correlation=0.4579. Not better. Still on 0.4579
+Trying attribute 'hsi_a1' index 49
+Trial correlation=0.4581. It is better with removed attribute 49 hsi_a1
+Trying attribute 'hsi_a2' index 50
+Trial correlation=0.4584. It is better with removed attribute 50 hsi_a2
+Trying attribute 'hsi_a3' index 51
+Trial correlation=0.4574. Not better. Still on 0.4584
+Trying attribute 'hsi_a4' index 52
+Trial correlation=0.4585. It is better with removed attribute 52 hsi_a4
+Trying attribute 'hsi_a5' index 53
+Trial correlation=0.4578. Not better. Still on 0.4585
+Trying attribute 'hsi_a6' index 54
+Trial correlation=0.4582. Not better. Still on 0.4585
+Trying attribute 'bsesn_a1' index 55
+Trial correlation=0.4615. It is better with removed attribute 55 bsesn_a1
+Trying attribute 'bsesn_a2' index 56
+Trial correlation=0.4619. It is better with removed attribute 56 bsesn_a2
+Trying attribute 'bsesn_a3' index 57
+Trial correlation=0.4629. It is better with removed attribute 57 bsesn_a3
+Trying attribute 'bsesn_a4' index 58
+Trial correlation=0.4625. Not better. Still on 0.4629
+Trying attribute 'bsesn_a5' index 59
+Trial correlation=0.4632. It is better with removed attribute 59 bsesn_a5
+Trying attribute 'bsesn_a6' index 60
+Trial correlation=0.4639. It is better with removed attribute 60 bsesn_a6
+Trying attribute 'jkse_a1' index 61
+Trial correlation=0.455. Not better. Still on 0.4639
+Trying attribute 'jkse_a2' index 62
+Trial correlation=0.4641. It is better with removed attribute 62 jkse_a2
+Trying attribute 'jkse_a3' index 63
+Trial correlation=0.4643. It is better with removed attribute 63 jkse_a3
+Trying attribute 'jkse_a4' index 64
+Trial correlation=0.464. Not better. Still on 0.4643
+Trying attribute 'jkse_a5' index 65
+Trial correlation=0.464. Not better. Still on 0.4643
+Trying attribute 'jkse_a6' index 66
+Trial correlation=0.4643. Not better. Still on 0.4643
+Trying attribute 'nz50_a1' index 67
+Trial correlation=0.4538. Not better. Still on 0.4643
+Trying attribute 'nz50_a2' index 68
+Trial correlation=0.4654. It is better with removed attribute 68 nz50_a2
+Trying attribute 'nz50_a3' index 69
+Trial correlation=0.4656. It is better with removed attribute 69 nz50_a3
+Trying attribute 'nz50_a4' index 70
+Trial correlation=0.4653. Not better. Still on 0.4656
+Trying attribute 'nz50_a5' index 71
+Trial correlation=0.4653. Not better. Still on 0.4656
+Trying attribute 'nz50_a6' index 72
+Trial correlation=0.4656. Not better. Still on 0.4656
+Trying attribute 'sti_a1' index 73
+Trial correlation=0.4642. Not better. Still on 0.4656
+Trying attribute 'sti_a2' index 74
+Trial correlation=0.4666. It is better with removed attribute 74 sti_a2
+Trying attribute 'sti_a3' index 75
+Trial correlation=0.4668. It is better with removed attribute 75 sti_a3
+Trying attribute 'sti_a4' index 76
+Trial correlation=0.4673. It is better with removed attribute 76 sti_a4
+Trying attribute 'sti_a5' index 77
+Trial correlation=0.468. It is better with removed attribute 77 sti_a5
+Trying attribute 'sti_a6' index 78
+Trial correlation=0.4679. Not better. Still on 0.468
+Trying attribute 'ks11_a1' index 79
+Trial correlation=0.4705. It is better with removed attribute 79 ks11_a1
+Trying attribute 'ks11_a2' index 80
+Trial correlation=0.4703. Not better. Still on 0.4705
+Trying attribute 'ks11_a3' index 81
+Trial correlation=0.4705. Not better. Still on 0.4705
+Trying attribute 'ks11_a4' index 82
+Trial correlation=0.4703. Not better. Still on 0.4705
+Trying attribute 'ks11_a5' index 83
+Trial correlation=0.4697. Not better. Still on 0.4705
+Trying attribute 'ks11_a6' index 84
+Trial correlation=0.4697. Not better. Still on 0.4705
+Trying attribute 'twii_a1' index 85
+Trial correlation=0.4702. Not better. Still on 0.4705
+Trying attribute 'twii_a2' index 86
+Trial correlation=0.4704. Not better. Still on 0.4705
+Trying attribute 'twii_a3' index 87
+Trial correlation=0.4705. Not better. Still on 0.4705
+Trying attribute 'twii_a4' index 88
+Trial correlation=0.4703. Not better. Still on 0.4705
+Trying attribute 'twii_a5' index 89
+Trial correlation=0.4703. Not better. Still on 0.4705
+Trying attribute 'twii_a6' index 90
+Trial correlation=0.4702. Not better. Still on 0.4705
+Trying attribute 'bvsp_a1' index 91
+Trial correlation=0.4705. Not better. Still on 0.4705
+Trying attribute 'bvsp_a2' index 92
+Trial correlation=0.4698. Not better. Still on 0.4705
+Trying attribute 'bvsp_a3' index 93
+Trial correlation=0.468. Not better. Still on 0.4705
+Trying attribute 'bvsp_a4' index 94
+Trial correlation=0.4695. Not better. Still on 0.4705
+Trying attribute 'bvsp_a5' index 95
+Trial correlation=0.4692. Not better. Still on 0.4705
+Trying attribute 'bvsp_a6' index 96
+Trial correlation=0.4625. Not better. Still on 0.4705
+Trying attribute 'gsptse_a1' index 97
+Trial correlation=0.4635. Not better. Still on 0.4705
+Trying attribute 'gsptse_a2' index 98
+Trial correlation=0.4692. Not better. Still on 0.4705
+Trying attribute 'gsptse_a3' index 99
+Trial correlation=0.4705. Not better. Still on 0.4705
+Trying attribute 'gsptse_a4' index 100
+Trial correlation=0.4712. It is better with removed attribute 100 gsptse_a4
+Trying attribute 'gsptse_a5' index 101
+Trial correlation=0.4676. Not better. Still on 0.4712
+Trying attribute 'gsptse_a6' index 102
+Trial correlation=0.47. Not better. Still on 0.4712
+Trying attribute 'mxx_a1' index 103
+Trial correlation=0.4698. Not better. Still on 0.4712
+Trying attribute 'mxx_a2' index 104
+Trial correlation=0.4715. It is better with removed attribute 104 mxx_a2
+Trying attribute 'mxx_a3' index 105
+Trial correlation=0.4718. It is better with removed attribute 105 mxx_a3
+Trying attribute 'mxx_a4' index 106
+Trial correlation=0.4721. It is better with removed attribute 106 mxx_a4
+Trying attribute 'mxx_a5' index 107
+Trial correlation=0.4719. Not better. Still on 0.4721
+Trying attribute 'mxx_a6' index 108
+Trial correlation=0.4701. Not better. Still on 0.4721
+Trying attribute 'gspc_a1' index 109
+Trial correlation=0.4707. Not better. Still on 0.4721
+Trying attribute 'gspc_a2' index 110
+Trial correlation=0.47. Not better. Still on 0.4721
+Trying attribute 'gspc_a3' index 111
+Trial correlation=0.4715. Not better. Still on 0.4721
+Trying attribute 'gspc_a4' index 112
+Trial correlation=0.4725. It is better with removed attribute 112 gspc_a4
+Trying attribute 'gspc_a5' index 113
+Trial correlation=0.4721. Not better. Still on 0.4725
+Trying attribute 'gspc_a6' index 114
+Trial correlation=0.4729. It is better with removed attribute 114 gspc_a6
+Trying attribute 'atx_a1' index 115
+Trial correlation=0.4732. It is better with removed attribute 115 atx_a1
+Trying attribute 'atx_a2' index 116
+Trial correlation=0.4705. Not better. Still on 0.4732
+Trying attribute 'atx_a3' index 117
+Trial correlation=0.4729. Not better. Still on 0.4732
+Trying attribute 'atx_a4' index 118
+Trial correlation=0.4732. Not better. Still on 0.4732
+Trying attribute 'atx_a5' index 119
+Trial correlation=0.472. Not better. Still on 0.4732
+Trying attribute 'atx_a6' index 120
+Trial correlation=0.474. It is better with removed attribute 120 atx_a6
+Trying attribute 'bfx_a1' index 121
+Trial correlation=0.4768. It is better with removed attribute 121 bfx_a1
+Trying attribute 'bfx_a2' index 122
+Trial correlation=0.4763. Not better. Still on 0.4768
+Trying attribute 'bfx_a3' index 123
+Trial correlation=0.4759. Not better. Still on 0.4768
+Trying attribute 'bfx_a4' index 124
+Trial correlation=0.4738. Not better. Still on 0.4768
+Trying attribute 'bfx_a5' index 125
+Trial correlation=0.4746. Not better. Still on 0.4768
+Trying attribute 'bfx_a6' index 126
+Trial correlation=0.4725. Not better. Still on 0.4768
+Trying attribute 'fchi_a1' index 127
+Trial correlation=0.477. It is better with removed attribute 127 fchi_a1
+Trying attribute 'fchi_a2' index 128
+Trial correlation=0.4772. It is better with removed attribute 128 fchi_a2
+Trying attribute 'fchi_a3' index 129
+Trial correlation=0.4772. Not better. Still on 0.4772
+Trying attribute 'fchi_a4' index 130
+Trial correlation=0.477. Not better. Still on 0.4772
+Trying attribute 'fchi_a5' index 131
+Trial correlation=0.4746. Not better. Still on 0.4772
+Trying attribute 'fchi_a6' index 132
+Trial correlation=0.4749. Not better. Still on 0.4772
+Trying attribute 'ssmi_a1' index 133
+Trial correlation=0.4769. Not better. Still on 0.4772
+Trying attribute 'ssmi_a2' index 134
+Trial correlation=0.4754. Not better. Still on 0.4772
+Trying attribute 'ssmi_a3' index 135
+Trial correlation=0.4769. Not better. Still on 0.4772
+Trying attribute 'ssmi_a4' index 136
+Trial correlation=0.4767. Not better. Still on 0.4772
+Trying attribute 'ssmi_a5' index 137
+Trial correlation=0.4748. Not better. Still on 0.4772
+Trying attribute 'ssmi_a6' index 138
+Trial correlation=0.4755. Not better. Still on 0.4772
+Trying attribute 'gd_a1' index 139
+Trial correlation=0.4784. It is better with removed attribute 139 gd_a1
+Trying attribute 'gd_a2' index 140
+Trial correlation=0.4779. Not better. Still on 0.4784
+Trying attribute 'gd_a3' index 141
+Trial correlation=0.478. Not better. Still on 0.4784
+Trying attribute 'gd_a4' index 142
+Trial correlation=0.4786. It is better with removed attribute 142 gd_a4
+Trying attribute 'gd_a5' index 143
+Trial correlation=0.4789. It is better with removed attribute 143 gd_a5
+Trying attribute 'gd_a6' index 144
+Trial correlation=0.4789. Not better. Still on 0.4789
+Trying attribute 'eurusd_a1' index 145
+Trial correlation=0.4795. It is better with removed attribute 145 eurusd_a1
+Trying attribute 'eurusd_a2' index 146
+Trial correlation=0.4797. It is better with removed attribute 146 eurusd_a2
+Trying attribute 'eurusd_a3' index 147
+Trial correlation=0.4805. It is better with removed attribute 147 eurusd_a3
+Trying attribute 'eurusd_a4' index 148
+Trial correlation=0.481. It is better with removed attribute 148 eurusd_a4
+Trying attribute 'eurusd_a5' index 149
+Trial correlation=0.4816. It is better with removed attribute 149 eurusd_a5
+Trying attribute 'eurusd_a6' index 150
+Trial correlation=0.4822. It is better with removed attribute 150 eurusd_a6
+Trying attribute 'usdjpy_a1' index 151
+Trial correlation=0.4828. It is better with removed attribute 151 usdjpy_a1
+Trying attribute 'usdjpy_a2' index 152
+Trial correlation=0.4829. It is better with removed attribute 152 usdjpy_a2
+Trying attribute 'usdjpy_a3' index 153
+Trial correlation=0.4836. It is better with removed attribute 153 usdjpy_a3
+Trying attribute 'usdjpy_a4' index 154
+Trial correlation=0.4841. It is better with removed attribute 154 usdjpy_a4
+Trying attribute 'usdjpy_a5' index 155
+Trial correlation=0.4847. It is better with removed attribute 155 usdjpy_a5
+Trying attribute 'usdjpy_a6' index 156
+Trial correlation=0.4853. It is better with removed attribute 156 usdjpy_a6
+Trying attribute 'usdchf_a1' index 157
+Trial correlation=0.4858. It is better with removed attribute 157 usdchf_a1
+Trying attribute 'usdchf_a2' index 158
+Trial correlation=0.4857. Not better. Still on 0.4858
+Trying attribute 'usdchf_a3' index 159
+Trial correlation=0.4866. It is better with removed attribute 159 usdchf_a3
+Trying attribute 'usdchf_a4' index 160
+Trial correlation=0.4871. It is better with removed attribute 160 usdchf_a4
+Trying attribute 'usdchf_a5' index 161
+Trial correlation=0.4876. It is better with removed attribute 161 usdchf_a5
+Trying attribute 'usdchf_a6' index 162
+Trial correlation=0.4882. It is better with removed attribute 162 usdchf_a6
+Trying attribute 'gbpusd_a1' index 163
+Trial correlation=0.4888. It is better with removed attribute 163 gbpusd_a1
+Trying attribute 'gbpusd_a2' index 164
+Trial correlation=0.4887. Not better. Still on 0.4888
+Trying attribute 'gbpusd_a3' index 165
+Trial correlation=0.4896. It is better with removed attribute 165 gbpusd_a3
+Trying attribute 'gbpusd_a4' index 166
+Trial correlation=0.4902. It is better with removed attribute 166 gbpusd_a4
+Trying attribute 'gbpusd_a5' index 167
+Trial correlation=0.4908. It is better with removed attribute 167 gbpusd_a5
+Trying attribute 'gbpusd_a6' index 168
+Trial correlation=0.4913. It is better with removed attribute 168 gbpusd_a6
+Trying attribute 'usdcad_a1' index 169
+Trial correlation=0.4919. It is better with removed attribute 169 usdcad_a1
+Trying attribute 'usdcad_a2' index 170
+Trial correlation=0.4919. Not better. Still on 0.4919
+Trying attribute 'usdcad_a3' index 171
+Trial correlation=0.4926. It is better with removed attribute 171 usdcad_a3
+Trying attribute 'usdcad_a4' index 172
+Trial correlation=0.4932. It is better with removed attribute 172 usdcad_a4
+Trying attribute 'usdcad_a5' index 173
+Trial correlation=0.4937. It is better with removed attribute 173 usdcad_a5
+Trying attribute 'usdcad_a6' index 174
+Trial correlation=0.4943. It is better with removed attribute 174 usdcad_a6
+Trying attribute 'eurgbp_a1' index 175
+Trial correlation=0.4949. It is better with removed attribute 175 eurgbp_a1
+Trying attribute 'eurgbp_a2' index 176
+Trial correlation=0.495. It is better with removed attribute 176 eurgbp_a2
+Trying attribute 'eurgbp_a3' index 177
+Trial correlation=0.4959. It is better with removed attribute 177 eurgbp_a3
+Trying attribute 'eurgbp_a4' index 178
+Trial correlation=0.4964. It is better with removed attribute 178 eurgbp_a4
+Trying attribute 'eurgbp_a5' index 179
+Trial correlation=0.497. It is better with removed attribute 179 eurgbp_a5
+Trying attribute 'eurgbp_a6' index 180
+Trial correlation=0.4977. It is better with removed attribute 180 eurgbp_a6
+Trying attribute 'eurjpy_a1' index 181
+Trial correlation=0.4981. It is better with removed attribute 181 eurjpy_a1
+Trying attribute 'eurjpy_a2' index 182
+Trial correlation=0.4981. Not better. Still on 0.4981
+Trying attribute 'eurjpy_a3' index 183
+Trial correlation=0.499. It is better with removed attribute 183 eurjpy_a3
+Trying attribute 'eurjpy_a4' index 184
+Trial correlation=0.4995. It is better with removed attribute 184 eurjpy_a4
+Trying attribute 'eurjpy_a5' index 185
+Trial correlation=0.5001. It is better with removed attribute 185 eurjpy_a5
+Trying attribute 'eurjpy_a6' index 186
+Trial correlation=0.5007. It is better with removed attribute 186 eurjpy_a6
+Trying attribute 'eurchf_a1' index 187
+Trial correlation=0.5012. It is better with removed attribute 187 eurchf_a1
+Trying attribute 'eurchf_a2' index 188
+Trial correlation=0.5013. It is better with removed attribute 188 eurchf_a2
+Trying attribute 'eurchf_a3' index 189
+Trial correlation=0.5022. It is better with removed attribute 189 eurchf_a3
+Trying attribute 'eurchf_a4' index 190
+Trial correlation=0.5027. It is better with removed attribute 190 eurchf_a4
+Trying attribute 'eurchf_a5' index 191
+Trial correlation=0.5034. It is better with removed attribute 191 eurchf_a5
+Trying attribute 'eurchf_a6' index 192
+Trial correlation=0.5041. It is better with removed attribute 192 eurchf_a6
+Trying attribute 'audusd_a1' index 193
+Trial correlation=0.5046. It is better with removed attribute 193 audusd_a1
+Trying attribute 'audusd_a2' index 194
+Trial correlation=0.5044. Not better. Still on 0.5046
+Trying attribute 'audusd_a3' index 195
+Trial correlation=0.5055. It is better with removed attribute 195 audusd_a3
+Trying attribute 'audusd_a4' index 196
+Trial correlation=0.5058. It is better with removed attribute 196 audusd_a4
+Trying attribute 'audusd_a5' index 197
+Trial correlation=0.5063. It is better with removed attribute 197 audusd_a5
+Trying attribute 'audusd_a6' index 198
+Trial correlation=0.5069. It is better with removed attribute 198 audusd_a6
+Trying attribute 'gbpjpy_a1' index 199
+Trial correlation=0.5073. It is better with removed attribute 199 gbpjpy_a1
+Trying attribute 'gbpjpy_a2' index 200
+Trial correlation=0.507. Not better. Still on 0.5073
+Trying attribute 'gbpjpy_a3' index 201
+Trial correlation=0.508. It is better with removed attribute 201 gbpjpy_a3
+Trying attribute 'gbpjpy_a4' index 202
+Trial correlation=0.5082. It is better with removed attribute 202 gbpjpy_a4
+Trying attribute 'gbpjpy_a5' index 203
+Trial correlation=0.5088. It is better with removed attribute 203 gbpjpy_a5
+Trying attribute 'gbpjpy_a6' index 204
+Trial correlation=0.5094. It is better with removed attribute 204 gbpjpy_a6
+Trying attribute 'chfjpy_a1' index 205
+Trial correlation=0.5097. It is better with removed attribute 205 chfjpy_a1
+Trying attribute 'chfjpy_a2' index 206
+Trial correlation=0.5095. Not better. Still on 0.5097
+Trying attribute 'chfjpy_a3' index 207
+Trial correlation=0.5104. It is better with removed attribute 207 chfjpy_a3
+Trying attribute 'chfjpy_a4' index 208
+Trial correlation=0.5106. It is better with removed attribute 208 chfjpy_a4
+Trying attribute 'chfjpy_a5' index 209
+Trial correlation=0.5112. It is better with removed attribute 209 chfjpy_a5
+Trying attribute 'chfjpy_a6' index 210
+Trial correlation=0.5119. It is better with removed attribute 210 chfjpy_a6
+Trying attribute 'gbpchf_a1' index 211
+Trial correlation=0.5121. It is better with removed attribute 211 gbpchf_a1
+Trying attribute 'gbpchf_a2' index 212
+Trial correlation=0.5123. It is better with removed attribute 212 gbpchf_a2
+Trying attribute 'gbpchf_a3' index 213
+Trial correlation=0.5132. It is better with removed attribute 213 gbpchf_a3
+Trying attribute 'gbpchf_a4' index 214
+Trial correlation=0.5133. It is better with removed attribute 214 gbpchf_a4
+Trying attribute 'gbpchf_a5' index 215
+Trial correlation=0.5136. It is better with removed attribute 215 gbpchf_a5
+Trying attribute 'gbpchf_a6' index 216
+Trial correlation=0.5136. Not better. Still on 0.5136
+Trying attribute 'nzdusd_a1' index 217
+Trial correlation=0.5131. Not better. Still on 0.5136
+Trying attribute 'nzdusd_a2' index 218
+Trial correlation=0.5137. It is better with removed attribute 218 nzdusd_a2
+Trying attribute 'nzdusd_a3' index 219
+Trial correlation=0.5138. It is better with removed attribute 219 nzdusd_a3
+Trying attribute 'nzdusd_a4' index 220
+Trial correlation=0.5125. Not better. Still on 0.5138
+Trying attribute 'nzdusd_a5' index 221
+Trial correlation=0.5134. Not better. Still on 0.5138
+Trying attribute 'nzdusd_a6' index 222
+Trial correlation=0.5133. Not better. Still on 0.5138
+Trying attribute 'cmd_choc_a1' index 223
+Trial correlation=0.513. Not better. Still on 0.5138
+Trying attribute 'cmd_choc_a2' index 224
+Trial correlation=0.5135. Not better. Still on 0.5138
+Trying attribute 'cmd_choc_a3' index 225
+Trial correlation=0.5141. It is better with removed attribute 225 cmd_choc_a3
+Trying attribute 'cmd_choc_a4' index 226
+Trial correlation=0.5151. It is better with removed attribute 226 cmd_choc_a4
+Trying attribute 'cmd_choc_a5' index 227
+Trial correlation=0.5161. It is better with removed attribute 227 cmd_choc_a5
+Trying attribute 'cmd_choc_a6' index 228
+Trial correlation=0.5183. It is better with removed attribute 228 cmd_choc_a6
+Trying attribute 'cmd_corn_a1' index 229
+Trial correlation=0.5178. Not better. Still on 0.5183
+Trying attribute 'cmd_corn_a2' index 230
+Trial correlation=0.5135. Not better. Still on 0.5183
+Trying attribute 'cmd_corn_a3' index 231
+Trial correlation=0.5196. It is better with removed attribute 231 cmd_corn_a3
+Trying attribute 'cmd_corn_a4' index 232
+Trial correlation=0.52. It is better with removed attribute 232 cmd_corn_a4
+Trying attribute 'cmd_corn_a5' index 233
+Trial correlation=0.5199. Not better. Still on 0.52
+Trying attribute 'cmd_corn_a6' index 234
+Trial correlation=0.5191. Not better. Still on 0.52
+Trying attribute 'cmd_ctnn_a1' index 235
+Trial correlation=0.5232. It is better with removed attribute 235 cmd_ctnn_a1
+Trying attribute 'cmd_ctnn_a2' index 236
+Trial correlation=0.5241. It is better with removed attribute 236 cmd_ctnn_a2
+Trying attribute 'cmd_ctnn_a3' index 237
+Trial correlation=0.525. It is better with removed attribute 237 cmd_ctnn_a3
+Trying attribute 'cmd_ctnn_a4' index 238
+Trial correlation=0.5261. It is better with removed attribute 238 cmd_ctnn_a4
+Trying attribute 'cmd_ctnn_a5' index 239
+Trial correlation=0.5271. It is better with removed attribute 239 cmd_ctnn_a5
+Trying attribute 'cmd_ctnn_a6' index 240
+Trial correlation=0.5252. Not better. Still on 0.5271
+Trying attribute 'cmd_cupm_a1' index 241
+Trial correlation=0.5271. Not better. Still on 0.5271
+Trying attribute 'cmd_cupm_a2' index 242
+Trial correlation=0.5268. Not better. Still on 0.5271
+Trying attribute 'cmd_cupm_a3' index 243
+Trial correlation=0.5267. Not better. Still on 0.5271
+Trying attribute 'cmd_cupm_a4' index 244
+Trial correlation=0.5269. Not better. Still on 0.5271
+Trying attribute 'cmd_cupm_a5' index 245
+Trial correlation=0.527. Not better. Still on 0.5271
+Trying attribute 'cmd_cupm_a6' index 246
+Trial correlation=0.5271. Not better. Still on 0.5271
+Trying attribute 'cmd_foil_a1' index 247
+Trial correlation=0.5214. Not better. Still on 0.5271
+Trying attribute 'cmd_foil_a2' index 248
+Trial correlation=0.526. Not better. Still on 0.5271
+Trying attribute 'cmd_foil_a3' index 249
+Trial correlation=0.5256. Not better. Still on 0.5271
+Trying attribute 'cmd_foil_a4' index 250
+Trial correlation=0.525. Not better. Still on 0.5271
+Trying attribute 'cmd_foil_a5' index 251
+Trial correlation=0.5258. Not better. Still on 0.5271
+Trying attribute 'cmd_foil_a6' index 252
+Trial correlation=0.526. Not better. Still on 0.5271
+Trying attribute 'cmd_gaz_a1' index 253
+Trial correlation=0.5283. It is better with removed attribute 253 cmd_gaz_a1
+Trying attribute 'cmd_gaz_a2' index 254
+Trial correlation=0.5272. Not better. Still on 0.5283
+Trying attribute 'cmd_gaz_a3' index 255
+Trial correlation=0.5282. Not better. Still on 0.5283
+Trying attribute 'cmd_gaz_a4' index 256
+Trial correlation=0.5291. It is better with removed attribute 256 cmd_gaz_a4
+Trying attribute 'cmd_gaz_a5' index 257
+Trial correlation=0.53. It is better with removed attribute 257 cmd_gaz_a5
+Trying attribute 'cmd_gaz_a6' index 258
+Trial correlation=0.527. Not better. Still on 0.53
+Trying attribute 'cmd_gld_a1' index 259
+Trial correlation=0.531. It is better with removed attribute 259 cmd_gld_a1
+Trying attribute 'cmd_gld_a2' index 260
+Trial correlation=0.5319. It is better with removed attribute 260 cmd_gld_a2
+Trying attribute 'cmd_gld_a3' index 261
+Trial correlation=0.5329. It is better with removed attribute 261 cmd_gld_a3
+Trying attribute 'cmd_gld_a4' index 262
+Trial correlation=0.5326. Not better. Still on 0.5329
+Trying attribute 'cmd_gld_a5' index 263
+Trial correlation=0.5337. It is better with removed attribute 263 cmd_gld_a5
+Trying attribute 'cmd_gld_a6' index 264
+Trial correlation=0.5338. It is better with removed attribute 264 cmd_gld_a6
+Trying attribute 'cmd_hevy_a1' index 265
+Trial correlation=0.5322. Not better. Still on 0.5338
+Trying attribute 'cmd_hevy_a2' index 266
+Trial correlation=0.5342. It is better with removed attribute 266 cmd_hevy_a2
+Trying attribute 'cmd_hevy_a3' index 267
+Trial correlation=0.5346. It is better with removed attribute 267 cmd_hevy_a3
+Trying attribute 'cmd_hevy_a4' index 268
+Trial correlation=0.534. Not better. Still on 0.5346
+Trying attribute 'cmd_hevy_a5' index 269
+Trial correlation=0.5343. Not better. Still on 0.5346
+Trying attribute 'cmd_hevy_a6' index 270
+Trial correlation=0.5343. Not better. Still on 0.5346
+Trying attribute 'cmd_ledd_a1' index 271
+Trial correlation=0.5346. Not better. Still on 0.5346
+Trying attribute 'cmd_ledd_a2' index 272
+Trial correlation=0.535. It is better with removed attribute 272 cmd_ledd_a2
+Trying attribute 'cmd_ledd_a3' index 273
+Trial correlation=0.5352. It is better with removed attribute 273 cmd_ledd_a3
+Trying attribute 'cmd_ledd_a4' index 274
+Trial correlation=0.5354. It is better with removed attribute 274 cmd_ledd_a4
+Trying attribute 'cmd_ledd_a5' index 275
+Trial correlation=0.5356. It is better with removed attribute 275 cmd_ledd_a5
+Trying attribute 'cmd_ledd_a6' index 276
+Trial correlation=0.5357. It is better with removed attribute 276 cmd_ledd_a6
+Trying attribute 'cmd_lstk_a1' index 277
+Trial correlation=0.5374. It is better with removed attribute 277 cmd_lstk_a1
+Trying attribute 'cmd_lstk_a2' index 278
+Trial correlation=0.5375. It is better with removed attribute 278 cmd_lstk_a2
+Trying attribute 'cmd_lstk_a3' index 279
+Trial correlation=0.5381. It is better with removed attribute 279 cmd_lstk_a3
+Trying attribute 'cmd_lstk_a4' index 280
+Trial correlation=0.5368. Not better. Still on 0.5381
+Trying attribute 'cmd_lstk_a5' index 281
+Trial correlation=0.5383. It is better with removed attribute 281 cmd_lstk_a5
+Trying attribute 'cmd_lstk_a6' index 282
+Trial correlation=0.5386. It is better with removed attribute 282 cmd_lstk_a6
+Trying attribute 'cmd_nini_a1' index 283
+Trial correlation=0.5386. Not better. Still on 0.5386
+Trying attribute 'cmd_nini_a2' index 284
+Trial correlation=0.5378. Not better. Still on 0.5386
+Trying attribute 'cmd_nini_a3' index 285
+Trial correlation=0.5371. Not better. Still on 0.5386
+Trying attribute 'cmd_nini_a4' index 286
+Trial correlation=0.5385. Not better. Still on 0.5386
+Trying attribute 'cmd_nini_a5' index 287
+Trial correlation=0.5386. Not better. Still on 0.5386
+Trying attribute 'cmd_nini_a6' index 288
+Trial correlation=0.5384. Not better. Still on 0.5386
+Trying attribute 'cmd_oil_a1' index 289
+Trial correlation=0.535. Not better. Still on 0.5386
+Trying attribute 'cmd_oil_a2' index 290
+Trial correlation=0.5372. Not better. Still on 0.5386
+Trying attribute 'cmd_oil_a3' index 291
+Trial correlation=0.5395. It is better with removed attribute 291 cmd_oil_a3
+Trying attribute 'cmd_oil_a4' index 292
+Trial correlation=0.5402. It is better with removed attribute 292 cmd_oil_a4
+Trying attribute 'cmd_oil_a5' index 293
+Trial correlation=0.5403. It is better with removed attribute 293 cmd_oil_a5
+Trying attribute 'cmd_oil_a6' index 294
+Trial correlation=0.537. Not better. Still on 0.5403
+Trying attribute 'cmd_pall_a1' index 295
+Trial correlation=0.5404. It is better with removed attribute 295 cmd_pall_a1
+Trying attribute 'cmd_pall_a2' index 296
+Trial correlation=0.541. It is better with removed attribute 296 cmd_pall_a2
+Trying attribute 'cmd_pall_a3' index 297
+Trial correlation=0.5397. Not better. Still on 0.541
+Trying attribute 'cmd_pall_a4' index 298
+Trial correlation=0.5418. It is better with removed attribute 298 cmd_pall_a4
+Trying attribute 'cmd_pall_a5' index 299
+Trial correlation=0.5429. It is better with removed attribute 299 cmd_pall_a5
+Trying attribute 'cmd_pall_a6' index 300
+Trial correlation=0.542. Not better. Still on 0.5429
+Trying attribute 'cmd_pplt_a1' index 301
+Trial correlation=0.5414. Not better. Still on 0.5429
+Trying attribute 'cmd_pplt_a2' index 302
+Trial correlation=0.5435. It is better with removed attribute 302 cmd_pplt_a2
+Trying attribute 'cmd_pplt_a3' index 303
+Trial correlation=0.5424. Not better. Still on 0.5435
+Trying attribute 'cmd_pplt_a4' index 304
+Trial correlation=0.5425. Not better. Still on 0.5435
+Trying attribute 'cmd_pplt_a5' index 305
+Trial correlation=0.5438. It is better with removed attribute 305 cmd_pplt_a5
+Trying attribute 'cmd_pplt_a6' index 306
+Trial correlation=0.5434. Not better. Still on 0.5438
+Trying attribute 'cmd_sgar_a1' index 307
+Trial correlation=0.5481. It is better with removed attribute 307 cmd_sgar_a1
+Trying attribute 'cmd_sgar_a2' index 308
+Trial correlation=0.5461. Not better. Still on 0.5481
+Trying attribute 'cmd_sgar_a3' index 309
+Trial correlation=0.5484. It is better with removed attribute 309 cmd_sgar_a3
+Trying attribute 'cmd_sgar_a4' index 310
+Trial correlation=0.5485. It is better with removed attribute 310 cmd_sgar_a4
+Trying attribute 'cmd_sgar_a5' index 311
+Trial correlation=0.5466. Not better. Still on 0.5485
+Trying attribute 'cmd_sgar_a6' index 312
+Trial correlation=0.547. Not better. Still on 0.5485
+Trying attribute 'cmd_slv_a1' index 313
+Trial correlation=0.5485. Not better. Still on 0.5485
+Trying attribute 'cmd_slv_a2' index 314
+Trial correlation=0.5494. It is better with removed attribute 314 cmd_slv_a2
+Trying attribute 'cmd_slv_a3' index 315
+Trial correlation=0.5503. It is better with removed attribute 315 cmd_slv_a3
+Trying attribute 'cmd_slv_a4' index 316
+Trial correlation=0.5508. It is better with removed attribute 316 cmd_slv_a4
+Trying attribute 'cmd_slv_a5' index 317
+Trial correlation=0.5503. Not better. Still on 0.5508
+Trying attribute 'cmd_slv_a6' index 318
+Trial correlation=0.5504. Not better. Still on 0.5508
+Trying attribute 'cmd_soyb_a1' index 319
+Trial correlation=0.5494. Not better. Still on 0.5508
+Trying attribute 'cmd_soyb_a2' index 320
+Trial correlation=0.5506. Not better. Still on 0.5508
+Trying attribute 'cmd_soyb_a3' index 321
+Trial correlation=0.5459. Not better. Still on 0.5508
+Trying attribute 'cmd_soyb_a4' index 322
+Trial correlation=0.5501. Not better. Still on 0.5508
+Trying attribute 'cmd_soyb_a5' index 323
+Trial correlation=0.55. Not better. Still on 0.5508
+Trying attribute 'cmd_soyb_a6' index 324
+Trial correlation=0.5495. Not better. Still on 0.5508
+Trying attribute 'cmd_uhn_a1' index 325
+Trial correlation=0.5491. Not better. Still on 0.5508
+Trying attribute 'cmd_uhn_a2' index 326
+Trial correlation=0.5528. It is better with removed attribute 326 cmd_uhn_a2
+Trying attribute 'cmd_uhn_a3' index 327
+Trial correlation=0.5534. It is better with removed attribute 327 cmd_uhn_a3
+Trying attribute 'cmd_uhn_a4' index 328
+Trial correlation=0.5548. It is better with removed attribute 328 cmd_uhn_a4
+Trying attribute 'cmd_uhn_a5' index 329
+Trial correlation=0.5564. It is better with removed attribute 329 cmd_uhn_a5
+Trying attribute 'cmd_uhn_a6' index 330
+Trial correlation=0.5462. Not better. Still on 0.5564
+skipping class attribute
+Best attrbutes list for CBA.AX calculated
+UPDATE 1
+CBA.AX...
+copy no index removal.       ^AXJO...
+copy no index removal.       Original correlation=0.2276
+classAttribute='next5'
+Trying attribute 'a1' index 1
+Trial correlation=0.2255. Not better. Still on 0.2276
+Trying attribute 'a2' index 2
+Trial correlation=0.2276. Not better. Still on 0.2276
+Trying attribute 'a3' index 3
+Trial correlation=0.2278. It is better with removed attribute 3 a3
+Trying attribute 'a4' index 4
+Trial correlation=0.228. It is better with removed attribute 4 a4
+Trying attribute 'a5' index 5
+Trial correlation=0.228. Not better. Still on 0.228
+Trying attribute 'a6' index 6
+Trial correlation=0.2278. Not better. Still on 0.228
+Trying attribute 'aord_a1' index 7
+Trial correlation=0.2259. Not better. Still on 0.228
+Trying attribute 'aord_a2' index 8

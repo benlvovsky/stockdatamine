@@ -8,7 +8,7 @@ function maxDatePlusOne() {
 	echo "maxdate + 1 day from DB='$maxdate'"
 	maxdate=${maxdate//[[:blank:]]/} #trim
 	if [ -z "$maxdate" ]; then
-		maxdate="2014-01-01"
+		maxdate="2000-01-01"
 		echo "defaulted as was empty"
 	fi
 	#echo "maxdate in use: $maxdate"
@@ -42,27 +42,27 @@ function arAsCommaSep() {
 #cat downloadfxlist.csv | psql -h localhost -U postgres -d postgres -c "COPY downloadinstruments (instrument) FROM STDIN WITH CSV delimiter as ','"
 
 function dmTheStocks() {
-	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks where stockname in ('$1') order by stockname asc) to STDOUT WITH CSV delimiter as ','"
+	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks where active=true and stockname in ('$1') order by stockname asc) to STDOUT WITH CSV delimiter as ','"
 }
 
 function dmStocks() {
-	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks order by stockname asc) to STDOUT WITH CSV delimiter as ','"
+	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks where active=true order by stockname asc) to STDOUT WITH CSV delimiter as ','"
 }
 
 function dmStocksOrd() {
-	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks order by correlation desc) to STDOUT WITH CSV delimiter as ','"
+	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks where active=true order by correlation desc) to STDOUT WITH CSV delimiter as ','"
 }
 
 function dmStocksPredOrd() {
-	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks order by prediction desc) to STDOUT WITH CSV delimiter as ','"
+	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks where active=true order by prediction desc) to STDOUT WITH CSV delimiter as ','"
 }
 
 function dmStocksAbsPredOrd() {
-	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks order by abs(prediction) desc) to STDOUT WITH CSV delimiter as ','"
+	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks where active=true order by abs(prediction) desc) to STDOUT WITH CSV delimiter as ','"
 }
 
 function dmStocksNoAttr() {
-	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks where bestattributes is null or bestattributes ='') to STDOUT WITH CSV delimiter as ','"
+	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks where active=true and bestattributes is null or bestattributes ='') to STDOUT WITH CSV delimiter as ','"
 }
 
 function downloadInstruments() {
@@ -104,7 +104,9 @@ function calcModel() {
 		cat extracts/${1}.csv > extracts/${1}_currtrialattr.csv
 	fi
 	java -classpath $CP weka.core.converters.CSVLoader -B 1000 extracts/${1}_currtrialattr.csv > models/${1}_currtrialattr.arff;
+	rm -f models/${1}_currtrialattr.model
 	correlation=$(java -classpath $CP -Xmx1000m weka.classifiers.functions.LibSVM -S 4 -K 2 -D 3 -G 0.0 \
+			-Z \
 			-R 0.0 -N 0.74 -M 40.0 -C 5.0 -E 0.001 -P 0.1 \
 			-seed 1 \
 			-x $cv \
@@ -114,7 +116,7 @@ function calcModel() {
 }
 
 offset=30
-limit=200
+limit=400
 
 #sets variable 'date' to date and STDOUT attributeList stock in parameter $1
 function extractStock() {
