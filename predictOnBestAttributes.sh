@@ -34,7 +34,7 @@ do
 			| cut -d ' ' -f 4)
 	psql -h localhost -U postgres -d postgres -c "update dataminestocks set prediction=${prediction}, preddate='$date'::date where stockname='${stockName}'"
 	echo $stockName,$date,$prediction
-done < <(printf "^AXJO\nBHP.AX\nCBA.AX\nWOW.AX\n")
-#dmStocksOrd
+done < <(dmStocksToPredict)
+#<(printf "^AXJO\nBHP.AX\nCBA.AX\nWOW.AX\n")
 # | sort --field-separator=',' -nr --key=3 > "models/predicted.txt"
 IFS=$OLDIFS

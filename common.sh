@@ -49,6 +49,10 @@ function dmStocks() {
 	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks where active=true order by stockname asc) to STDOUT WITH CSV delimiter as ','"
 }
 
+function dmStocksToPredict() {
+	psql -h localhost -U postgres -d postgres -c "COPY (select stockname from dataminestocks where active=true and topredict=true order by stockname asc) to STDOUT WITH CSV delimiter as ','"
+}
+
 function dmStocksOrd() {
 	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks where active=true order by correlation desc) to STDOUT WITH CSV delimiter as ','"
 }
