@@ -1,8 +1,14 @@
 #!/bin/bash
 export CP=$WEKA_PATH:/home/ben/wekafiles/packages/LibSVM/LibSVM.jar:/home/ben/wekafiles/packages/LibSVM/lib/libsvm.jar:/media/bigdrive/dev/weka-3-7-13/weka.jar:$CLASSPATH
 
-wkCost=100
-wkNu=0.55
+if [ -z "$wkCost" ]
+then
+	wkCost=100
+fi
+if [ -z "$wkNu" ]
+then
+	wkNu=0.55
+fi
 
 #calculates mode with crossvalidating, saves into models/${1}_currtrialattr.model
 #used for building models mostly for calculation of best attributes and other parameters

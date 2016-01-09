@@ -9,7 +9,6 @@ then
 	exit 999
 fi
 
-
 OLDIFS=$IFS
 IFS=,
 start=$1
@@ -58,7 +57,7 @@ do
 		fi
 	done
 	psql -h localhost -U postgres -d postgres -c "update dataminestocks set bestnu='${best}', bestCorrelation=$bestCorrelation where stockname='${stockName}'"
-done  < <(printf "^AXJO\n")
+done  < <(printf "TLS.AX\n")
 # < (dmStocksNoAttr)
 
 IFS=$OLDIFS

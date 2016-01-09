@@ -24,7 +24,8 @@ do
 
 	echo -n " correlation ${correlation}. done."
 	echo ""
-done < <(printf "^AXJO\nBHP.AX\nCBA.AX\nWOW.AX\n")
+done < <(printf "TLS.AX\n")
+#"^AXJO\nBHP.AX\nCBA.AX\nWOW.AX\n"
 #<(dmTheStocks "^AXJO")
 #(dmStocks)
 IFS=$OLDIFS
