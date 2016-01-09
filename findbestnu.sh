@@ -58,7 +58,7 @@ do
 		fi
 	done
 	psql -h localhost -U postgres -d postgres -c "update dataminestocks set bestnu='${best}', bestCorrelation=$bestCorrelation where stockname='${stockName}'"
-done  < <(printf "CBA.AX\n")
+done  < <(printf "^AXJO\n")
 # < (dmStocksNoAttr)
 
 IFS=$OLDIFS

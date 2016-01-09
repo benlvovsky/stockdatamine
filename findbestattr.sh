@@ -10,10 +10,11 @@ crossvalidation=2
 #dmStocks
 limit=480
 wkCost=100
-wkNu=0.5615
+wkNu=0.55
 while read stockName tail
 do
 	echo "$stockName..."
+	rm -f extracts/${stockName}.csv
 	extractStock ${stockName} > extracts/${stockName}.csv
 #	calcModel ${stockName} "-" $crossvalidation
 	wkCalcModel ${stockName} "-" $crossvalidation
@@ -61,7 +62,7 @@ do
 	done
 	echo "Best attrbutes list for $stockName calculated"
 	psql -h localhost -U postgres -d postgres -c "update dataminestocks set bestattributes='${bestAttributes}', excludedattributes='${excludedAttrs}', bestCorrelation=$bestCorrelation where stockname='${stockName}'"
-done  < <(printf "WOW.AX\n")
+done  < <(printf "TLS.AX\n")
 #< <(printf "^AXJO\nBHP.AX\nCBA.AX\nWOW.AX\n")
 # < (dmStocksNoAttr)
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 export CP=$WEKA_PATH:/home/ben/wekafiles/packages/LibSVM/LibSVM.jar:/home/ben/wekafiles/packages/LibSVM/lib/libsvm.jar:/media/bigdrive/dev/weka-3-7-13/weka.jar:$CLASSPATH
 
-wkCost=5
-wkNu=0.74
+wkCost=100
+wkNu=0.55
 
 #calculates mode with crossvalidating, saves into models/${1}_currtrialattr.model
 #used for building models mostly for calculation of best attributes and other parameters
@@ -28,9 +28,10 @@ function wkCalcModel() {
 		echo -n "copy no index removal.       "
 		cat extracts/${1}.csv > extracts/${1}_currtrialattr.csv
 	fi
-	java -classpath $CP weka.core.converters.CSVLoader -B 1000 extracts/${1}_currtrialattr.csv > models/${1}_currtrialattr.arff;
+	rm -f models/${1}_currtrialattr.arff
+	java -classpath $CP weka.core.converters.CSVLoader -B 1000 extracts/${1}_currtrialattr.csv > models/${1}_currtrialattr.arff
 	rm -f models/${1}_currtrialattr.model
-
+	rm -f models/${1}_currtrialattr.model.output
 	wkCmd="java -classpath $CP -Xmx1000m weka.classifiers.functions.LibSVM -S 4 -K 2 -D 3 -G 0.0 \
 			-Z \
 			-R 0.0 \

@@ -7,7 +7,7 @@ OLDIFS=$IFS
 IFS=,
 limit=480
 wkCost=100
-wkNu=0.5615
+wkNu=0.556
 
 #./extract2csv.sh -m
 #psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks) to STDOUT WITH CSV delimiter as ','"
