@@ -95,7 +95,7 @@ function lsCsvToLibsvm() {
 	classIndex=${#attrArray[@]}
 	classIndex0Based=$(( $classIndex-1 ))
 	echo "classAttribute='$classAttribute', Last index=$classIndex, Last index 0 based=$classIndex0Based"
-	./csv2libsvm.py extracts/CBA.AX.csv extracts/CBA.AX_libsvm.txt $classIndex0Based 1
+	./csv2libsvm.py $1 $2 $classIndex0Based 1
 
 	IFS=OLDIFS
 }
