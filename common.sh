@@ -69,6 +69,10 @@ function dmStocksNoAttr() {
 	psql -h localhost -U postgres -d postgres -c "COPY (select * from dataminestocks where active=true and bestattributes is null or bestattributes ='') to STDOUT WITH CSV delimiter as ','"
 }
 
+function dmStocksOptimiseAttr() {
+	psql -h localhost -U postgres -d postgres -c "COPY (select stockname from dataminestocks where active=true and optimiseattr=true order by stockname asc) to STDOUT WITH CSV delimiter as ','"
+}
+
 function downloadInstruments() {
 	psql -h localhost -U postgres -d postgres -c "COPY (select instrument from downloadinstruments where type='$1') to STDOUT WITH CSV delimiter as ','"
 }

@@ -85,3 +85,17 @@ function wkBuildModel() {
 			-d "models/${1}_bestattr.model" | tee "models/${1}.model.output" \
 				| grep "Correlation coefficient" | tail -1 | tr -s ' ' | cut -d " " -f 3)
 }
+
+function wkCsvToLibsvm() {
+	OLDIFS=IFS
+	IFS=,
+	allAttributes=$(head -1 extracts/CBA.AX.csv)
+	read -r -a attrArray <<< "$allAttributes"
+	classAttribute=${attrArray[-1]}
+	classIndex=${#attrArray[@]}
+	echo "classAttribute='$classAttribute'"
+	echo "Last index=$classIndex"
+
+#	for tryAttr in ${allAttributes[@]}; do
+	IFS=OLDIFS
+}

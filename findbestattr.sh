@@ -62,7 +62,8 @@ do
 	done
 	echo "Best attrbutes list for $stockName calculated"
 	psql -h localhost -U postgres -d postgres -c "update dataminestocks set bestattributes='${bestAttributes}', excludedattributes='${excludedAttrs}', bestCorrelation=$bestCorrelation where stockname='${stockName}'"
-done  < <(printf "TLS.AX\n")
+done  < <(dmStocksOptimiseAttr)
+#<(printf "TLS.AX\n")
 #< <(printf "^AXJO\nBHP.AX\nCBA.AX\nWOW.AX\n")
 # < (dmStocksNoAttr)
 
