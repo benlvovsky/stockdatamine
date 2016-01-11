@@ -6,7 +6,6 @@ suffix="_test"
 OLDIFS=$IFS
 IFS=,
 
-#dmStocksOrd | 
 while read stockName tail
 do
 	excludeAttributeList=$(psql -h localhost -U postgres -d postgres -c \

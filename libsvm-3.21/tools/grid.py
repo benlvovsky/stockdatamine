@@ -26,7 +26,8 @@ class GridOption:
 			# svmtrain_pathname = r'c:\Program Files\libsvm\windows\svm-train.exe'
 			self.gnuplot_pathname = r'c:\tmp\gnuplot\binary\pgnuplot.exe'
 		self.fold = 5
-		self.c_begin, self.c_end, self.c_step = -5,  15,  2
+#bl changed to below:		self.c_begin, self.c_end, self.c_step = -5,  15,  2
+		self.c_begin, self.c_end, self.c_step = -5,  105,  2
 		self.g_begin, self.g_end, self.g_step =  3, -15, -2
 		self.grid_with_c, self.grid_with_g = True, True
 		self.dataset_pathname = dataset_pathname

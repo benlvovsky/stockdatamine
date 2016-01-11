@@ -99,3 +99,8 @@ function lsCsvToLibsvm() {
 
 	IFS=OLDIFS
 }
+
+function lsEasyCall() {
+	cd ~/dev/stocks/datamine/libsvm-3.21/tools
+	./easy.py ../../extracts/CBA.AX_libsvm_temptest1.txt ../../extracts/CBA.AX_test.txt
+}
