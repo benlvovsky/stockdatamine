@@ -14,8 +14,8 @@ then
 	exit 99
 elif [ "$1" = '-m' ]
 then
-	offset=30
-	limit=200
+	offset=42
+	limit=480
 	fileSuffix=''
 	extraAttributes=""
 	echo "	-m for models"

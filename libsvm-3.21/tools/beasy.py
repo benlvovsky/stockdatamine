@@ -49,22 +49,26 @@ cmd = '{0} -s "{1}" "{2}" > "{3}"'.format(svmscale_exe, range_file, train_pathna
 print('Scaling training data...')
 Popen(cmd, shell = True, stdout = PIPE).communicate()	
 
-#orig bl changed for below: cmd = '{0} -svmtrain "{1}" -gnuplot "{2}" "{3}"'.format(grid_py, svmtrain_exe, gnuplot_exe, scaled_file)
-cmd = '{0} -svmtrain "{1}" -gnuplot "{2}" -s 4 "{3}"'.format(grid_py, svmtrain_exe, gnuplot_exe, scaled_file)
-print('Cross validation...')
-f = Popen(cmd, shell = True, stdout = PIPE).stdout
+##orig bl changed for below: cmd = '{0} -svmtrain "{1}" -gnuplot "{2}" "{3}"'.format(grid_py, svmtrain_exe, gnuplot_exe, scaled_file)
+#cmd = '{0} -svmtrain "{1}" -gnuplot "{2}" -s 4 "{3}"'.format(grid_py, svmtrain_exe, gnuplot_exe, scaled_file)
+#print('Cross validation...')
+#f = Popen(cmd, shell = True, stdout = PIPE).stdout
+#
+#line = ''
+#while True:
+#	last_line = line
+#	line = f.readline()
+#	if not line: break
+#c,g,rate = map(float,last_line.split())
+#
+#print('Best c={0}, g={1} CV rate={2}'.format(c,g,rate))
 
-line = ''
-while True:
-	last_line = line
-	line = f.readline()
-	if not line: break
-c,g,rate = map(float,last_line.split())
-
-print('Best c={0}, g={1} CV rate={2}'.format(c,g,rate))
+c = 100
+g = 0.003003003
 
 #cmd = '{0} -c {1} -g {2} "{3}" "{4}"'.format(svmtrain_exe,c,g,scaled_file,model_file)
-cmd = '{0} -s 4 -c {1} -g {2} "{3}" "{4}"'.format(svmtrain_exe,c,g,scaled_file,model_file)
+cmd = '{0} -s 4 -b 1 -c {1} -g {2} "{3}" "{4}"'.format(svmtrain_exe,c,g,scaled_file,model_file)
+#cmd = '{0} -s 4 -b 1 -v 10 -c {1} "{2}" "{3}"'.format(svmtrain_exe,c,scaled_file,model_file)
 print('Training...')
 Popen(cmd, shell = True, stdout = PIPE).communicate()
 
