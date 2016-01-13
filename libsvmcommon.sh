@@ -10,11 +10,6 @@ then
 	wkNu=0.55
 fi
 
-#rm -f range.fifo
-#rm -f extract.fifo
-#mkfifo range.fifo
-#mkfifo extract.fifo
-
 #calculates mode with crossvalidating, saves into models/${1}_currtrialattr.model
 #used for building models mostly for calculation of best attributes and other parameters
 function lsCalcModel() {
@@ -41,43 +36,45 @@ function lsCalcModel() {
 		extractdata=$(cat)
 	fi
 	echo "csv2libsvm..."
-	lsCsvToLibsvm <(printf "$extractdata") extracts/${1}.ls 1
-	$LSLIB/svm-scale -s extracts/${1}.range extracts/${1}.ls > extracts/${1}.ls.scaled
+	lsCsvToLibsvm <(printf "$extractdata") "extracts/${1}.ls" 1
+	$LSLIB/svm-scale -s "extracts/${1}.range" "extracts/${1}.ls" > "extracts/${1}.ls.scaled"
+#	set -x
+	IFS=
 	train_cmd="$LSLIB/svm-train -s 4 -t 2 -c $wkCost -n $wkNu $(echo "${cvOption}") extracts/${1}.ls.scaled models/${1}.ls.model"
-	trainres=$(eval $train_cmd)
+	trainres=$(eval ${train_cmd})
 	error=$(cat <(printf "$trainres") | grep "Cross Validation Mean squared error = " | tr -s ' ' | cut -d " " -f 7)
 	correlation=$(cat <(printf "$trainres") | grep "Squared correlation coefficient = " | tr -s ' ' | cut -d " " -f 7)
 }
 
-#calculates model without crossvalidating, saves into models/${1}_bestattr.model
-#used for building models with known best attributes and other parameters
-function wkBuildModel() {
-#	echo "stockname='$1', exclude Fields='$2'
-	
+function lsPredict() {
+	echo "stockname='$1'"
+
 	if [ "$2" != "-" ]
 	then
-		OIFS=$IFS
 		IFS=
-		echo -n "Remove attribute indexes $2. "
-		cat extracts/${1}.csv | cut --complement -d, -f $(echo $2) > extracts/${1}_currtrialattr.csv
-		IFS=$OIFS
+		extractdata=$(cut --complement -d, -f $(echo $2))
+		echo "excluded not needed attributes"
 	else
-		echo -n "copy no index removal.       "
-		cat extracts/${1}.csv > extracts/${1}_currtrialattr.csv
+		echo "copy no index removal.       "
+		extractdata=$(cat)
 	fi
-	java -classpath $CP weka.core.converters.CSVLoader -B 1000 extracts/${1}_currtrialattr.csv > models/${1}_currtrialattr.arff;
-	correlation=$(java -classpath $CP -Xmx1000m weka.classifiers.functions.LibSVM -S 4 -K 2 -D 3 -G 0.0 \
-			-Z \
-			-R 0.0 \
-			-N $wkNu \
-			-M 40.0 \
-			-C $wkCost \
-			-E 0.001 -P 0.1 \
-			-seed 1 \
-			-no-cv
-			-t "models/${1}_currtrialattr.arff" \
-			-d "models/${1}_bestattr.model" | tee "models/${1}.model.output" \
-				| grep "Correlation coefficient" | tail -1 | tr -s ' ' | cut -d " " -f 3)
+	echo "csv2libsvm..."
+	fixedClassOnlyNeededAttr=$(paste -d '\0' <(printf "$extractdata") <(printf '\n-100'))
+	echo "$fixedClassOnlyNeededAttr" > extracts/${1}.ls.excludedattrs.csv
+	echo "$extractdata" > debug1.txt
+	IFS=
+	#set -x
+#	lsCsvToLibsvm <(printf "$fixedClassOnlyNeededAttr") "extracts/${1}.ls.test"
+	lsCsvToLibsvm "extracts/${1}.ls.excludedattrs.csv" "extracts/${1}.ls.test"
+#	exit 1
+	$LSLIB/svm-scale -r "extracts/${1}.range" "extracts/${1}.ls.test" > "extracts/${1}.ls.test.scaled"
+
+	IFS=
+	cmd="$LSLIB/svm-predict extracts/${1}.ls.test.scaled models/${1}.ls.model models/${1}.ls.prediction"
+#	set -x
+	eval ${cmd}
+	prediction=$(cat models/${1}.ls.prediction)
+	echo "prediction:$prediction"
 }
 
 function lsCsvToLibsvm() {
