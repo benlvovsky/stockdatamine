@@ -66,7 +66,7 @@ function lsPredict() {
 	echo "csv2libsvm..."
 	fixedClassOnlyNeededAttr=$(paste -d '\0' <(printf "$extractdata") <(printf '\n-100'))
 	echo "$fixedClassOnlyNeededAttr" > extracts/${1}.ls.excludedattrs.csv
-	echo "$extractdata" > debug1.txt
+	echo "$extractdata" > extractdata_debug.txt
 	IFS=
 	lsCsvToLibsvm "extracts/${1}.ls.excludedattrs.csv" "extracts/${1}.ls.test"
 	$LSLIB/svm-scale -r "extracts/${1}.range" "extracts/${1}.ls.test" > "extracts/${1}.ls.test.scaled"
