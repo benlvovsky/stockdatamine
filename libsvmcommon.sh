@@ -10,12 +10,12 @@ then
 	wkNu=0.55
 fi
 
-#calculates mode with crossvalidating, saves into models/${1}_currtrialattr.model
+#calculates mode with crossvalidating, saves into models/${1}.model
 #used for building models mostly for calculation of best attributes and other parameters
 function lsCalcModel() {
 #	set -x
 #	echo "stockname='$1', exclude Fields='$2', cross validation folds='$3'"
-	echo "stockname='$1', cross validation folds='$3'"
+	echo "stockname='$1', cross validation folds='$3', cost='$wkCost'"
 	echo
 	if [ -z "$3" ]
 	then
@@ -35,13 +35,18 @@ function lsCalcModel() {
 		echo -n "copy no index removal.       "
 		extractdata=$(cat)
 	fi
-	echo "csv2libsvm..."
+	echo -n "csv2libsvm..."
 	lsCsvToLibsvm <(printf "$extractdata") "extracts/${1}.ls" 1
-	$LSLIB/svm-scale -s "extracts/${1}.range" "extracts/${1}.ls" > "extracts/${1}.ls.scaled"
+	echo "csv2libsvm finished"
+	echo -n "scaling..."
+	$LSLIB/svm-scale -s "extracts/${1}.range" "extracts/${1}.ls" > "extracts/${1}.ls.scaled" 2>/dev/null
+	echo "scaling finished"
 #	set -x
 	IFS=
 	train_cmd="$LSLIB/svm-train -s 4 -t 2 -c $wkCost -n $wkNu $(echo "${cvOption}") extracts/${1}.ls.scaled models/${1}.ls.model"
+	echo -n "training..."
 	trainres=$(eval ${train_cmd})
+	echo "training finished"
 	error=$(cat <(printf "$trainres") | grep "Cross Validation Mean squared error = " | tr -s ' ' | cut -d " " -f 7)
 	correlation=$(cat <(printf "$trainres") | grep "Squared correlation coefficient = " | tr -s ' ' | cut -d " " -f 7)
 }
@@ -63,10 +68,7 @@ function lsPredict() {
 	echo "$fixedClassOnlyNeededAttr" > extracts/${1}.ls.excludedattrs.csv
 	echo "$extractdata" > debug1.txt
 	IFS=
-	#set -x
-#	lsCsvToLibsvm <(printf "$fixedClassOnlyNeededAttr") "extracts/${1}.ls.test"
 	lsCsvToLibsvm "extracts/${1}.ls.excludedattrs.csv" "extracts/${1}.ls.test"
-#	exit 1
 	$LSLIB/svm-scale -r "extracts/${1}.range" "extracts/${1}.ls.test" > "extracts/${1}.ls.test.scaled"
 
 	IFS=
