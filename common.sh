@@ -70,7 +70,7 @@ function dmStocksNoAttr() {
 }
 
 function dmPredictions() {
-	psql -h localhost -U postgres -d postgres -c "COPY (select stockname,preddate,prediction from dataminestocks where active=true and topredict=true order by stockname asc) to STDOUT WITH CSV delimiter as ','"
+	psql -h localhost -U postgres -d postgres -c "COPY (select stockname,preddate,error,correlation,prediction from dataminestocks where active=true and topredict=true order by error asc) to STDOUT WITH CSV delimiter as ','"
 }
 
 function dmStocksOptimiseAttr() {
