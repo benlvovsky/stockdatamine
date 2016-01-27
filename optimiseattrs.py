@@ -11,8 +11,6 @@ from common import *
 cv=2
 limit=480
 offset=20
-#wkCost=100
-#wkNu=0.55
 
 def optimiseattrall():
 	print "optimiseattrall"

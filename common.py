@@ -2,13 +2,14 @@ import os
 import sys
 import csv
 import psycopg2
-import common
 import subprocess
+import cStringIO
 
-cv=10
+svmCost="100"
+svmNu="0.55"
 
-import sys
-import csv
+LSLIB="libsvm-3.21"
+
 from collections import defaultdict
 
 def construct_line( label, line ):
@@ -26,12 +27,10 @@ def construct_line( label, line ):
 	new_line += "\n"
 	return new_line
 
-# ---
-def csv2libsvm(input_file, output_file, label_index, skip_headers):
-
-	i = open( input_file, 'rb' )
+def csv2libsvm(iStr, output_file, label_index, skip_headers):
+	i = cStringIO.StringIO(iStr)
 	o = open( output_file, 'wb' )
-
+	
 	reader = csv.reader( i )
 
 	if skip_headers:
@@ -46,6 +45,9 @@ def csv2libsvm(input_file, output_file, label_index, skip_headers):
 		new_line = construct_line( label, line )
 		o.write( new_line )
 
+	o.close()
+	i.close()
+
 #calculates mode with crossvalidating, saves into models/${1}.model
 #used for building models mostly for calculation of best attributes and other parameters
 def lsCalcModel(stockname, exclude, cvNum, data):
@@ -54,9 +56,9 @@ def lsCalcModel(stockname, exclude, cvNum, data):
 	if (not cvNum) or (cvNum==""):
 		cvOption=""
 	else:
-		cvOption="-v ${2}"
+		cvOption=" -v {0} ".format(cvNum)
 
-	print "cvOption=${0}".format(cvOption)
+	print "cvOption="+cvOption
 
 	if (not exclude) or (exclude != "-") or (exclude == ""):
 		cmd = "cut --complement -d, -f $(echo {0})".format(cvOption)
@@ -71,19 +73,38 @@ def lsCalcModel(stockname, exclude, cvNum, data):
 	hdrArray=header.split(",")
 	hlen=len(hdrArray)
 	print "array len={0}, class is last title={1}".format(hlen, hdrArray[hlen-1])
-	os.system("./csv2libsvm.py extractdata lsdata hlen-1 1")
-	print lsdata
-##	lsCsvToLibsvm <(printf "$extractdata") "extracts/${1}.ls" 1
-#	./csv2libsvm.py $1 $2 $classIndex0Based 1
-#	echo "csv2libsvm finished"
-#	echo -n "scaling..."
-#	$LSLIB/svm-scale -s "extracts/${1}.range" "extracts/${1}.ls" > "extracts/${1}.ls.scaled" 2>/dev/null
-#	echo "scaling finished"
-#	IFS=
-#	train_cmd="$LSLIB/svm-train -s 4 -t 2 -c $wkCost -n $wkNu $(echo "${cvOption}") extracts/${1}.ls.scaled models/${1}.ls.model"
-#	echo -n "training..."
-#	trainres=$(eval ${train_cmd})
-#	echo "training finished"
+	csv2libsvm(extractdata, "extracts/{0}.ls".format(stockname), hlen-1, True)
+	
+	cmd=LSLIB+'/svm-scale -s "extracts/{0}.range"  "extracts/{0}.ls" > "extracts/{0}.ls.scaled"'.format(stockname)
+	print "Scaling... "#command='+cmd+"'"
+	proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	try:
+		errdata = proc.communicate()[1]
+		if errdata != None :
+			print "		Error: " + errdata
+	except:
+		True
+	print "...scaling finished"
+
+	cmd=LSLIB+'/svm-train -s 4 -t 2 -c ' + svmCost + ' -n ' + svmNu + cvOption + ' extracts/{0}.ls.scaled models/{0}.ls.model'.format(stockname)
+	print "Training... command='"+cmd+"'"
+	proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	trainres= proc.communicate()[0]
+	print "Stdout trainres: " + trainres
+	try:
+		errdata = proc.communicate()[1]
+		if errdata != None :
+			print "		Error: " + errdata
+	except:
+		True
+	print "...training finished"
+		#nothing
+	error= trainres.splitlines()[-2].split(" = ")[1]
+	corr = trainres.splitlines()[-1].split(" = ")[1]
+	print "Mean Squared Error='" + error +"'"
+	print "Correlation=       '" + corr  +"'"
+	
+	return (error, corr)
 #	error=$(cat <(printf "$trainres") | grep "Cross Validation Mean squared error = " | tr -s ' ' | cut -d " " -f 7)
 #	correlation=$(cat <(printf "$trainres") | grep "Squared correlation coefficient = " | tr -s ' ' | cut -d " " -f 7)
 #
@@ -102,7 +123,7 @@ def lsCalcModel(stockname, exclude, cvNum, data):
 #	fi
 #	echo "csv2libsvm..."
 #	#new view puts 0 in the unknown value
-##	fixedClassOnlyNeededAttr=$(paste -d '\0' <(printf "$extractdata") <(printf '\n-100'))
+##	fixedClassOnlyNeededAttr=$(import cStringIOpaste -d '\0' <(printf "$extractdata") <(printf '\n-100'))
 #	fixedClassOnlyNeededAttr=$extractdata
 #	echo "$fixedClassOnlyNeededAttr" > extracts/${1}.ls.excludedattrs.csv
 ##	echo "$extractdata" > extractdata_debug.txt
