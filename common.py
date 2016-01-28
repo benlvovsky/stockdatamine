@@ -98,17 +98,14 @@ def lsCalcModel(stockname, exclude, cvNum, data):
 	except:
 		True
 	print "...training finished"
-		#nothing
+
 	error= trainres.splitlines()[-2].split(" = ")[1]
 	corr = trainres.splitlines()[-1].split(" = ")[1]
 	print "Mean Squared Error='" + error +"'"
 	print "Correlation=       '" + corr  +"'"
 	
 	return (error, corr)
-#	error=$(cat <(printf "$trainres") | grep "Cross Validation Mean squared error = " | tr -s ' ' | cut -d " " -f 7)
-#	correlation=$(cat <(printf "$trainres") | grep "Squared correlation coefficient = " | tr -s ' ' | cut -d " " -f 7)
-#
-#
+
 #function lsPredict() {
 #	echo "stockname='$1'"
 #
@@ -138,18 +135,3 @@ def lsCalcModel(stockname, exclude, cvNum, data):
 #	prediction=$(cat models/${1}.ls.prediction)
 #	echo "prediction:$prediction"
 #}
-#
-#function lsCsvToLibsvm() {
-#	OLDIFS=IFS
-#	IFS=,
-#	allAttributes=$(head -1 $1)
-#	read -r -a attrArray <<< "$allAttributes"
-#	classAttribute=${attrArray[-1]}
-#	classIndex=${#attrArray[@]}
-#	classIndex0Based=$(( $classIndex-1 ))
-#	echo "classAttribute='$classAttribute', Last index=$classIndex, Last index zero based=$classIndex0Based"
-#	./csv2libsvm.py $1 $2 $classIndex0Based 1
-#
-#	IFS=OLDIFS
-#}
-#

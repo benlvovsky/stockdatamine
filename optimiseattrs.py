@@ -31,8 +31,10 @@ def optimiseattr(stockname):
 	sql="COPY (SELECT * from datamine('{0}', {1}, {2})) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname, offset, limit)
 	print sql
 	output = subprocess.check_output("export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
-	lsCalcModel(stockname, "-", cv, output)
+	(error, corr) = lsCalcModel(stockname, "-", cv, output)
 
+	print 'error=' + error
+	print 'corr=' + corr
 	print stockname + " stock optimisation finished"
 
 def main():
@@ -41,18 +43,6 @@ def main():
 if __name__ == "__main__":
 	main()
 
-#while read stockName tail
-#do
-#	echo "$stockName..."
-#	echo "Building model for $stockName."
-#	query="select stockname from dataminestocks where active=true and optimiseattr=true order by stockname asc"
-#	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
-#	cur = conn.cursor()
-#	cur.execute(query)
-#
-#	date=$(extractLastDate ${stockName})
-#	sql="COPY (select $(attributeList) FROM datamining_stocks_view where stockName='${stockName}' offset ${offset} limit ${limit}) TO STDOUT DELIMITER ',' CSV HEADER"
-#	psql -h localhost -U postgres -d postgres -c "${sql}" > extracts/${stockName}.csv
 #	lsCalcModel $stockName "-" $cv < extracts/${stockName}.csv
 #	bestError=$error
 #	bestCorrelation=${correlation}
