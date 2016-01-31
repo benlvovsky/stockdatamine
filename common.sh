@@ -3,6 +3,9 @@ export PGPASSWORD='postgres'
 export WEKA_PATH=/media/bigdrive/dev/weka-3-7-13/*.jar
 export CP=$WEKA_PATH:/home/ben/wekafiles/packages/LibSVM/LibSVM.jar:/home/ben/wekafiles/packages/LibSVM/lib/libsvm.jar:/media/bigdrive/dev/weka-3-7-13/weka.jar:$CLASSPATH
 
+offset=30
+limit=480
+
 function maxDatePlusOne() {
 	maxdate=`psql -t -h localhost -U postgres -d postgres -c "select max(date + interval '1 day') from stocks where stock='$1';"`
 	echo "maxdate + 1 day from DB='$maxdate'"
@@ -127,9 +130,6 @@ function calcModel() {
 				| grep "Correlation coefficient" | tail -1 | tr -s ' ' | cut -d " " -f 3)
 }
 
-offset=30
-limit=400
-
 #sets variable 'date' to date and STDOUT attributeList stock in parameter $1
 function extractStock() {
 	dt=$(psql -h localhost -U postgres -d postgres -c \
@@ -142,8 +142,14 @@ function extractStock() {
 
 	#psql -h localhost -U postgres -d postgres -c "COPY (select date FROM datamining_stocks_view where stockName='CBA.AX' limit 1) TO STDOUT DELIMITER ',' CSV"
 }
+
 function extractLastDate() {
 	psql -h localhost -U postgres -d postgres -c \
 		"COPY (select date FROM datamining_stocks_view where stockName='${1}' limit 1) \
 		TO STDOUT DELIMITER ',' CSV"
+}
+
+function syncAggr() {
+	psql -h localhost -U postgres -d postgres -c \
+		"select sync_aggr((now() - interval '1 month')::date);"
 }

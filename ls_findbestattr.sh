@@ -4,14 +4,15 @@ source ./libsvmcommon.sh
 
 OLDIFS=$IFS
 IFS=,
-cv=2
+cv=10
+offset=20
 limit=480
 wkCost=100
-wkNu=0.55
+wkNu=0.556015
 while read stockName tail
 do
 	echo "$stockName..."
-	echo "Building model for $stockName."
+	echo "Building model for $stockName. offset=$offset, limit=$limit"
 	date=$(extractLastDate ${stockName})
 	sql="COPY (select $(attributeList) FROM datamining_stocks_view where stockName='${stockName}' offset ${offset} limit ${limit}) TO STDOUT DELIMITER ',' CSV HEADER"
 	psql -h localhost -U postgres -d postgres -c "${sql}" > extracts/${stockName}.csv
@@ -19,7 +20,7 @@ do
 	bestError=$error
 	bestCorrelation=${correlation}
 	beginning=1
-	echo "Original error=$bestError"
+	echo "Original error=$bestError, correlation=$bestCorrelation"
 	allAttributes=$(head -1 extracts/${stockName}.csv)
 	bestAttributes=$allAttributes
 	i=1
@@ -41,7 +42,8 @@ do
 			lsCalcModel ${stockName} "$trialExcludedAttrs" $cv  < extracts/${stockName}.csv
 			#   $error and $correlation come from lsCalcModel() call
 			echo -n " reported error=$error, correlation=$correlation. "
-			isFoundBetter=$(echo "${error}<${bestError}" | bc)
+#			isFoundBetter=$(echo "${error}<${bestError}" | bc)
+			isFoundBetter=$(echo "${correlation}>${bestCorrelation}" | bc)
 			if [ ${isFoundBetter} -eq 1 ]
 			then
 				ead=","
@@ -51,7 +53,8 @@ do
 				bestAttributes=$(head -1 <(printf "$extractdata"))
 				echo -n " better with removed attribute $i $tryAttr"
 			else
-				echo -n " not better than $bestError"
+#				echo -n " not better than $bestError"
+				echo -n " not better than $bestCorrelation"
 			fi
 			echo ""
 		else

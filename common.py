@@ -6,7 +6,7 @@ import subprocess
 import cStringIO
 
 svmCost="100"
-svmNu="0.55"
+svmNu="0.556015"
 
 LSLIB="libsvm-3.21"
 
@@ -104,7 +104,7 @@ def lsCalcModel(stockname, exclude, cvNum, data):
 	print "Mean Squared Error='" + error +"'"
 	print "Correlation=       '" + corr  +"'"
 	
-	return (error, corr)
+	return (error, corr, header)
 
 #function lsPredict() {
 #	echo "stockname='$1'"

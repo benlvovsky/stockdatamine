@@ -30,12 +30,29 @@ def optimiseattr(stockname):
 	print "Optimising attributes for {0}".format(stockname)
 	sql="COPY (SELECT * from datamine('{0}', {1}, {2})) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname, offset, limit)
 	print sql
-	output = subprocess.check_output("export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
-	(error, corr) = lsCalcModel(stockname, "-", cv, output)
+	extractdata = subprocess.check_output("export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
+	header=extractdata.splitlines()[0]
+	hdrArray=header.split(",")
+	hlen=len(hdrArray)
+	print "array len={0}, class is last title={1}".format(hlen, hdrArray[hlen-1])
+	(bestError, bestCorr, bestAttrCsv) = lsCalcModel(stockname, "-", cv, extractdata)
+	bestExcludeCsv=""
+	trialExcludeCsv=""
+	delim=""
+	for colIdx in range(len(hdrArray) - 1):
+		trialExcludeCsv=delim+"{0}".format(colIdx+1)
+		(trialError, trialCorr, trailAttrCsv) = lsCalcModel(stockname, trialExcludeCsv, cv, extractdata)
+		if trialCorr>corr:
+			bestCorr=trialCorr
+			bestError=trialError
+			bestExcludeCsv=trialExcludeCsv
+			bestAttrCsv=trailAttrCsv
+			delim=","
 
-	print 'error=' + error
-	print 'corr=' + corr
-	print stockname + " stock optimisation finished"
+	print 'error=' + bestError + ', corr=' + bestCorr
+	cmd="psql -h localhost -U postgres -d postgres -c \"update dataminestocks set bestattributes='{0}', excludedattributes='{1}', bestCorrelation={2}, error={3} where stockname='{4}'\"".format(bestAttrCsv, bestExcludeCsv, bestCorr, bestError, stockName)
+	res = subprocess.check_output(cmd, shell=True)
+	print res + ". " + stockname + " stock optimisation finished"
 
 def main():
 	optimiseattrall()

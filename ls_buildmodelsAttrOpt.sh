@@ -5,10 +5,11 @@ source ./libsvmcommon.sh
 
 OLDIFS=$IFS
 IFS=,
-offset=10
+offset=20
 limit=480
 wkCost=100
 wkNu=0.556
+gamma=8
 
 if [ -z "$1" ]
 then
