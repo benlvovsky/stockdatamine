@@ -10,21 +10,20 @@ then
 	wkNu=0.55
 fi
 
-if [ -z "$gamma" ]
-then
-	gamma=8
-fi
-
 #calculates mode with crossvalidating, saves into models/${1}.model
 #used for building models mostly for calculation of best attributes and other parameters
 function lsCalcModel() {
-	echo "stockname='$1', cross validation folds='$3', cost='$wkCost'"#, gamma=$gamma"
+#	set -x
+#	echo "stockname='$1', exclude Fields='$2', cross validation folds='$3'"
+	echo "stockname='$1', cross validation folds='$3', cost='$wkCost'"
+	echo
 	if [ -z "$3" ]
 	then
 		cvOption=""
 	else
 		cvOption="-v ${3}"
 	fi
+	#echo "cvOption=${cvOption}"
 
 	if [ "$2" != "-" ]
 	then
@@ -44,7 +43,6 @@ function lsCalcModel() {
 	echo "scaling finished"
 #	set -x
 	IFS=
-	#-g $gamma 
 	train_cmd="$LSLIB/svm-train -s 4 -t 2 -c $wkCost -n $wkNu $(echo "${cvOption}") extracts/${1}.ls.scaled models/${1}.ls.model"
 	echo -n "training..."
 	trainres=$(eval ${train_cmd})
