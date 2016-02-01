@@ -4,7 +4,7 @@
 
 -- Dumped from database version 9.3.10
 -- Dumped by pg_dump version 9.3.10
--- Started on 2016-01-31 22:32:08 AEDT
+-- Started on 2016-02-01 21:29:45 AEDT
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -458,7 +458,7 @@ $$;
 ALTER FUNCTION public.change(stockname text, dt date, intr interval) OWNER TO postgres;
 
 --
--- TOC entry 215 (class 1255 OID 12554498)
+-- TOC entry 214 (class 1255 OID 12554498)
 -- Name: datamine(character varying, bigint, bigint); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -810,14 +810,14 @@ CREATE FUNCTION datamine(stcknm character varying, ofst bigint, lmt bigint) RETU
 ALTER FUNCTION public.datamine(stcknm character varying, ofst bigint, lmt bigint) OWNER TO postgres;
 
 --
--- TOC entry 213 (class 1255 OID 42118)
--- Name: datamine1(character varying, bigint, bigint); Type: FUNCTION; Schema: public; Owner: postgres
+-- TOC entry 215 (class 1255 OID 12554501)
+-- Name: datamine1(character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION datamine1(stockname character varying, ofst bigint, lmt bigint) RETURNS SETOF dm_type
+CREATE FUNCTION datamine1(stcknm character varying) RETURNS TABLE(a1 double precision, a2 double precision, a3 double precision, a4 double precision, a5 double precision, a6 double precision, aord_a1 double precision, aord_a2 double precision, aord_a3 double precision, aord_a4 double precision, aord_a5 double precision, aord_a6 double precision, n225_a1 double precision, n225_a2 double precision, n225_a3 double precision, n225_a4 double precision, n225_a5 double precision, n225_a6 double precision, ndx_a1 double precision, ndx_a2 double precision, ndx_a3 double precision, ndx_a4 double precision, ndx_a5 double precision, ndx_a6 double precision, dji_a1 double precision, dji_a2 double precision, dji_a3 double precision, dji_a4 double precision, dji_a5 double precision, dji_a6 double precision, ftse_a1 double precision, ftse_a2 double precision, ftse_a3 double precision, ftse_a4 double precision, ftse_a5 double precision, ftse_a6 double precision, gdaxi_a1 double precision, gdaxi_a2 double precision, gdaxi_a3 double precision, gdaxi_a4 double precision, gdaxi_a5 double precision, gdaxi_a6 double precision, ssec_a1 double precision, ssec_a2 double precision, ssec_a3 double precision, ssec_a4 double precision, ssec_a5 double precision, ssec_a6 double precision, hsi_a1 double precision, hsi_a2 double precision, hsi_a3 double precision, hsi_a4 double precision, hsi_a5 double precision, hsi_a6 double precision, bsesn_a1 double precision, bsesn_a2 double precision, bsesn_a3 double precision, bsesn_a4 double precision, bsesn_a5 double precision, bsesn_a6 double precision, jkse_a1 double precision, jkse_a2 double precision, jkse_a3 double precision, jkse_a4 double precision, jkse_a5 double precision, jkse_a6 double precision, nz50_a1 double precision, nz50_a2 double precision, nz50_a3 double precision, nz50_a4 double precision, nz50_a5 double precision, nz50_a6 double precision, sti_a1 double precision, sti_a2 double precision, sti_a3 double precision, sti_a4 double precision, sti_a5 double precision, sti_a6 double precision, ks11_a1 double precision, ks11_a2 double precision, ks11_a3 double precision, ks11_a4 double precision, ks11_a5 double precision, ks11_a6 double precision, twii_a1 double precision, twii_a2 double precision, twii_a3 double precision, twii_a4 double precision, twii_a5 double precision, twii_a6 double precision, bvsp_a1 double precision, bvsp_a2 double precision, bvsp_a3 double precision, bvsp_a4 double precision, bvsp_a5 double precision, bvsp_a6 double precision, gsptse_a1 double precision, gsptse_a2 double precision, gsptse_a3 double precision, gsptse_a4 double precision, gsptse_a5 double precision, gsptse_a6 double precision, mxx_a1 double precision, mxx_a2 double precision, mxx_a3 double precision, mxx_a4 double precision, mxx_a5 double precision, mxx_a6 double precision, gspc_a1 double precision, gspc_a2 double precision, gspc_a3 double precision, gspc_a4 double precision, gspc_a5 double precision, gspc_a6 double precision, atx_a1 double precision, atx_a2 double precision, atx_a3 double precision, atx_a4 double precision, atx_a5 double precision, atx_a6 double precision, bfx_a1 double precision, bfx_a2 double precision, bfx_a3 double precision, bfx_a4 double precision, bfx_a5 double precision, bfx_a6 double precision, fchi_a1 double precision, fchi_a2 double precision, fchi_a3 double precision, fchi_a4 double precision, fchi_a5 double precision, fchi_a6 double precision, ssmi_a1 double precision, ssmi_a2 double precision, ssmi_a3 double precision, ssmi_a4 double precision, ssmi_a5 double precision, ssmi_a6 double precision, gd_a1 double precision, gd_a2 double precision, gd_a3 double precision, gd_a4 double precision, gd_a5 double precision, gd_a6 double precision, eurusd_a1 double precision, eurusd_a2 double precision, eurusd_a3 double precision, eurusd_a4 double precision, eurusd_a5 double precision, eurusd_a6 double precision, usdjpy_a1 double precision, usdjpy_a2 double precision, usdjpy_a3 double precision, usdjpy_a4 double precision, usdjpy_a5 double precision, usdjpy_a6 double precision, usdchf_a1 double precision, usdchf_a2 double precision, usdchf_a3 double precision, usdchf_a4 double precision, usdchf_a5 double precision, usdchf_a6 double precision, gbpusd_a1 double precision, gbpusd_a2 double precision, gbpusd_a3 double precision, gbpusd_a4 double precision, gbpusd_a5 double precision, gbpusd_a6 double precision, usdcad_a1 double precision, usdcad_a2 double precision, usdcad_a3 double precision, usdcad_a4 double precision, usdcad_a5 double precision, usdcad_a6 double precision, eurgbp_a1 double precision, eurgbp_a2 double precision, eurgbp_a3 double precision, eurgbp_a4 double precision, eurgbp_a5 double precision, eurgbp_a6 double precision, eurjpy_a1 double precision, eurjpy_a2 double precision, eurjpy_a3 double precision, eurjpy_a4 double precision, eurjpy_a5 double precision, eurjpy_a6 double precision, eurchf_a1 double precision, eurchf_a2 double precision, eurchf_a3 double precision, eurchf_a4 double precision, eurchf_a5 double precision, eurchf_a6 double precision, audusd_a1 double precision, audusd_a2 double precision, audusd_a3 double precision, audusd_a4 double precision, audusd_a5 double precision, audusd_a6 double precision, gbpjpy_a1 double precision, gbpjpy_a2 double precision, gbpjpy_a3 double precision, gbpjpy_a4 double precision, gbpjpy_a5 double precision, gbpjpy_a6 double precision, chfjpy_a1 double precision, chfjpy_a2 double precision, chfjpy_a3 double precision, chfjpy_a4 double precision, chfjpy_a5 double precision, chfjpy_a6 double precision, gbpchf_a1 double precision, gbpchf_a2 double precision, gbpchf_a3 double precision, gbpchf_a4 double precision, gbpchf_a5 double precision, gbpchf_a6 double precision, nzdusd_a1 double precision, nzdusd_a2 double precision, nzdusd_a3 double precision, nzdusd_a4 double precision, nzdusd_a5 double precision, nzdusd_a6 double precision, cmd_choc_a1 double precision, cmd_choc_a2 double precision, cmd_choc_a3 double precision, cmd_choc_a4 double precision, cmd_choc_a5 double precision, cmd_choc_a6 double precision, cmd_corn_a1 double precision, cmd_corn_a2 double precision, cmd_corn_a3 double precision, cmd_corn_a4 double precision, cmd_corn_a5 double precision, cmd_corn_a6 double precision, cmd_ctnn_a1 double precision, cmd_ctnn_a2 double precision, cmd_ctnn_a3 double precision, cmd_ctnn_a4 double precision, cmd_ctnn_a5 double precision, cmd_ctnn_a6 double precision, cmd_cupm_a1 double precision, cmd_cupm_a2 double precision, cmd_cupm_a3 double precision, cmd_cupm_a4 double precision, cmd_cupm_a5 double precision, cmd_cupm_a6 double precision, cmd_foil_a1 double precision, cmd_foil_a2 double precision, cmd_foil_a3 double precision, cmd_foil_a4 double precision, cmd_foil_a5 double precision, cmd_foil_a6 double precision, cmd_gaz_a1 double precision, cmd_gaz_a2 double precision, cmd_gaz_a3 double precision, cmd_gaz_a4 double precision, cmd_gaz_a5 double precision, cmd_gaz_a6 double precision, cmd_gld_a1 double precision, cmd_gld_a2 double precision, cmd_gld_a3 double precision, cmd_gld_a4 double precision, cmd_gld_a5 double precision, cmd_gld_a6 double precision, cmd_hevy_a1 double precision, cmd_hevy_a2 double precision, cmd_hevy_a3 double precision, cmd_hevy_a4 double precision, cmd_hevy_a5 double precision, cmd_hevy_a6 double precision, cmd_ledd_a1 double precision, cmd_ledd_a2 double precision, cmd_ledd_a3 double precision, cmd_ledd_a4 double precision, cmd_ledd_a5 double precision, cmd_ledd_a6 double precision, cmd_lstk_a1 double precision, cmd_lstk_a2 double precision, cmd_lstk_a3 double precision, cmd_lstk_a4 double precision, cmd_lstk_a5 double precision, cmd_lstk_a6 double precision, cmd_nini_a1 double precision, cmd_nini_a2 double precision, cmd_nini_a3 double precision, cmd_nini_a4 double precision, cmd_nini_a5 double precision, cmd_nini_a6 double precision, cmd_oil_a1 double precision, cmd_oil_a2 double precision, cmd_oil_a3 double precision, cmd_oil_a4 double precision, cmd_oil_a5 double precision, cmd_oil_a6 double precision, cmd_pall_a1 double precision, cmd_pall_a2 double precision, cmd_pall_a3 double precision, cmd_pall_a4 double precision, cmd_pall_a5 double precision, cmd_pall_a6 double precision, cmd_pplt_a1 double precision, cmd_pplt_a2 double precision, cmd_pplt_a3 double precision, cmd_pplt_a4 double precision, cmd_pplt_a5 double precision, cmd_pplt_a6 double precision, cmd_sgar_a1 double precision, cmd_sgar_a2 double precision, cmd_sgar_a3 double precision, cmd_sgar_a4 double precision, cmd_sgar_a5 double precision, cmd_sgar_a6 double precision, cmd_slv_a1 double precision, cmd_slv_a2 double precision, cmd_slv_a3 double precision, cmd_slv_a4 double precision, cmd_slv_a5 double precision, cmd_slv_a6 double precision, cmd_soyb_a1 double precision, cmd_soyb_a2 double precision, cmd_soyb_a3 double precision, cmd_soyb_a4 double precision, cmd_soyb_a5 double precision, cmd_soyb_a6 double precision, cmd_uhn_a1 double precision, cmd_uhn_a2 double precision, cmd_uhn_a3 double precision, cmd_uhn_a4 double precision, cmd_uhn_a5 double precision, cmd_uhn_a6 double precision, dow double precision, week double precision, optexpday integer, prediction double precision)
     LANGUAGE sql
     AS $$
-      SELECT
+      SELECT 
 		(stockavg).a1 as a1,
 		(stockavg).a2 as a2,
 		(stockavg).a3 as a3,
@@ -1152,85 +1152,15 @@ CREATE FUNCTION datamine1(stockname character varying, ofst bigint, lmt bigint) 
 		week as week,
 		optexpday as optexpday,
 		prediction as prediction
-	FROM (
-		SELECT s.date,
-		    s.stock AS stockname,
-		    s."Adj Close" AS price,
-		    stockavgdiffset(s.stock, s.date) AS stockavg,
-		    stockavgdiffset('^AORD'::text, s.date) AS aord,
-		    stockavgdiffset('^N225'::text, s.date) AS n225,
-		    stockavgdiffset('^NDX'::text, s.date) AS ndx,
-		    stockavgdiffset('^DJI'::text, s.date) AS dji,
-		    stockavgdiffset('^FTSE'::text, s.date) AS ftse,
-		    stockavgdiffset('^GDAXI'::text, s.date) AS gdaxi,
-		    stockavgdiffset('^SSEC'::text, s.date) AS ssec,
-		    stockavgdiffset('^HSI'::text, s.date) AS hsi,
-		    stockavgdiffset('^BSESN'::text, s.date) AS bsesn,
-		    stockavgdiffset('^JKSE'::text, s.date) AS jkse,
-		    stockavgdiffset('^KLSE'::text, s.date) AS klse,
-		    stockavgdiffset('^NZ50'::text, s.date) AS nz50,
-		    stockavgdiffset('^STI'::text, s.date) AS sti,
-		    stockavgdiffset('^KS11'::text, s.date) AS ks11,
-		    stockavgdiffset('^TWII'::text, s.date) AS twii,
-		    stockavgdiffset('^BVSP'::text, s.date) AS bvsp,
-		    stockavgdiffset('^GSPTSE'::text, s.date) AS gsptse,
-		    stockavgdiffset('^MXX'::text, s.date) AS mxx,
-		    stockavgdiffset('^GSPC'::text, s.date) AS gspc,
-		    stockavgdiffset('^ATX'::text, s.date) AS atx,
-		    stockavgdiffset('^BFX'::text, s.date) AS bfx,
-		    stockavgdiffset('^FCHI'::text, s.date) AS fchi,
-		    stockavgdiffset('^OSEAX'::text, s.date) AS oseax,
-		    stockavgdiffset('^OMXSPI'::text, s.date) AS omxspi,
-		    stockavgdiffset('^SSMI'::text, s.date) AS ssmi,
-		    stockavgdiffset('GD.AT'::text, s.date) AS gd,
-		    stockavgdiffset('EURUSD'::text, s.date) AS eurusd,
-		    stockavgdiffset('USDJPY'::text, s.date) AS usdjpy,
-		    stockavgdiffset('USDCHF'::text, s.date) AS usdchf,
-		    stockavgdiffset('GBPUSD'::text, s.date) AS gbpusd,
-		    stockavgdiffset('USDCAD'::text, s.date) AS usdcad,
-		    stockavgdiffset('EURGBP'::text, s.date) AS eurgbp,
-		    stockavgdiffset('EURJPY'::text, s.date) AS eurjpy,
-		    stockavgdiffset('EURCHF'::text, s.date) AS eurchf,
-		    stockavgdiffset('AUDUSD'::text, s.date) AS audusd,
-		    stockavgdiffset('GBPJPY'::text, s.date) AS gbpjpy,
-		    stockavgdiffset('CHFJPY'::text, s.date) AS chfjpy,
-		    stockavgdiffset('GBPCHF'::text, s.date) AS gbpchf,
-		    stockavgdiffset('NZDUSD'::text, s.date) AS nzdusd,
-		    stockavgdiffset('CHOC'::text, s.date) AS cmd_choc,
-		    stockavgdiffset('CORN'::text, s.date) AS cmd_corn,
-		    stockavgdiffset('CTNN'::text, s.date) AS cmd_ctnn,
-		    stockavgdiffset('CUPM'::text, s.date) AS cmd_cupm,
-		    stockavgdiffset('FOIL'::text, s.date) AS cmd_foil,
-		    stockavgdiffset('GAZ'::text, s.date) AS cmd_gaz,
-		    stockavgdiffset('GLD'::text, s.date) AS cmd_gld,
-		    stockavgdiffset('HEVY'::text, s.date) AS cmd_hevy,
-		    stockavgdiffset('LEDD'::text, s.date) AS cmd_ledd,
-		    stockavgdiffset('LSTK'::text, s.date) AS cmd_lstk,
-		    stockavgdiffset('NINI'::text, s.date) AS cmd_nini,
-		    stockavgdiffset('OIL'::text, s.date) AS cmd_oil,
-		    stockavgdiffset('PALL'::text, s.date) AS cmd_pall,
-		    stockavgdiffset('PPLT'::text, s.date) AS cmd_pplt,
-		    stockavgdiffset('SGAR'::text, s.date) AS cmd_sgar,
-		    stockavgdiffset('SLV'::text, s.date) AS cmd_slv,
-		    stockavgdiffset('SOYB'::text, s.date) AS cmd_soyb,
-		    stockavgdiffset('UHN'::text, s.date) AS cmd_uhn,
-		    date_part('dow'::text, s.date) AS dow,
-		    date_part('week'::text, s.date) AS week,
-		    islastthurthday(s.date) AS optexpday,
-		    change(s.stock, s.date, '7 days'::interval) AS prediction
-		FROM stocks s
-		WHERE s.stock=stockname
-		order by s.date desc
-		offset ofst
-		limit lmt
-		) s1
+	FROM datamining_stocks_view v
+		WHERE v.stockname=stcknm
     $$;
 
 
-ALTER FUNCTION public.datamine1(stockname character varying, ofst bigint, lmt bigint) OWNER TO postgres;
+ALTER FUNCTION public.datamine1(stcknm character varying) OWNER TO postgres;
 
 --
--- TOC entry 214 (class 1255 OID 12554468)
+-- TOC entry 213 (class 1255 OID 12554468)
 -- Name: datamine_aggr_sp(character varying, bigint, bigint); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2656,7 +2586,7 @@ GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2016-01-31 22:32:08 AEDT
+-- Completed on 2016-02-01 21:29:46 AEDT
 
 --
 -- PostgreSQL database dump complete

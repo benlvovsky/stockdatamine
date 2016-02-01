@@ -8,7 +8,7 @@ from common import *
 
 #OLDIFS=$IFS
 #IFS=,
-cv=2
+cv=5
 limit=480
 offset=20
 
@@ -28,7 +28,7 @@ def optimiseattrall():
 
 def optimiseattr(stockname):
 	print "Optimising attributes for {0}".format(stockname)
-	sql="COPY (SELECT * from datamine('{0}', {1}, {2})) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname, offset, limit)
+	sql="COPY (SELECT * from datamine1('{0}') offset {1} limit {2}) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname, offset, limit)
 	print sql
 	extractdata = subprocess.check_output("export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
 	header=extractdata.splitlines()[0]
@@ -40,9 +40,10 @@ def optimiseattr(stockname):
 	trialExcludeCsv=""
 	delim=""
 	for colIdx in range(len(hdrArray) - 1):
-		trialExcludeCsv=delim+"{0}".format(colIdx+1)
+		trialExcludeCsv=bestExcludeCsv+delim+"{0}".format(colIdx+1)
 		(trialError, trialCorr, trailAttrCsv) = lsCalcModel(stockname, trialExcludeCsv, cv, extractdata)
-		if trialCorr>corr:
+		if trialCorr>bestCorr:
+			print stockname + " found better correlation " + trialCorr
 			bestCorr=trialCorr
 			bestError=trialError
 			bestExcludeCsv=trialExcludeCsv
@@ -50,8 +51,8 @@ def optimiseattr(stockname):
 			delim=","
 
 	print 'error=' + bestError + ', corr=' + bestCorr
-	cmd="psql -h localhost -U postgres -d postgres -c \"update dataminestocks set bestattributes='{0}', excludedattributes='{1}', bestCorrelation={2}, error={3} where stockname='{4}'\"".format(bestAttrCsv, bestExcludeCsv, bestCorr, bestError, stockName)
-	res = subprocess.check_output(cmd, shell=True)
+#	cmd="psql -h localhost -U postgres -d postgres -c \"update dataminestocks set bestattributes='{0}', excludedattributes='{1}', bestCorrelation={2}, error={3} where stockname='{4}'\"".format(bestAttrCsv, bestExcludeCsv, bestCorr, bestError, stockName)
+#	res = subprocess.check_output(cmd, shell=True)
 	print res + ". " + stockname + " stock optimisation finished"
 
 def main():

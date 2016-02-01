@@ -1,6 +1,7 @@
 #!/bin/bash
 . ./common.sh
 
+./ls_buildmodelsAttrOpt.sh
 ./downloadall.sh
 ./ls_predictOnBestAttributes.sh
 dmPredictions | mail -s "svm" ben@lvovsky.com
