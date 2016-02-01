@@ -51,8 +51,8 @@ def optimiseattr(stockname):
 			delim=","
 
 	print 'error=' + bestError + ', corr=' + bestCorr
-#	cmd="psql -h localhost -U postgres -d postgres -c \"update dataminestocks set bestattributes='{0}', excludedattributes='{1}', bestCorrelation={2}, error={3} where stockname='{4}'\"".format(bestAttrCsv, bestExcludeCsv, bestCorr, bestError, stockName)
-#	res = subprocess.check_output(cmd, shell=True)
+	cmd="psql -h localhost -U postgres -d postgres -c \"update dataminestocks set bestattributes_py='{0}', excludedattributes_py='{1}', bestCorrelation_py={2}, error_py={3} where stockname='{4}'\"".format(bestAttrCsv, bestExcludeCsv, bestCorr, bestError, stockName)
+	res = subprocess.check_output(cmd, shell=True)
 	print res + ". " + stockname + " stock optimisation finished"
 
 def main():
