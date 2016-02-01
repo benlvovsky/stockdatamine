@@ -51,7 +51,7 @@ def optimiseattr(stockname):
 			delim=","
 
 	print 'error=' + bestError + ', corr=' + bestCorr
-	cmd="psql -h localhost -U postgres -d postgres -c \"update dataminestocks set bestattributes_py='{0}', excludedattributes_py='{1}', bestCorrelation_py={2}, error_py={3} where stockname='{4}'\"".format(bestAttrCsv, bestExcludeCsv, bestCorr, bestError, stockName)
+	cmd="psql -h localhost -U postgres -d postgres -c \"update dataminestocks_py set bestattributes='{0}', excludedattributes='{1}', bestCorrelation={2}, error={3} where stockname='{4}'\"".format(bestAttrCsv, bestExcludeCsv, bestCorr, bestError, stockName)
 	res = subprocess.check_output(cmd, shell=True)
 	print res + ". " + stockname + " stock optimisation finished"
 
@@ -60,54 +60,3 @@ def main():
 
 if __name__ == "__main__":
 	main()
-
-#	lsCalcModel $stockName "-" $cv < extracts/${stockName}.csv
-#	bestError=$error
-#	bestCorrelation=${correlation}
-#	beginning=1
-#	echo "Original error=$bestError"
-#	allAttributes=$(head -1 extracts/${stockName}.csv)
-#	bestAttributes=$allAttributes
-#	i=1
-#	IFS=,
-#	read -r -a attrArray <<< "$allAttributes"
-#	classAttribute=${attrArray[-1]}
-#	echo "classAttribute='$classAttribute'"
-#	bestExcludedAttrs=""
-#
-#	#excluded attribute list delimiter
-#	ead=""
-#	
-#	for tryAttr in ${allAttributes[@]}; do
-##		set -x
-#		if [ "$tryAttr" != "${classAttribute}" ] 
-#		then
-#			echo -n "Trying attribute '$tryAttr' index $i... "
-#			trialExcludedAttrs=$bestExcludedAttrs$ead$i
-#			lsCalcModel ${stockName} "$trialExcludedAttrs" $cv  < extracts/${stockName}.csv
-#			#   $error and $correlation come from lsCalcModel() call
-#			echo -n " reported error=$error, correlation=$correlation. "
-#			isFoundBetter=$(echo "${error}<${bestError}" | bc)
-#			if [ ${isFoundBetter} -eq 1 ]
-#			then
-#				ead=","
-#				bestExcludedAttrs=$trialExcludedAttrs
-#				bestError=${error}
-#				bestCorrelation=${correlation}
-#				bestAttributes=$(head -1 <(printf "$extractdata"))
-#				echo -n " better with removed attribute $i $tryAttr"
-#			else
-#				echo -n " not better than $bestError"
-#			fi
-#			echo ""
-#		else
-#			echo "skipping class attribute"
-#		fi
-#		i=$((i+1))
-#	done
-#	echo "Best attrbutes list for $stockName calculated"
-#	psql -h localhost -U postgres -d postgres -c "update dataminestocks set bestattributes='${bestAttributes}', excludedattributes='${bestExcludedAttrs}', bestCorrelation=$bestCorrelation, error=$bestError where stockname='${stockName}'"
-#done  < <(dmStocksOptimiseAttr)
-#
-#IFS=$OLDIFS
-#
