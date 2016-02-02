@@ -6,7 +6,7 @@ import subprocess
 import cStringIO
 
 svmCost="100"
-svmNu="0.556015"
+svmNuDefault=0.556015
 
 LSLIB="libsvm-3.21"
 
@@ -50,22 +50,24 @@ def csv2libsvm(iStr, output_file, label_index, skip_headers):
 
 #calculates mode with crossvalidating, saves into models/${1}.model
 #used for building models mostly for calculation of best attributes and other parameters
-def lsCalcModel(stockname, exclude, cvNum, data):
-	print "stockname='{0}', cv='{1}', cost='{2}', excludeAttrs={3}".format(stockname, cvNum, svmCost, exclude)
-
+def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault):
+#	print "stockname='{0}', cv='{1}', cost='{2}', excludeAttrs={3}".format(stockname, cvNum, svmCost, exclude)
+	print "stockname='{0}', cv='{1}', cost='{2}', nu={3}".format(stockname, cvNum, svmCost, nu)
+	svmNu = "{0}".format(nu)
+	
 	if (not cvNum) or (cvNum==""):
 		cvOption=""
 	else:
 		cvOption="-v {0}".format(cvNum)
 
-	sys.stdout.write("cvOption="+cvOption+", len(data)={0}".format(len(data)))
+	sys.stdout.write("cvOption="+cvOption+", len(data)={0}. ".format(len(data)))
 
 	if (exclude is not None) and (exclude != "-") and (exclude != ""):
 		cmd = "cut --complement -d, -f {0}".format(exclude)
 	else:
 		cmd = "cat"
 
-	sys.stdout.write(", cmd='{0}', ".format(cmd))
+	#sys.stdout.write(", cmd='{0}', ".format(cmd))
 	proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 	extractdata = proc.communicate(input=data)[0]
 	
@@ -80,31 +82,32 @@ def lsCalcModel(stockname, exclude, cvNum, data):
 	proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	try:
 		errdata = proc.communicate()[1]
-		if errdata != None:
-			print "" + errdata
+#		if errdata != None:
+#			print "" + errdata
 	except:
 		True
-	sys.stdout.write("...scaling finished\n")
+#	sys.stdout.write("...scaling finished\n")
 
 	cmd=LSLIB+'/svm-train -s 4 -t 2 -c ' + svmCost + ' -n ' + svmNu + ' ' + cvOption + ' extracts/{0}.ls.scaled models/{0}.ls.model'.format(stockname)
 	sys.stdout.write("Training... command='"+cmd+"'\n")
+	#sys.stdout.write("Training...")
 	proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	trainres= proc.communicate()[0]
-	sys.stdout.write("Train output:" + trainres + '\n')
+	#sys.stdout.write("Train output:\n" + trainres + '\n')
 	try:
 		errdata = proc.communicate()[1]
 		if errdata != None :
 			print "		Train error: " + errdata
 	except:
 		True
-	sys.stdout.write("...training finished\n")
+#	sys.stdout.write("...training finished\n")
 
 	error= trainres.splitlines()[-2].split(" = ")[1]
 	corr = trainres.splitlines()[-1].split(" = ")[1]
 	print "Mean Squared Error='" + error +"'"
 	print "Correlation=       '" + corr  +"'"
 	
-	return (error, corr, header)
+	return (float(error), float(corr), header)
 
 #function lsPredict() {
 #	echo "stockname='$1'"
