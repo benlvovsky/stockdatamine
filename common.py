@@ -109,7 +109,69 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault):
 	
 	return (float(error), float(corr), header)
 
-#function lsPredict() {
+def lsPredict(stockname, exclude, cvNum, data, nu=svmNuDefault):
+	cmd=LSLIB+"/svm-predict extracts/{0}.ls.scaled models/{0}.ls.model models/${0}.ls.prediction"
+	extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmd)
+	#TODO get data from generated file predictions and return psql -h localhost -U postgres -d postgres -c "update dataminestocks set prediction=${prediction}, preddate='$date'::date where stockname='${stockName}'"
+	return ""
+
+def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
+	print "stockname='{0}', cv='{1}', cost='{2}', nu={3}".format(stockname, cvNum, svmCost, nu)
+	svmNu = "{0}".format(nu)
+	
+	if (not cvNum) or (cvNum==""):
+		cvOption=""
+	else:
+		cvOption="-v {0}".format(cvNum)
+
+	sys.stdout.write("cvOption="+cvOption+", len(data)={0}. ".format(len(data)))
+
+	if (exclude is not None) and (exclude != "-") and (exclude != ""):
+		cmd = "cut --complement -d, -f {0}".format(exclude)
+	else:
+		cmd = "cat"
+
+	#sys.stdout.write(", cmd='{0}', ".format(cmd))
+	proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+	extractdata = proc.communicate(input=data)[0]
+	
+	header=extractdata.splitlines()[0]
+	hdrArray=header.split(",")
+	hlen=len(hdrArray)
+	sys.stdout.write("array len={0}, class is last title={1}\n".format(hlen, hdrArray[hlen-1]))
+	csv2libsvm(extractdata, "extracts/{0}.ls".format(stockname), hlen-1, True)
+	
+	cmd=LSLIB+'/svm-scale -s "extracts/{0}.range"  "extracts/{0}.ls" > "extracts/{0}.ls.scaled"'.format(stockname)
+	sys.stdout.write("Scaling... ")#command='+cmd+"'"
+	proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	try:
+		errdata = proc.communicate()[1]
+#		if errdata != None:
+#			print "" + errdata
+	except:
+		True
+#	sys.stdout.write("...scaling finished\n")
+
+	sys.stdout.write("Training... command='"+cmdProc+"'\n")
+	#sys.stdout.write("Training...")
+	proc = subprocess.Popen(cmdProc, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	trainres= proc.communicate()[0]
+	#sys.stdout.write("Train output:\n" + trainres + '\n')
+	try:
+		errdata = proc.communicate()[1]
+		if errdata != None :
+			print "Error: " + errdata
+	except:
+		True
+#	sys.stdout.write("...training finished\n")
+
+	error= trainres.splitlines()[-2].split(" = ")[1]
+	corr = trainres.splitlines()[-1].split(" = ")[1]
+	print "Mean Squared Error='" + error +"'"
+	print "Correlation=       '" + corr  +"'"
+	
+	return (float(error), float(corr), header)
+
 #	echo "stockname='$1'"
 #
 #	if [ "$2" != "-" ]

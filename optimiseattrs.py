@@ -104,11 +104,10 @@ def optimiseattr(stockname, nu):
 	res = subprocess.check_output(cmd, shell=True)
 	print res + ". " + stockname + " stock optimisation finished"
 
-def buildModels(db='u'):
+def buildModels(runtype='cv'):
 	print "buildModels"
 	query="select stockname, excludedattributes, bestcost, bestnu from "+ dataminestocksViewName + " where active=true and topredict=true order by stockname asc"
 	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
-#	connDate = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
 	cur = conn.cursor()
 	
 	curDate = conn.cursor()
@@ -121,28 +120,56 @@ def buildModels(db='u'):
 		nu=row[3]
 		extractdata = extractData(stockname)
 
-		curDate.execute("select date FROM datamining_stocks_view where stockName='CBA.AX' limit 1".format(stockname))
+		curDate.execute("select date FROM datamining_stocks_view where stockName='{0}' limit 1".format(stockname))
 		for dateRow in curDate:
 			date=str(dateRow[0])
 			print 'date='+date
 
 		(error, corr, attrCsv) = lsCalcModel(stockname, excludedattributes, cv, extractdata, nu)
 
-		if db == 'u':
-#			connUpdate = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
-#			curUp = connUpdate.cursor()
-#			curUp.execute("update {0} set correlation={1}, corrdate='{2}'::date, error=error where stockname='{3}'".format(dataminestocksViewName, corr, date, error, stockname))
+		if runtype == 'cv':
 			curUp = conn.cursor()
-			curUp.execute("update {0} set correlation=%s, error=%s where stockname=%s".format(dataminestocksViewName), (corr, error, stockname))#, date, error, stockname))
-			print 'DB updated with date="{0}"'.format(date)
+			curUp.execute("update {0} set correlation=%s, error=%s, corrdate=%s where stockname=%s".format(dataminestocksViewName), (corr, error, date, stockname))
+			print 'DB updated with corrdate="{0}"'.format(date)
 			conn.commit()
-			#curUp.close()
 
 	conn.close()
 	print "finished all"
 
-def extractData(stockname):
-	sql="COPY (SELECT * from datamine1('{0}') offset {1} limit {2}) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname, offset, limit)
+def doPredictions():
+	print "Predicting"
+	query="select stockname, excludedattributes, bestcost, bestnu from "+ dataminestocksViewName + " where active=true and topredict=true order by stockname asc"
+	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
+	cur = conn.cursor()
+	
+	curDate = conn.cursor()
+	cur.execute(query)
+	for row in cur:
+
+		stockname=row[0]
+		excludedattributes=row[1]
+		bestcost=row[2]
+		nu=row[3]
+		extractdata = extractData(stockname, 0, 1)
+
+		curDate.execute("select date FROM datamining_stocks_view where stockName='{0}' limit 1".format(stockname))
+		for dateRow in curDate:
+			date=str(dateRow[0])
+			print 'date='+date
+
+		(error, corr, attrCsv) = lsPredict(stockname, excludedattributes, extractdata, nu)
+
+		if runtype == 'cv':
+			curUp = conn.cursor()
+			curUp.execute("update {0} set correlation=%s, error=%s, corrdate=%s where stockname=%s".format(dataminestocksViewName), (corr, error, date, stockname))
+			print 'DB updated with corrdate="{0}"'.format(date)
+			conn.commit()
+
+	conn.close()
+	print "finished all"
+
+def extractData(stockname, offsetPar=offset, limitPar=limit):
+	sql="COPY (SELECT * from datamine1('{0}') offset {1} limit {2}) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname, offsetPar, limitPar)
 	extractdata = subprocess.check_output("export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
 	return extractdata
 
@@ -153,7 +180,7 @@ def main():
 		elif sys.argv[1] == 'nu':
 			optimiseNuAll()
 		elif sys.argv[1] == 'bm':
-			buildModels()
+			buildModels(sys.argv[2])
 	else:
 		print "Allowed commands: 'attr', 'nu', 'bm'"
 
