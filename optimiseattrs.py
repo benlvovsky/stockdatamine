@@ -181,8 +181,10 @@ def main():
 			optimiseNuAll()
 		elif sys.argv[1] == 'bm':
 			buildModels(sys.argv[2])
+		elif sys.argv[1] == 'pr':
+			doPredictions()
 	else:
-		print "Allowed commands: 'attr', 'nu', 'bm'"
+		print "Allowed commands: 'attr', 'nu', 'bm', 'pr'"
 
 if __name__ == "__main__":
 	main()

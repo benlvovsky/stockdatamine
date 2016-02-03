@@ -109,14 +109,21 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault):
 	
 	return (float(error), float(corr), header)
 
-def lsPredict(stockname, exclude, cvNum, data, nu=svmNuDefault):
-	cmd=LSLIB+"/svm-predict extracts/{0}.ls.scaled models/{0}.ls.model models/${0}.ls.prediction"
-	extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmd)
+def lsPredict(stockname, exclude, data, nu=svmNuDefault):
+	cmd=LSLIB+"/svm-predict extracts/{0}.ls.scaled models/{0}.ls.model models/{0}.ls.prediction".format(stockname)
+	print "Command:"+cmd
+	extractScaleRunCmd(stockname, exclude, None, data, nu, cmd)
+	f = open("models/{0}.ls.prediction".format(stockname),"r")
+	prStr = f.read()
+	prFloat = float(prStr)
+	print "prFloat={0}".format(prFloat)
 	#TODO get data from generated file predictions and return psql -h localhost -U postgres -d postgres -c "update dataminestocks set prediction=${prediction}, preddate='$date'::date where stockname='${stockName}'"
-	return ""
+	sys.exit(99)
+	return (0,0,"")
+
+#./libsvm-3.21/svm-predict extracts/CBA.ls.scaled models/CBA.ls.model models/CBA.ls.prediction
 
 def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
-	print "stockname='{0}', cv='{1}', cost='{2}', nu={3}".format(stockname, cvNum, svmCost, nu)
 	svmNu = "{0}".format(nu)
 	
 	if (not cvNum) or (cvNum==""):
@@ -134,7 +141,6 @@ def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
 	#sys.stdout.write(", cmd='{0}', ".format(cmd))
 	proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 	extractdata = proc.communicate(input=data)[0]
-	
 	header=extractdata.splitlines()[0]
 	hdrArray=header.split(",")
 	hlen=len(hdrArray)
@@ -152,7 +158,7 @@ def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
 		True
 #	sys.stdout.write("...scaling finished\n")
 
-	sys.stdout.write("Training... command='"+cmdProc+"'\n")
+	sys.stdout.write("Next command='"+cmdProc+"'\n")
 	#sys.stdout.write("Training...")
 	proc = subprocess.Popen(cmdProc, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	trainres= proc.communicate()[0]
@@ -163,20 +169,17 @@ def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
 			print "Error: " + errdata
 	except:
 		True
+
 #	sys.stdout.write("...training finished\n")
 
-	error= trainres.splitlines()[-2].split(" = ")[1]
-	corr = trainres.splitlines()[-1].split(" = ")[1]
-	print "Mean Squared Error='" + error +"'"
-	print "Correlation=       '" + corr  +"'"
+#	error= trainres.splitlines()[-2].split(" = ")[1]
+#	corr = trainres.splitlines()[-1].split(" = ")[1]
+#	print "Mean Squared Error='" + error +"'"
+#	print "Correlation=       '" + corr  +"'"
 	
-	return (float(error), float(corr), header)
+#	return (float(error), float(corr), header)
+	return trainres
 
-#	echo "stockname='$1'"
-#
-#	if [ "$2" != "-" ]
-#	then
-#		IFS=
 #		extractdata=$(cut --complement -d, -f $(echo $2))
 #		echo "excluded not needed attributes"
 #	else
@@ -185,18 +188,14 @@ def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
 #	fi
 #	echo "csv2libsvm..."
 #	#new view puts 0 in the unknown value
-##	fixedClassOnlyNeededAttr=$(import cStringIOpaste -d '\0' <(printf "$extractdata") <(printf '\n-100'))
 #	fixedClassOnlyNeededAttr=$extractdata
 #	echo "$fixedClassOnlyNeededAttr" > extracts/${1}.ls.excludedattrs.csv
-##	echo "$extractdata" > extractdata_debug.txt
 #	IFS=
 #	lsCsvToLibsvm "extracts/${1}.ls.excludedattrs.csv" "extracts/${1}.ls.test"
 #	$LSLIB/svm-scale -r "extracts/${1}.range" "extracts/${1}.ls.test" > "extracts/${1}.ls.test.scaled"
 #
 #	IFS=
 #	cmd="$LSLIB/svm-predict extracts/${1}.ls.test.scaled models/${1}.ls.model models/${1}.ls.prediction"
-##	set -x
 #	eval ${cmd}
 #	prediction=$(cat models/${1}.ls.prediction)
 #	echo "prediction:$prediction"
-#}
