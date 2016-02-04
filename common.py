@@ -112,7 +112,8 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault):
 def lsPredict(stockname, exclude, data, nu=svmNuDefault):
 	cmd=LSLIB+"/svm-predict extracts/{0}.ls.scaled models/{0}.ls.model models/{0}.ls.prediction".format(stockname)
 	print "Command:"+cmd
-	extractScaleRunCmd(stockname, exclude, None, data, nu, cmd)
+	(odata, edata) = extractScaleRunCmd(stockname, exclude, None, data, nu, cmd)
+	print "odata=:"+odata
 	f = open("models/{0}.ls.prediction".format(stockname),"r")
 	prStr = f.read()
 	prFloat = float(prStr)
@@ -161,7 +162,8 @@ def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
 	sys.stdout.write("Next command='"+cmdProc+"'\n")
 	#sys.stdout.write("Training...")
 	proc = subprocess.Popen(cmdProc, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	trainres= proc.communicate()[0]
+	outputdata= proc.communicate()[0]
+	print outputdata
 	#sys.stdout.write("Train output:\n" + trainres + '\n')
 	try:
 		errdata = proc.communicate()[1]
@@ -178,7 +180,7 @@ def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
 #	print "Correlation=       '" + corr  +"'"
 	
 #	return (float(error), float(corr), header)
-	return (trainres, errdata)
+	return (outputdata, errdata)
 
 #		extractdata=$(cut --complement -d, -f $(echo $2))
 #		echo "excluded not needed attributes"
