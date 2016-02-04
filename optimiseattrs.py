@@ -5,6 +5,7 @@ import psycopg2
 import common
 import subprocess
 from common import *
+from datetime import datetime
 
 #OLDIFS=$IFS
 #IFS=,
@@ -153,20 +154,16 @@ def doPredictions():
 		extractdata = extractData(stockname, 0, 1)
 
 		curDate.execute("select date FROM datamining_stocks_view where stockName='{0}' limit 1".format(stockname))
-		for dateRow in curDate:
-			date=str(dateRow[0])
-			print 'date='+date
+		records = curDate.fetchall()
+		rec=records[0]
+		date=str(rec[0])
+#		print 'date='+date
+		(prediction, trainres, errorres) = lsPredict(stockname, excludedattributes, extractdata, nu)
+		curUp = conn.cursor()
+		curUp.execute("update {0} set prediction=%s, preddate=%s where stockname=%s".format(dataminestocksViewName), (prediction, date, stockname))
 
-		(trainres, errorres) = lsPredict(stockname, excludedattributes, extractdata, nu)
-
-		if runtype == 'cv':
-			curUp = conn.cursor()
-			curUp.execute("update {0} set correlation=%s, error=%s, corrdate=%s where stockname=%s".format(dataminestocksViewName), (corr, error, date, stockname))
-			print 'DB updated with corrdate="{0}"'.format(date)
-			conn.commit()
-
+	conn.commit()
 	conn.close()
-	print "finished all"
 
 def extractData(stockname, offsetPar=offset, limitPar=limit):
 	sql="COPY (SELECT * from datamine1('{0}') offset {1} limit {2}) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname, offsetPar, limitPar)
@@ -175,16 +172,24 @@ def extractData(stockname, offsetPar=offset, limitPar=limit):
 
 def main():
 	if len(sys.argv) >= 2:
+		timeStart = datetime.now()
 		if sys.argv[1] == 'attr':
 			optimiseattrall()
 		elif sys.argv[1] == 'nu':
 			optimiseNuAll()
 		elif sys.argv[1] == 'bm':
-			buildModels(sys.argv[2])
+			if len(sys.argv) < 3:
+				par=None
+			else:
+				par=sys.argv[2]
+			buildModels(par)
 		elif sys.argv[1] == 'pr':
 			doPredictions()
+		timeEnd = datetime.now()
+		print "Done, it took {0}".format(timeEnd-timeStart)
+
 	else:
-		print "Allowed commands: 'attr', 'nu', 'bm', 'pr'"
+		print "Allowed commands: 'attr', 'nu', 'bm [crossValNumber]', 'pr'"
 
 if __name__ == "__main__":
 	main()

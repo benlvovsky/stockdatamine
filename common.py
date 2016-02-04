@@ -110,16 +110,15 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault):
 
 def lsPredict(stockname, exclude, data, nu=svmNuDefault):
 	cmd=LSLIB+"/svm-predict extracts/{0}.ls.scaled models/{0}.ls.model models/{0}.ls.prediction".format(stockname)
-	print "Command:"+cmd
+#	print "Command:"+cmd
 	(odata, edata) = extractScaleRunCmd(stockname, exclude, None, data, nu, cmd)
-	print "odata=:"+odata
+#	print "odata=:"+odata
 	f = open("models/{0}.ls.prediction".format(stockname),"r")
 	prStr = f.read()
 	prFloat = float(prStr)
 	print "prFloat={0}".format(prFloat)
-	#TODO get data from generated file predictions and return psql -h localhost -U postgres -d postgres -c "update dataminestocks set prediction=${prediction}, preddate='$date'::date where stockname='${stockName}'"
-	sys.exit(99)
-	return (0,0,"")
+#	sys.exit(99)
+	return (prFloat, odata, edata)
 
 #./libsvm-3.21/svm-predict extracts/CBA.ls.scaled models/CBA.ls.model models/CBA.ls.prediction
 
@@ -162,11 +161,10 @@ def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
 	#sys.stdout.write("Training...")
 	proc = subprocess.Popen(cmdProc, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	(outputdata, errdata) = proc.communicate()
-	print outputdata
 	#sys.stdout.write("Train output:\n" + trainres + '\n')
 	try:
-		if errdata != None :
-			print "Error: " + errdata
+		if errdata != None and len(errdata) > 0:
+			print "Error: {" + errdata + "}"
 	except:
 		True
 
