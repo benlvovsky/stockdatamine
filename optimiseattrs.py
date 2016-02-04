@@ -157,7 +157,7 @@ def doPredictions():
 			date=str(dateRow[0])
 			print 'date='+date
 
-		(error, corr, attrCsv) = lsPredict(stockname, excludedattributes, extractdata, nu)
+		(trainres, errorres) = lsPredict(stockname, excludedattributes, extractdata, nu)
 
 		if runtype == 'cv':
 			curUp = conn.cursor()

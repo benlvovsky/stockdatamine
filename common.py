@@ -178,7 +178,7 @@ def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
 #	print "Correlation=       '" + corr  +"'"
 	
 #	return (float(error), float(corr), header)
-	return trainres
+	return (trainres, errdata)
 
 #		extractdata=$(cut --complement -d, -f $(echo $2))
 #		echo "excluded not needed attributes"
