@@ -120,6 +120,17 @@ def lsPredict(stockname, exclude, data, nu=svmNuDefault):
 #	sys.exit(99)
 	return (prFloat, odata, edata)
 
+def lsPredictMulti(stockname, exclude, data, nu=svmNuDefault):
+	cmd=LSLIB+"/svm-predict extracts/{0}.ls.scaled models/{0}.ls.model models/{0}.ls.prediction".format(stockname)
+	(odata, edata) = extractScaleRunCmd(stockname, exclude, None, data, nu, cmd)
+	f = open("models/{0}.ls.prediction".format(stockname),"r")
+	prStr = f.read()
+	fltAr = []
+	for s in prStr.splitlines():
+		fltAr.append(float(s))
+		print "pr={0}".format(s)
+	return (fltAr, odata, edata)
+
 #./libsvm-3.21/svm-predict extracts/CBA.ls.scaled models/CBA.ls.model models/CBA.ls.prediction
 
 def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
@@ -168,32 +179,12 @@ def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
 	except:
 		True
 
-#	sys.stdout.write("...training finished\n")
-
-#	error= trainres.splitlines()[-2].split(" = ")[1]
-#	corr = trainres.splitlines()[-1].split(" = ")[1]
-#	print "Mean Squared Error='" + error +"'"
-#	print "Correlation=       '" + corr  +"'"
-	
-#	return (float(error), float(corr), header)
 	return (outputdata, errdata)
 
-#		extractdata=$(cut --complement -d, -f $(echo $2))
-#		echo "excluded not needed attributes"
-#	else
-#		echo "copy no index removal.       "
-#		extractdata=$(cat)
-#	fi
-#	echo "csv2libsvm..."
-#	#new view puts 0 in the unknown value
-#	fixedClassOnlyNeededAttr=$extractdata
-#	echo "$fixedClassOnlyNeededAttr" > extracts/${1}.ls.excludedattrs.csv
-#	IFS=
-#	lsCsvToLibsvm "extracts/${1}.ls.excludedattrs.csv" "extracts/${1}.ls.test"
-#	$LSLIB/svm-scale -r "extracts/${1}.range" "extracts/${1}.ls.test" > "extracts/${1}.ls.test.scaled"
-#
-#	IFS=
-#	cmd="$LSLIB/svm-predict extracts/${1}.ls.test.scaled models/${1}.ls.model models/${1}.ls.prediction"
-#	eval ${cmd}
-#	prediction=$(cat models/${1}.ls.prediction)
-#	echo "prediction:$prediction"
+offset=50
+limit=480
+
+def extractData(stockname, offsetPar=offset, limitPar=limit):
+	sql="COPY (SELECT * from datamine1('{0}') offset {1} limit {2}) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname, offsetPar, limitPar)
+	extractdata = subprocess.check_output("export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
+	return extractdata

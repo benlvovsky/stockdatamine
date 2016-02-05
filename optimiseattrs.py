@@ -137,7 +137,7 @@ def buildModels(runtype='cv'):
 	conn.close()
 	print "finished all"
 
-def doPredictions():
+def doPredictions1():
 	print "Predicting"
 	query="select stockname, excludedattributes, bestcost, bestnu from "+ dataminestocksViewName + " where active=true and topredict=true order by stockname asc"
 	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
@@ -165,10 +165,37 @@ def doPredictions():
 	conn.commit()
 	conn.close()
 
-def extractData(stockname, offsetPar=offset, limitPar=limit):
-	sql="COPY (SELECT * from datamine1('{0}') offset {1} limit {2}) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname, offsetPar, limitPar)
-	extractdata = subprocess.check_output("export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
-	return extractdata
+def doPredictions():
+	print "Predicting"
+	query="select stockname, excludedattributes, bestcost, bestnu from "+ dataminestocksViewName + " where active=true and topredict=true order by stockname asc"
+	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
+	cur = conn.cursor()	
+	cur.execute(query)
+	
+	for row in cur:
+		
+		stockname=row[0]
+		excludedattributes=row[1]
+		bestcost=row[2]
+		nu=row[3]
+
+		sql="COPY (SELECT * from datamining_aggr_view where stockname = '{0}' offset 0 limit 7) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname)
+		extracolsdata = subprocess.check_output("export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
+		proc = subprocess.Popen("cut --complement -d, -f 1,2", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+		extractdata = proc.communicate(input=extracolsdata)[0]
+		print extractdata
+
+		dateAr = []
+		alldataAr = extracolsdata.splitlines()
+		for i, val in enumerate(alldataAr):
+			if i > 0:
+				dateAr.append(val.split(",")[0])
+		
+		print 'date array='+str(dateAr)
+		(prediction, trainres, errorres) = lsPredictMulti(stockname, excludedattributes, extractdata, nu)
+		curUp.execute("select updatePredictions({0}, {1})".format(prediction, stockname))
+
+	conn.close()
 
 def main():
 	if len(sys.argv) >= 2:
