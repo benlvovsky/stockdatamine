@@ -6,6 +6,7 @@ import common
 import subprocess
 from common import *
 from datetime import datetime
+#import time
 
 #OLDIFS=$IFS
 #IFS=,
@@ -36,9 +37,9 @@ def optimiseNuAll():
 		(nu, corr)=optimiseNu(stockname, excludedattributes, extractdata, nu-0.001, 1, 0.0001)
 		#psql -h localhost -U postgres -d postgres -c "update dataminestocks set bestnu='${best}', bestCorrelation=$bestCorrelation where stockname='${stockName}'"
 		curUp.execute("update {0} set bestnu={1}, bestCorrelation={2} where stockname='{3}'".format(dataminestocksViewName, nu-startNu, corr, stockname))
-		conn.commit()
 #		sys.exit()
 
+	conn.commit()
 	conn.close()
 	print "finished all"
 
@@ -170,31 +171,111 @@ def doPredictions():
 	query="select stockname, excludedattributes, bestcost, bestnu from "+ dataminestocksViewName + " where active=true and topredict=true order by stockname asc"
 	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
 	cur = conn.cursor()	
+	curUp = conn.cursor()	
 	cur.execute(query)
 	
 	for row in cur:
-		
 		stockname=row[0]
 		excludedattributes=row[1]
 		bestcost=row[2]
 		nu=row[3]
 
-		sql="COPY (SELECT * from datamining_aggr_view where stockname = '{0}' offset 0 limit 7) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname)
+		sql="COPY (SELECT * from datamine_extra('{0}') offset 0 limit 7) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname)
+		print sql
 		extracolsdata = subprocess.check_output("export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
 		proc = subprocess.Popen("cut --complement -d, -f 1,2", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		extractdata = proc.communicate(input=extracolsdata)[0]
-		print extractdata
+#		print extractdata
 
 		dateAr = []
+		priceAr = []
 		alldataAr = extracolsdata.splitlines()
 		for i, val in enumerate(alldataAr):
 			if i > 0:
-				dateAr.append(val.split(",")[0])
+				ar=val.split(",")
+				dateAr.append(datetime.strptime(ar[0], "%Y-%m-%d").date())
+				priceAr.append(float(ar[1]))
 		
 		print 'date array='+str(dateAr)
-		(prediction, trainres, errorres) = lsPredictMulti(stockname, excludedattributes, extractdata, nu)
-		curUp.execute("select updatePredictions({0}, {1})".format(prediction, stockname))
+		print 'price array='+str(priceAr)
+		(predictionAr, trainres, errorres) = lsPredictMulti(stockname, excludedattributes, extractdata, nu)
+		print 'predictions array='+str(predictionAr)
+		curUp.execute("select updatePredictions(%s, %s, %s, %s)", (stockname, dateAr, priceAr, predictionAr))
 
+	conn.commit()
+	
+	#read predictions and email report
+	cur.execute("select * from predictions")
+	records = cur.fetchall()
+	rec=records[0]
+	rundate=str(rec[0])
+	tbls="<table style='font-size:16px;font-family:Arial;border-collapse: collapse;border-spacing: 0;width: 100%;'>"
+	tds="<td style='border: 1px solid #ddd;text-align: left;padding: 8px;'>"
+	trs="<tr style='tr:nth-child(even){background-color: #f2f2f2}'>"
+	ths="<th style='padding-top: 11px;padding-bottom: 11px;background-color: #4CAF50;color: white;border: 1px solid #ddd;text-align: left;padding: 8px;'>"
+
+#	msg = "<head><title>SVM Results from " + rundate + "</title>"
+#	msg += """
+#	<style type="text/css">
+#		table  {
+#			font-size:16px;
+#			font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+#			border-collapse: collapse;
+#			border-spacing: 0;
+#			width: 100%;
+#		}
+#		td, th {
+#			border: 1px solid #ddd;
+#			text-align: left;
+#			padding: 8px;
+#		}
+#
+#		tr:nth-child(even){background-color: #f2f2f2}
+#
+#		th {
+#			padding-top: 11px;
+#			padding-bottom: 11px;
+#			background-color: #4CAF50;
+#			color: white;
+#		}
+#		</style></head><body>
+#	"""
+	style=""#"style=\"font-size:16px;font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif;border-collapse: collapse;border-spacing: 0;width: 100%;\""
+	msg = "<!DOCTYPE html><div><b>Predictions from run date " + rundate + "</b></div><div>"
+
+	for row in records:
+		msg += "<div><br></br><br></br><b><span>"+stockname+"</span></b></div><div>" + tbls + trs
+		msg += ths + "<span>Prediction Date</span></th>" + ths + "<span>Original price</span></th>" + ths + "<span>Prediction %</span></th>" + ths + "<span>Predicted price</span></th></tr>"
+		stockname=row[1]
+		datear=row[2]
+		origprice=row[3]
+		prediction=row[4]
+		for i, val in enumerate(datear):
+			msg += trs
+			msg += tds + "<span>" + str(datear[i])+"</span></td>"
+			msg += tds + "<span>" + str(origprice[i])+"</span></td>"
+			msg += tds + "<span>" + str(prediction[i])+"</span></td>"
+			msg += tds + "<span>" + str(origprice[i]*(1+prediction[i]))+"</span></td>"
+			msg += "</tr>"
+			
+		msg += "</table></div>"
+
+	msg += "</div>"
+
+	text_file = open("./mail.html", "w")
+	text_file.write(msg)
+	text_file.close()
+
+	cmd = "mail -a \"MIME-Version: 1.0\" -a \"Content-type: text/html\" -s \"SVM Results from " + rundate + "\" ben@lvovsky.com < ./mail.html"
+#	cmd = "mail -s \"SVM Results from " + rundate + "\" ben@lvovsky.com"
+	print cmd
+	proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	(outputdata, errdata) = proc.communicate()
+
+	print outputdata
+	if errdata != None:
+		print errdata
+	
 	conn.close()
 
 def main():

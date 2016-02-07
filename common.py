@@ -78,7 +78,6 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault):
 	csv2libsvm(extractdata, "extracts/{0}.ls".format(stockname), hlen-1, True)
 	
 	cmd=LSLIB+'/svm-scale -s "extracts/{0}.range"  "extracts/{0}.ls" > "extracts/{0}.ls.scaled"'.format(stockname)
-	sys.stdout.write("Scaling... ")#command='+cmd+"'"
 	proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	try:
 		errdata = proc.communicate()[1]
@@ -110,8 +109,9 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault):
 
 def lsPredict(stockname, exclude, data, nu=svmNuDefault):
 	cmd=LSLIB+"/svm-predict extracts/{0}.ls.scaled models/{0}.ls.model models/{0}.ls.prediction".format(stockname)
+	cmdScale=LSLIB+'/svm-scale -s "extracts/{0}.range"  "extracts/{0}.ls" > "extracts/{0}.ls.scaled"'.format(stockname)
 #	print "Command:"+cmd
-	(odata, edata) = extractScaleRunCmd(stockname, exclude, None, data, nu, cmd)
+	(odata, edata) = extractScaleRunCmd(stockname, exclude, None, data, nu, cmd, cmdScale)
 #	print "odata=:"+odata
 	f = open("models/{0}.ls.prediction".format(stockname),"r")
 	prStr = f.read()
@@ -122,7 +122,9 @@ def lsPredict(stockname, exclude, data, nu=svmNuDefault):
 
 def lsPredictMulti(stockname, exclude, data, nu=svmNuDefault):
 	cmd=LSLIB+"/svm-predict extracts/{0}.ls.scaled models/{0}.ls.model models/{0}.ls.prediction".format(stockname)
-	(odata, edata) = extractScaleRunCmd(stockname, exclude, None, data, nu, cmd)
+	cmdScale=LSLIB+'/svm-scale -s "extracts/{0}.range"  "extracts/{0}.ls" > "extracts/{0}.ls.scaled"'.format(stockname)
+
+	(odata, edata) = extractScaleRunCmd(stockname, exclude, None, data, nu, cmd, cmdScale)
 	f = open("models/{0}.ls.prediction".format(stockname),"r")
 	prStr = f.read()
 	fltAr = []
@@ -133,7 +135,7 @@ def lsPredictMulti(stockname, exclude, data, nu=svmNuDefault):
 
 #./libsvm-3.21/svm-predict extracts/CBA.ls.scaled models/CBA.ls.model models/CBA.ls.prediction
 
-def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
+def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc, cmdScale):
 	svmNu = "{0}".format(nu)
 	
 	if (not cvNum) or (cvNum==""):
@@ -148,7 +150,6 @@ def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
 	else:
 		cmd = "cat"
 
-	#sys.stdout.write(", cmd='{0}', ".format(cmd))
 	proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 	extractdata = proc.communicate(input=data)[0]
 	header=extractdata.splitlines()[0]
@@ -157,22 +158,19 @@ def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc):
 	sys.stdout.write("array len={0}, class is last title={1}\n".format(hlen, hdrArray[hlen-1]))
 	csv2libsvm(extractdata, "extracts/{0}.ls".format(stockname), hlen-1, True)
 	
-	cmd=LSLIB+'/svm-scale -s "extracts/{0}.range"  "extracts/{0}.ls" > "extracts/{0}.ls.scaled"'.format(stockname)
-	sys.stdout.write("Scaling... ")#command='+cmd+"'"
-	proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	#scale
+	proc = subprocess.Popen(cmdScale, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	try:
 		errdata = proc.communicate()[1]
 #		if errdata != None:
 #			print "" + errdata
 	except:
 		True
-#	sys.stdout.write("...scaling finished\n")
 
 	sys.stdout.write("Next command='"+cmdProc+"'\n")
-	#sys.stdout.write("Training...")
+	#process scaled data
 	proc = subprocess.Popen(cmdProc, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	(outputdata, errdata) = proc.communicate()
-	#sys.stdout.write("Train output:\n" + trainres + '\n')
 	try:
 		if errdata != None and len(errdata) > 0:
 			print "Error: {" + errdata + "}"
