@@ -130,7 +130,7 @@ def lsPredictMulti(stockname, exclude, data, nu=svmNuDefault):
 	fltAr = []
 	for s in prStr.splitlines():
 		fltAr.append(float(s))
-		print "pr={0}".format(s)
+		#print "pr={0}".format(s)
 	return (fltAr, odata, edata)
 
 #./libsvm-3.21/svm-predict extracts/CBA.ls.scaled models/CBA.ls.model models/CBA.ls.prediction

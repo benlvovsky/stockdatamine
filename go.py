@@ -6,7 +6,7 @@ import common
 import subprocess
 from common import *
 from datetime import datetime
-#import time
+from datetime import timedelta
 
 #OLDIFS=$IFS
 #IFS=,
@@ -180,7 +180,7 @@ def doPredictions():
 		bestcost=row[2]
 		nu=row[3]
 
-		sql="COPY (SELECT * from datamine_extra('{0}') offset 0 limit 7) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname)
+		sql="COPY (SELECT * from datamine_extra('{0}') offset 0 limit 5) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname)
 		print sql
 		extracolsdata = subprocess.check_output("export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
 		proc = subprocess.Popen("cut --complement -d, -f 1,2", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -205,7 +205,7 @@ def doPredictions():
 	conn.commit()
 	
 	#read predictions and email report
-	cur.execute("select * from predictions")
+	cur.execute("select p.*, d.correlation, d.error from predictions p join dataminestocks_py d on d.stockname=p.stockname order by correlation/error desc")
 	records = cur.fetchall()
 	rec=records[0]
 	rundate=str(rec[0])
@@ -214,51 +214,34 @@ def doPredictions():
 	trs="<tr style='tr:nth-child(even){background-color: #f2f2f2}'>"
 	ths="<th style='padding-top: 11px;padding-bottom: 11px;background-color: #4CAF50;color: white;border: 1px solid #ddd;text-align: left;padding: 8px;'>"
 
-#	msg = "<head><title>SVM Results from " + rundate + "</title>"
-#	msg += """
-#	<style type="text/css">
-#		table  {
-#			font-size:16px;
-#			font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-#			border-collapse: collapse;
-#			border-spacing: 0;
-#			width: 100%;
-#		}
-#		td, th {
-#			border: 1px solid #ddd;
-#			text-align: left;
-#			padding: 8px;
-#		}
-#
-#		tr:nth-child(even){background-color: #f2f2f2}
-#
-#		th {
-#			padding-top: 11px;
-#			padding-bottom: 11px;
-#			background-color: #4CAF50;
-#			color: white;
-#		}
-#		</style></head><body>
-#	"""
 	style=""#"style=\"font-size:16px;font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif;border-collapse: collapse;border-spacing: 0;width: 100%;\""
 	msg = "<!DOCTYPE html><div><b>Predictions from run date " + rundate + "</b></div><div>"
 
 	for row in records:
-		msg += "<div><br></br><br></br><b><span>"+stockname+"</span></b></div><div>" + tbls + trs
-		msg += ths + "<span>Prediction Date</span></th>" + ths + "<span>Original price</span></th>" + ths + "<span>Prediction %</span></th>" + ths + "<span>Predicted price</span></th></tr>"
 		stockname=row[1]
 		datear=row[2]
 		origprice=row[3]
 		prediction=row[4]
+		correlation=row[5]
+		error=row[6]
+
+		msg += "<div><br></br><br></br><b><span>"+stockname+". Correlation=" + str(correlation) + ", Error=" + str(error) + "</span></b></div><div>" + tbls + trs
+		msg += "\n" + ths + "<span>Prediction record date</span></th>"
+		msg += ths + "<span>Prediction for Date</span></th>" + ths + "<span>Original price</span></th>"
+		msg += ths + "<span>Prediction %</span></th>" + ths + "<span>Predicted price</span></th>"
+		msg += "\n</tr>\n"
+		
 		for i, val in enumerate(datear):
 			msg += trs
-			msg += tds + "<span>" + str(datear[i])+"</span></td>"
-			msg += tds + "<span>" + str(origprice[i])+"</span></td>"
-			msg += tds + "<span>" + str(prediction[i])+"</span></td>"
-			msg += tds + "<span>" + str(origprice[i]*(1+prediction[i]))+"</span></td>"
-			msg += "</tr>"
+			msg += tds + "<span>" + str(datear[i])+"</span></td>\n"
+			for_date = datear[i] + timedelta(days=7)
+			msg += tds + "<span>" + str(for_date)+"</span></td>\n"
+			msg += tds + "<span>" + str(origprice[i])+"</span></td>\n"
+			msg += tds + "<span>" + str(prediction[i])+"</span></td>\n"
+			msg += tds + "<span>" + str(origprice[i]*(1+(prediction[i]/100)))+"</span></td>\n"
+			msg += "</tr>\n"
 			
-		msg += "</table></div>"
+		msg += "</table></div>\n"
 
 	msg += "</div>"
 
