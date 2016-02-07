@@ -180,7 +180,7 @@ def doPredictions():
 		bestcost=row[2]
 		nu=row[3]
 
-		sql="COPY (SELECT * from datamine_extra('{0}') offset 0 limit 5) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname)
+		sql="COPY (SELECT * from datamine_extra('{0}') where date >= (now()::date - interval '7 days') ) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname)
 		print sql
 		extracolsdata = subprocess.check_output("export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
 		proc = subprocess.Popen("cut --complement -d, -f 1,2", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
