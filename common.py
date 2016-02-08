@@ -113,7 +113,7 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault):
 
 def lsPredict(stockname, exclude, data, nu=svmNuDefault):
 	cmd=LSLIB+"/svm-predict extracts/{0}.ls.scaled models/{0}.ls.model models/{0}.ls.prediction".format(stockname)
-	cmdScale=LSLIB+'/svm-scale -s "extracts/{0}.range"  "extracts/{0}.ls" > "extracts/{0}.ls.scaled"'.format(stockname)
+	cmdScale=LSLIB+'/svm-scale -r "extracts/{0}.range"  "extracts/{0}.ls" > "extracts/{0}.ls.scaled"'.format(stockname)
 #	print "Command:"+cmd
 	(odata, edata) = extractScaleRunCmd(stockname, exclude, None, data, nu, cmd, cmdScale)
 #	print "odata=:"+odata
@@ -126,7 +126,7 @@ def lsPredict(stockname, exclude, data, nu=svmNuDefault):
 
 def lsPredictMulti(stockname, exclude, data, nu=svmNuDefault):
 	cmd=LSLIB+"/svm-predict extracts/{0}.ls.scaled models/{0}.ls.model models/{0}.ls.prediction".format(stockname)
-	cmdScale=LSLIB+'/svm-scale -s "extracts/{0}.range"  "extracts/{0}.ls" > "extracts/{0}.ls.scaled"'.format(stockname)
+	cmdScale=LSLIB+'/svm-scale -r "extracts/{0}.range"  "extracts/{0}.ls" > "extracts/{0}.ls.scaled"'.format(stockname)
 
 	(odata, edata) = extractScaleRunCmd(stockname, exclude, None, data, nu, cmd, cmdScale)
 	f = open("models/{0}.ls.prediction".format(stockname),"r")
