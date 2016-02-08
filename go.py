@@ -106,12 +106,16 @@ def optimiseattr(stockname, nu):
 	res = subprocess.check_output(cmd, shell=True)
 	print res + ". " + stockname + " stock optimisation finished"
 
-def buildModels(runtype='cv'):
+def buildModels(runtype=None):
 	print "buildModels"
 	query="select stockname, excludedattributes, bestcost, bestnu from "+ dataminestocksViewName + " where active=true and topredict=true order by stockname asc"
 	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
 	cur = conn.cursor()
 	
+	cvArg = ''
+	if runtype == 'cv':
+		cvArg=cv
+
 	curDate = conn.cursor()
 	cur.execute(query)
 	for row in cur:
@@ -127,7 +131,7 @@ def buildModels(runtype='cv'):
 			date=str(dateRow[0])
 			print 'date='+date
 
-		(error, corr, attrCsv) = lsCalcModel(stockname, excludedattributes, cv, extractdata, nu)
+		(error, corr, attrCsv) = lsCalcModel(stockname, excludedattributes, cvArg, extractdata, nu)
 
 		if runtype == 'cv':
 			curUp = conn.cursor()
@@ -270,7 +274,7 @@ def main():
 			optimiseNuAll()
 		elif sys.argv[1] == 'bm':
 			if len(sys.argv) < 3:
-				par=None
+				par='build'
 			else:
 				par=sys.argv[2]
 			buildModels(par)

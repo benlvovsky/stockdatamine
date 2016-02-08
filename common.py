@@ -100,10 +100,14 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault):
 		True
 #	sys.stdout.write("...training finished\n")
 
-	error= trainres.splitlines()[-2].split(" = ")[1]
-	corr = trainres.splitlines()[-1].split(" = ")[1]
-	print "Mean Squared Error='" + error +"'"
-	print "Correlation=       '" + corr  +"'"
+	if cvOption != "":
+		error= trainres.splitlines()[-2].split(" = ")[1]
+		corr = trainres.splitlines()[-1].split(" = ")[1]
+		print "Mean Squared Error='" + error +"'"
+		print "Correlation=       '" + corr  +"'"
+	else:
+		error = 0
+		corr = 0
 	
 	return (float(error), float(corr), header)
 
