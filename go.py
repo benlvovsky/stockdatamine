@@ -12,7 +12,7 @@ from datetime import timedelta
 #IFS=,
 cv=10
 limit=480
-offset=20
+offset=40
 dataminestocksViewName="dataminestocks_py"
 startNu=0.00000001
 initialStepNu=0.1
@@ -106,7 +106,7 @@ def optimiseattr(stockname, nu):
 	res = subprocess.check_output(cmd, shell=True)
 	print res + ". " + stockname + " stock optimisation finished"
 
-def buildModels(runtype=None):
+def buildModels(runtype):
 	print "buildModels"
 	query="select stockname, excludedattributes, bestcost, bestnu from "+ dataminestocksViewName + " where active=true and topredict=true order by stockname asc"
 	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
@@ -209,7 +209,7 @@ def doPredictions():
 	conn.commit()
 	
 	#read predictions and email report
-	cur.execute("select p.*, d.correlation, d.error from predictions p join dataminestocks_py d on d.stockname=p.stockname order by correlation/error desc")
+	cur.execute("select p.*, d.correlation, d.error from predictions p join dataminestocks_py d on d.stockname=p.stockname where rundate = now()::date order by correlation/error desc")
 	records = cur.fetchall()
 	rec=records[0]
 	rundate=str(rec[0])
@@ -219,7 +219,7 @@ def doPredictions():
 	ths="<th style='padding-top: 11px;padding-bottom: 11px;background-color: #4CAF50;color: white;border: 1px solid #ddd;text-align: left;padding: 8px;'>"
 
 	style=""#"style=\"font-size:16px;font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif;border-collapse: collapse;border-spacing: 0;width: 100%;\""
-	msg = "<!DOCTYPE html><div><b>Predictions from run date " + rundate + "</b></div><div>"
+	msg = "<!DOCTYPE html><div><b>Predictions from run date " + rundate + "</b></div><div>\n"
 
 	for row in records:
 		stockname=row[1]

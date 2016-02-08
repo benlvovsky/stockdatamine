@@ -94,8 +94,8 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault):
 	(trainres, errdata) = proc.communicate()
 	#sys.stdout.write("Train output:\n" + trainres + '\n')
 	try:
-		if errdata != None :
-			print "		Train error: " + errdata
+		if errdata != None and len(errdata) > 0:
+			print "		Train error: '" + errdata + "'"
 	except:
 		True
 #	sys.stdout.write("...training finished\n")
