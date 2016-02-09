@@ -4,7 +4,7 @@
 
 -- Dumped from database version 9.3.10
 -- Dumped by pg_dump version 9.3.10
--- Started on 2016-02-07 21:45:25 AEDT
+-- Started on 2016-02-09 21:44:14 AEDT
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -14,8 +14,8 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 
 --
--- TOC entry 2088 (class 1262 OID 12066)
--- Dependencies: 2087
+-- TOC entry 2086 (class 1262 OID 12066)
+-- Dependencies: 2085
 -- Name: postgres; Type: COMMENT; Schema: -; Owner: postgres
 --
 
@@ -23,7 +23,7 @@ COMMENT ON DATABASE postgres IS 'default administrative connection database';
 
 
 --
--- TOC entry 187 (class 3079 OID 11787)
+-- TOC entry 186 (class 3079 OID 11787)
 -- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
 --
 
@@ -31,35 +31,18 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- TOC entry 2091 (class 0 OID 0)
--- Dependencies: 187
+-- TOC entry 2089 (class 0 OID 0)
+-- Dependencies: 186
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
 --
 
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 
---
--- TOC entry 186 (class 3079 OID 17387)
--- Name: plpythonu; Type: EXTENSION; Schema: -; Owner: 
---
-
-CREATE EXTENSION IF NOT EXISTS plpythonu WITH SCHEMA pg_catalog;
-
-
---
--- TOC entry 2092 (class 0 OID 0)
--- Dependencies: 186
--- Name: EXTENSION plpythonu; Type: COMMENT; Schema: -; Owner: 
---
-
-COMMENT ON EXTENSION plpythonu IS 'PL/PythonU untrusted procedural language';
-
-
 SET search_path = public, pg_catalog;
 
 --
--- TOC entry 561 (class 1247 OID 41426)
+-- TOC entry 560 (class 1247 OID 41426)
 -- Name: avg_type; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -76,7 +59,7 @@ CREATE TYPE avg_type AS (
 ALTER TYPE public.avg_type OWNER TO postgres;
 
 --
--- TOC entry 586 (class 1247 OID 42116)
+-- TOC entry 585 (class 1247 OID 42116)
 -- Name: dm_type; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -421,7 +404,7 @@ CREATE TYPE dm_type AS (
 ALTER TYPE public.dm_type OWNER TO postgres;
 
 --
--- TOC entry 211 (class 1255 OID 42037)
+-- TOC entry 210 (class 1255 OID 42037)
 -- Name: change(text, date, interval); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -458,7 +441,7 @@ $$;
 ALTER FUNCTION public.change(stockname text, dt date, intr interval) OWNER TO postgres;
 
 --
--- TOC entry 216 (class 1255 OID 12554498)
+-- TOC entry 215 (class 1255 OID 12554498)
 -- Name: datamine(character varying, bigint, bigint); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -810,7 +793,7 @@ CREATE FUNCTION datamine(stcknm character varying, ofst bigint, lmt bigint) RETU
 ALTER FUNCTION public.datamine(stcknm character varying, ofst bigint, lmt bigint) OWNER TO postgres;
 
 --
--- TOC entry 217 (class 1255 OID 12554501)
+-- TOC entry 216 (class 1255 OID 12554501)
 -- Name: datamine1(character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1160,7 +1143,7 @@ CREATE FUNCTION datamine1(stcknm character varying) RETURNS TABLE(a1 double prec
 ALTER FUNCTION public.datamine1(stcknm character varying) OWNER TO postgres;
 
 --
--- TOC entry 215 (class 1255 OID 12554468)
+-- TOC entry 214 (class 1255 OID 12554468)
 -- Name: datamine_aggr_sp(character varying, bigint, bigint); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1514,7 +1497,7 @@ CREATE FUNCTION datamine_aggr_sp(stockname character varying, ofst bigint, lmt b
 ALTER FUNCTION public.datamine_aggr_sp(stockname character varying, ofst bigint, lmt bigint) OWNER TO postgres;
 
 --
--- TOC entry 218 (class 1255 OID 12557861)
+-- TOC entry 217 (class 1255 OID 12557861)
 -- Name: datamine_extra(character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1865,7 +1848,7 @@ CREATE FUNCTION datamine_extra(stcknm character varying) RETURNS TABLE(date date
 ALTER FUNCTION public.datamine_extra(stcknm character varying) OWNER TO postgres;
 
 --
--- TOC entry 205 (class 1255 OID 41455)
+-- TOC entry 204 (class 1255 OID 41455)
 -- Name: forexavgdif(text, date, interval); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1897,7 +1880,7 @@ $_$;
 ALTER FUNCTION public.forexavgdif(pair text, dt date, intr interval) OWNER TO postgres;
 
 --
--- TOC entry 207 (class 1255 OID 41456)
+-- TOC entry 206 (class 1255 OID 41456)
 -- Name: forexavgdiffset(text, date); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1927,7 +1910,7 @@ $$;
 ALTER FUNCTION public.forexavgdiffset(forex text, dt date) OWNER TO postgres;
 
 --
--- TOC entry 200 (class 1255 OID 41206)
+-- TOC entry 199 (class 1255 OID 41206)
 -- Name: h_bigint(text); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1941,7 +1924,7 @@ $_$;
 ALTER FUNCTION public.h_bigint(text) OWNER TO postgres;
 
 --
--- TOC entry 201 (class 1255 OID 41207)
+-- TOC entry 200 (class 1255 OID 41207)
 -- Name: h_int(text); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1955,7 +1938,7 @@ $_$;
 ALTER FUNCTION public.h_int(text) OWNER TO postgres;
 
 --
--- TOC entry 210 (class 1255 OID 42001)
+-- TOC entry 209 (class 1255 OID 42001)
 -- Name: islastthurthday(date); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1985,7 +1968,7 @@ $$;
 ALTER FUNCTION public.islastthurthday(dt date) OWNER TO postgres;
 
 --
--- TOC entry 208 (class 1255 OID 41478)
+-- TOC entry 207 (class 1255 OID 41478)
 -- Name: nextavgdif(text, date, interval); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2044,7 +2027,7 @@ CREATE TABLE stocks (
 ALTER TABLE public.stocks OWNER TO postgres;
 
 --
--- TOC entry 202 (class 1255 OID 41208)
+-- TOC entry 201 (class 1255 OID 41208)
 -- Name: nextrec(date, integer, text); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2070,7 +2053,7 @@ $_$;
 ALTER FUNCTION public.nextrec(dt date, diff integer, code text) OWNER TO postgres;
 
 --
--- TOC entry 203 (class 1255 OID 41209)
+-- TOC entry 202 (class 1255 OID 41209)
 -- Name: prevrec(date, integer, text); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2095,7 +2078,7 @@ $_$;
 ALTER FUNCTION public.prevrec(dt date, diff integer, code text) OWNER TO postgres;
 
 --
--- TOC entry 204 (class 1255 OID 41383)
+-- TOC entry 203 (class 1255 OID 41383)
 -- Name: stockavg(text, date, interval); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2117,7 +2100,7 @@ $$;
 ALTER FUNCTION public.stockavg(stockname text, dt date, intr interval) OWNER TO postgres;
 
 --
--- TOC entry 212 (class 1255 OID 41415)
+-- TOC entry 211 (class 1255 OID 41415)
 -- Name: stockavgdif(text, date, interval); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2155,7 +2138,7 @@ $$;
 ALTER FUNCTION public.stockavgdif(stockname text, dt date, intr interval) OWNER TO postgres;
 
 --
--- TOC entry 209 (class 1255 OID 41429)
+-- TOC entry 208 (class 1255 OID 41429)
 -- Name: stockavgdiffset(text, date); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2185,7 +2168,7 @@ $$;
 ALTER FUNCTION public.stockavgdiffset(stock text, dt date) OWNER TO postgres;
 
 --
--- TOC entry 206 (class 1255 OID 41428)
+-- TOC entry 205 (class 1255 OID 41428)
 -- Name: stockavgdiffset(text, date, interval); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2214,7 +2197,7 @@ $$;
 ALTER FUNCTION public.stockavgdiffset(stock text, dt date, intr interval) OWNER TO postgres;
 
 --
--- TOC entry 213 (class 1255 OID 42140)
+-- TOC entry 212 (class 1255 OID 42140)
 -- Name: sync_aggr(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2232,7 +2215,7 @@ CREATE FUNCTION sync_aggr() RETURNS integer
 ALTER FUNCTION public.sync_aggr() OWNER TO postgres;
 
 --
--- TOC entry 214 (class 1255 OID 11887369)
+-- TOC entry 213 (class 1255 OID 11887369)
 -- Name: sync_aggr(date); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2259,7 +2242,7 @@ CREATE FUNCTION sync_aggr(startdate date) RETURNS integer
 ALTER FUNCTION public.sync_aggr(startdate date) OWNER TO postgres;
 
 --
--- TOC entry 219 (class 1255 OID 12566082)
+-- TOC entry 218 (class 1255 OID 12566082)
 -- Name: updatepredictions(text, date[], double precision[], double precision[]); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2381,7 +2364,7 @@ CREATE TABLE dataminestocks (
 ALTER TABLE public.dataminestocks OWNER TO postgres;
 
 --
--- TOC entry 2093 (class 0 OID 0)
+-- TOC entry 2090 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN dataminestocks.corrdate; Type: COMMENT; Schema: public; Owner: postgres
 --
@@ -2390,7 +2373,7 @@ COMMENT ON COLUMN dataminestocks.corrdate IS 'date correlation was calculated';
 
 
 --
--- TOC entry 2094 (class 0 OID 0)
+-- TOC entry 2091 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN dataminestocks.preddate; Type: COMMENT; Schema: public; Owner: postgres
 --
@@ -2399,7 +2382,7 @@ COMMENT ON COLUMN dataminestocks.preddate IS 'date of last data prediction based
 
 
 --
--- TOC entry 2095 (class 0 OID 0)
+-- TOC entry 2092 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN dataminestocks.active; Type: COMMENT; Schema: public; Owner: postgres
 --
@@ -2802,7 +2785,7 @@ CREATE SEQUENCE forex_id_seq
 ALTER TABLE public.forex_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2096 (class 0 OID 0)
+-- TOC entry 2093 (class 0 OID 0)
 -- Dependencies: 174
 -- Name: forex_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -2842,7 +2825,7 @@ CREATE SEQUENCE stocks_id_seq
 ALTER TABLE public.stocks_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2097 (class 0 OID 0)
+-- TOC entry 2094 (class 0 OID 0)
 -- Dependencies: 172
 -- Name: stocks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -2863,7 +2846,7 @@ CREATE TABLE tmpinstr (
 ALTER TABLE public.tmpinstr OWNER TO postgres;
 
 --
--- TOC entry 1943 (class 2604 OID 41470)
+-- TOC entry 1941 (class 2604 OID 41470)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2871,7 +2854,7 @@ ALTER TABLE ONLY forex ALTER COLUMN id SET DEFAULT nextval('forex_id_seq'::regcl
 
 
 --
--- TOC entry 1942 (class 2604 OID 41399)
+-- TOC entry 1940 (class 2604 OID 41399)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2879,7 +2862,7 @@ ALTER TABLE ONLY stocks ALTER COLUMN id SET DEFAULT nextval('stocks_id_seq'::reg
 
 
 --
--- TOC entry 1964 (class 2606 OID 12554484)
+-- TOC entry 1962 (class 2606 OID 12554484)
 -- Name: PK; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2888,7 +2871,7 @@ ALTER TABLE ONLY datamine_aggr
 
 
 --
--- TOC entry 1962 (class 2606 OID 41894)
+-- TOC entry 1960 (class 2606 OID 41894)
 -- Name: PK_instrument; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2897,7 +2880,7 @@ ALTER TABLE ONLY downloadinstruments
 
 
 --
--- TOC entry 1958 (class 2606 OID 41476)
+-- TOC entry 1956 (class 2606 OID 41476)
 -- Name: forex_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2906,7 +2889,7 @@ ALTER TABLE ONLY forex
 
 
 --
--- TOC entry 1960 (class 2606 OID 41766)
+-- TOC entry 1958 (class 2606 OID 41766)
 -- Name: id; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2915,7 +2898,7 @@ ALTER TABLE ONLY dataminestocks
 
 
 --
--- TOC entry 1969 (class 2606 OID 12555323)
+-- TOC entry 1967 (class 2606 OID 12555323)
 -- Name: pk_dataminestocks_py; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2924,7 +2907,7 @@ ALTER TABLE ONLY dataminestocks_py
 
 
 --
--- TOC entry 1971 (class 2606 OID 12566080)
+-- TOC entry 1969 (class 2606 OID 12566080)
 -- Name: predictions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2933,7 +2916,7 @@ ALTER TABLE ONLY predictions
 
 
 --
--- TOC entry 1953 (class 2606 OID 41407)
+-- TOC entry 1951 (class 2606 OID 41407)
 -- Name: stocks_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2942,7 +2925,7 @@ ALTER TABLE ONLY stocks
 
 
 --
--- TOC entry 1965 (class 1259 OID 12554471)
+-- TOC entry 1963 (class 1259 OID 12554471)
 -- Name: date; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2950,7 +2933,7 @@ CREATE INDEX date ON datamine_aggr USING btree (date DESC);
 
 
 --
--- TOC entry 1956 (class 1259 OID 41467)
+-- TOC entry 1954 (class 1259 OID 41467)
 -- Name: forex_date_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2958,7 +2941,7 @@ CREATE INDEX forex_date_idx ON forex USING btree (date);
 
 
 --
--- TOC entry 1966 (class 1259 OID 11887396)
+-- TOC entry 1964 (class 1259 OID 11887396)
 -- Name: stock_date; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2966,7 +2949,7 @@ CREATE INDEX stock_date ON datamine_aggr USING btree (stockname, date DESC);
 
 
 --
--- TOC entry 1967 (class 1259 OID 11887398)
+-- TOC entry 1965 (class 1259 OID 11887398)
 -- Name: stockname; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2974,7 +2957,7 @@ CREATE INDEX stockname ON datamine_aggr USING btree (stockname);
 
 
 --
--- TOC entry 1950 (class 1259 OID 42015)
+-- TOC entry 1948 (class 1259 OID 42015)
 -- Name: stocks_date_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2982,7 +2965,7 @@ CREATE INDEX stocks_date_idx ON stocks USING btree (date);
 
 
 --
--- TOC entry 1951 (class 1259 OID 41408)
+-- TOC entry 1949 (class 1259 OID 41408)
 -- Name: stocks_date_stock_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2990,7 +2973,7 @@ CREATE INDEX stocks_date_stock_idx ON stocks USING btree (date, stock);
 
 
 --
--- TOC entry 1954 (class 1259 OID 41414)
+-- TOC entry 1952 (class 1259 OID 41414)
 -- Name: stocks_stock_date_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2998,7 +2981,7 @@ CREATE INDEX stocks_stock_date_idx ON stocks USING btree (stock, date);
 
 
 --
--- TOC entry 1955 (class 1259 OID 42014)
+-- TOC entry 1953 (class 1259 OID 42014)
 -- Name: stocks_stock_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -3006,7 +2989,7 @@ CREATE INDEX stocks_stock_idx ON stocks USING btree (stock);
 
 
 --
--- TOC entry 2090 (class 0 OID 0)
+-- TOC entry 2088 (class 0 OID 0)
 -- Dependencies: 5
 -- Name: public; Type: ACL; Schema: -; Owner: postgres
 --
@@ -3017,7 +3000,7 @@ GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2016-02-07 21:45:25 AEDT
+-- Completed on 2016-02-09 21:44:14 AEDT
 
 --
 -- PostgreSQL database dump complete

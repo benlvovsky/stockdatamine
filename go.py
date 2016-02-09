@@ -301,6 +301,9 @@ def main():
 			buildModels(par)
 		elif sys.argv[1] == 'pr':
 			doPredictions()
+		elif sys.argv[1] == 'downloaddata':
+			downloadInstruments()
+			
 		timeEnd = datetime.now()
 		print "Done, it took {0}".format(timeEnd-timeStart)
 

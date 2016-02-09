@@ -13,7 +13,8 @@ dbnameConst = ""
 
 from collections import defaultdict
 
-dbnameConst="dataminestocks1"
+#dbnameConst="dataminestocks1"
+dbnameConst="postgres"
 
 def getdbcon(dbname=dbnameConst):
 	return psycopg2.connect("dbname = '{0}' user = 'postgres' host = 'localhost' password = 'postgres'".format(dbname))
@@ -196,3 +197,42 @@ def extractData(stockname, offsetPar=offset, limitPar=limit):
 	sql="COPY (SELECT * from datamine1('{0}') offset {1} limit {2}) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname, offsetPar, limitPar)
 	extractdata = subprocess.check_output("export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
 	return extractdata
+
+def downloadInstruments():
+	query="select instrument from downloadinstruments where type='YAHOO'"
+	conn = getdbcon()
+	cur = conn.cursor()
+	curDate = conn.cursor()
+	cur.execute(query)
+	for row in cur:
+		stockName=row[0]
+		print "Downloading " + stockName
+		subprocess.call("rm downloads/"+stockName+"*.csv", shell=True)
+
+		curDate.execute("select max(date + interval '1 day') from stocks where stock='"+stockName+"'")
+		records = curDate.fetchall()
+		if len(records) > 0:
+			rec=records[0]
+			date=str(rec[0])
+		else:
+			date=datetime.strptime("2000-01-01", "%Y-%m-%d").date()
+
+		url="http://real-chart.finance.yahoo.com/table.csv?s=$stockName&a=${monthfixed}&b=${day}&c=${year}&d=11&e=4&f=2025&g=d&ignore=.csv"
+		subprocess.call("curl -o downloads/$stockName.csv " + url, shell=True)
+		cmd="""
+tail -n +2 downloads/${stockName}.csv | while read date open high low close vol adjclose tail
+do
+	printf "\"$stockName\",\"${date}\",\"${open}\",\"${high}\",\"${low}\",\"${close}\",\"${vol}\",\"${adjclose}\"\\n"
+done >"""
+		cmd += "downloads/" + stockName + "_fixed.csv"
+		print cmd
+		subprocess.call(cmd)
+
+		subprocess.call("$(pwd)", shell=True)
+		
+		sql="COPY stocks (stock,date,open,high,low,close,volume,\"Adj Close\") FROM '$(pwd)/downloads/"+stockName+"_fixed.csv' WITH CSV delimiter as ','"
+		cmd='psql -h localhost -U postgres -d postgres -c "' + sql + '"'
+		subprocess.call(cmd, shell=True)
+
+	print "downloadInstruments finished"
+
