@@ -8,8 +8,6 @@ from common import *
 from datetime import datetime
 from datetime import timedelta
 
-#OLDIFS=$IFS
-#IFS=,
 cv=10
 limit=480
 offset=40
@@ -38,6 +36,29 @@ def optimiseNuAll():
 		#psql -h localhost -U postgres -d postgres -c "update dataminestocks set bestnu='${best}', bestCorrelation=$bestCorrelation where stockname='${stockName}'"
 		curUp.execute("update {0} set bestnu={1}, bestCorrelation={2} where stockname='{3}'".format(dataminestocksViewName, nu-startNu, corr, stockname))
 #		sys.exit()
+
+	conn.commit()
+	conn.close()
+	print "finished all"
+
+def commonForOptimise(optimiseFunc, startPar, stopPar, stepPar, updFld):
+	query="select stockname, excludedattributes from "+ dataminestocksViewName + " where active=true and excludedattributes is not NULL and excludedattributes<>'' and bestnu is NULL order by stockname asc"
+	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
+	cur = conn.cursor()
+	curUp = conn.cursor()
+	cur.execute(query)
+	for row in cur:
+		stockname=row[0]
+		excludedattributes=row[1]
+		extractdata = extractData(stockname)
+		(nu, corr)=optimiseFunc(stockname, excludedattributes, extractdata, startPar, stopPar, stepPar)
+		print "1---------------------------------------------"
+		(nu, corr)=optimiseFunc(stockname, excludedattributes, extractdata, nu-0.1, 1, 0.01)
+		print "2---------------------------------------------"
+		(nu, corr)=optimiseFunc(stockname, excludedattributes, extractdata, nu-0.01, 1, 0.001)
+		print "3---------------------------------------------"
+		(nu, corr)=optimiseFunc(stockname, excludedattributes, extractdata, nu-0.001, 1, 0.0001)
+		curUp.execute("update {0} set {4}={1}, bestCorrelation={2} where stockname='{3}'".format(dataminestocksViewName, nu-startNu, corr, stockname, updFld))
 
 	conn.commit()
 	conn.close()
