@@ -213,23 +213,28 @@ def downloadInstruments():
 		records = curDate.fetchall()
 		if len(records) > 0:
 			rec=records[0]
-			date=str(rec[0])
+			date=rec[0]
 		else:
 			date=datetime.strptime("2000-01-01", "%Y-%m-%d").date()
 
-		url="http://real-chart.finance.yahoo.com/table.csv?s=$stockName&a=${monthfixed}&b=${day}&c=${year}&d=11&e=4&f=2025&g=d&ignore=.csv"
-		subprocess.call("curl -o downloads/$stockName.csv " + url, shell=True)
-		cmd="""
-tail -n +2 downloads/${stockName}.csv | while read date open high low close vol adjclose tail
-do
-	printf "\"$stockName\",\"${date}\",\"${open}\",\"${high}\",\"${low}\",\"${close}\",\"${vol}\",\"${adjclose}\"\\n"
-done >"""
-		cmd += "downloads/" + stockName + "_fixed.csv"
+		year=str(date.year)
+		month=str(date.month)
+		monthfixed=str(date.month-1)
+		day=str(date.day)
+
+		url="http://real-chart.finance.yahoo.com/table.csv?s=" + stockName + "&a="
+		url += monthfixed+"&b="+day+"&c="+year+"&d=11&e=4&f=2025&g=d&ignore=.csv"
+		print "url=" + url
+		subprocess.call("curl -o downloads/"+stockName+".csv " + url, shell=True)
+		cmd = "tail -n +2 downloads/"+stockName + ".csv | while read date open high low close vol adjclose tail\n"
+		cmd += "do\n"
+		cmd += r'printf "\"'+stockName+r'\",\"${date}\",\"${open}\",\"${high}\",\"${low}\",\"${close}\",\"${vol}\",\"${adjclose}\"\n"'
+		cmd += "\ndone > downloads/" + stockName + "_fixed.csv"
 		print cmd
 		subprocess.call(cmd)
 
 		subprocess.call("$(pwd)", shell=True)
-		
+
 		sql="COPY stocks (stock,date,open,high,low,close,volume,\"Adj Close\") FROM '$(pwd)/downloads/"+stockName+"_fixed.csv' WITH CSV delimiter as ','"
 		cmd='psql -h localhost -U postgres -d postgres -c "' + sql + '"'
 		subprocess.call(cmd, shell=True)
