@@ -18,7 +18,7 @@ initialStepNu=0.1
 def optimiseNuAll():
 	print "optimiseNu"
 	query="select stockname, excludedattributes from "+ dataminestocksViewName + " where active=true and excludedattributes is not NULL and excludedattributes<>'' and bestnu is NULL order by stockname asc"
-	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
+	conn = getdbcon()
 	cur = conn.cursor()
 	curUp = conn.cursor()
 	cur.execute(query)
@@ -43,7 +43,7 @@ def optimiseNuAll():
 
 def commonForOptimise(optimiseFunc, startPar, stopPar, stepPar, updFld):
 	query="select stockname, excludedattributes from "+ dataminestocksViewName + " where active=true and excludedattributes is not NULL and excludedattributes<>'' and bestnu is NULL order by stockname asc"
-	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
+	conn = getdbcon()
 	cur = conn.cursor()
 	curUp = conn.cursor()
 	cur.execute(query)
@@ -92,7 +92,7 @@ def optimiseNu(stockname, excludedattributes, extractdata, start, stop, step):
 def optimiseattrall():
 	print "optimiseattrall"
 	query="select stockname, bestnu, bestcost from " + dataminestocksViewName + " where active=true and optimiseattr=true order by stockname asc"
-	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
+	conn = getdbcon()
 	cur = conn.cursor()
 	cur.execute(query)
 	for row in cur:
@@ -130,7 +130,7 @@ def optimiseattr(stockname, nu):
 def buildModels(runtype):
 	print "buildModels"
 	query="select stockname, excludedattributes, bestcost, bestnu from "+ dataminestocksViewName + " where active=true and topredict=true order by stockname asc"
-	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
+	conn = getdbcon()
 	cur = conn.cursor()
 	
 	cvArg = ''
@@ -166,7 +166,7 @@ def buildModels(runtype):
 def doPredictions1():
 	print "Predicting"
 	query="select stockname, excludedattributes, bestcost, bestnu from "+ dataminestocksViewName + " where active=true and topredict=true order by stockname asc"
-	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
+	conn = getdbcon()
 	cur = conn.cursor()
 	
 	curDate = conn.cursor()
@@ -194,7 +194,7 @@ def doPredictions1():
 def doPredictions():
 	print "Predicting"
 	query="select stockname, excludedattributes, bestcost, bestnu from "+ dataminestocksViewName + " where active=true and topredict=true order by stockname asc"
-	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' host = 'localhost' password = 'postgres'")
+	conn = getdbcon()
 	cur = conn.cursor()	
 	curUp = conn.cursor()	
 	cur.execute(query)

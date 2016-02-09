@@ -9,8 +9,14 @@ svmCost="100"
 svmNuDefault=0.556015
 
 LSLIB="libsvm-3.21"
+dbnameConst = ""
 
 from collections import defaultdict
+
+dbnameConst="dataminestocks1"
+
+def getdbcon(dbname=dbnameConst):
+	return psycopg2.connect("dbname = '{0}' user = 'postgres' host = 'localhost' password = 'postgres'".format(dbname))
 
 def construct_line( label, line ):
 	new_line = []
