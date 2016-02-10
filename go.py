@@ -4,16 +4,10 @@ import sys
 import psycopg2
 import common
 import subprocess
+from downloaddata import *
 from common import *
 from datetime import datetime
 from datetime import timedelta
-
-cv=10
-limit=480
-offset=40
-dataminestocksViewName="dataminestocks_py"
-startNu=0.00000001
-initialStepNu=0.1
 
 def optimiseNuAll():
 	print "optimiseNu"
@@ -308,7 +302,7 @@ def main():
 		print "Done, it took {0}".format(timeEnd-timeStart)
 
 	else:
-		print "Allowed commands: 'attr', 'nu', 'bm [crossValNumber]', 'pr'"
+		print "Allowed commands: 'attr', 'nu', 'bm [crossValNumber]', 'pr', 'downloaddata'"
 
 if __name__ == "__main__":
 	main()

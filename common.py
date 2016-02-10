@@ -7,9 +7,14 @@ import cStringIO
 
 svmCost="100"
 svmNuDefault=0.556015
+offset=50
+limit=480
+cv=10
+dataminestocksViewName="dataminestocks_py"
+startNu=0.00000001
+initialStepNu=0.1
 
 LSLIB="libsvm-3.21"
-dbnameConst = ""
 
 from collections import defaultdict
 
@@ -190,54 +195,7 @@ def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc, cmdScale):
 
 	return (outputdata, errdata)
 
-offset=50
-limit=480
-
 def extractData(stockname, offsetPar=offset, limitPar=limit):
 	sql="COPY (SELECT * from datamine1('{0}') offset {1} limit {2}) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname, offsetPar, limitPar)
 	extractdata = subprocess.check_output("export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
 	return extractdata
-
-def downloadInstruments():
-	query="select instrument from downloadinstruments where type='YAHOO'"
-	conn = getdbcon()
-	cur = conn.cursor()
-	curDate = conn.cursor()
-	cur.execute(query)
-	for row in cur:
-		stockName=row[0]
-		print "Downloading " + stockName
-		subprocess.call("rm downloads/"+stockName+"*.csv", shell=True)
-
-		curDate.execute("select max(date + interval '1 day') from stocks where stock='"+stockName+"'")
-		records = curDate.fetchall()
-		if len(records) > 0:
-			rec=records[0]
-			date=rec[0]
-		else:
-			date=datetime.strptime("2000-01-01", "%Y-%m-%d").date()
-
-		year=str(date.year)
-		month=str(date.month)
-		monthfixed=str(date.month-1)
-		day=str(date.day)
-
-		url="http://real-chart.finance.yahoo.com/table.csv?s=" + stockName + "&a="
-		url += monthfixed+"&b="+day+"&c="+year+"&d=11&e=4&f=2025&g=d&ignore=.csv"
-		print "url=" + url
-		subprocess.call("curl -o downloads/"+stockName+".csv " + url, shell=True)
-		cmd = "tail -n +2 downloads/"+stockName + ".csv | while read date open high low close vol adjclose tail\n"
-		cmd += "do\n"
-		cmd += r'printf "\"'+stockName+r'\",\"${date}\",\"${open}\",\"${high}\",\"${low}\",\"${close}\",\"${vol}\",\"${adjclose}\"\n"'
-		cmd += "\ndone > downloads/" + stockName + "_fixed.csv"
-		print cmd
-		subprocess.call(cmd)
-
-		subprocess.call("$(pwd)", shell=True)
-
-		sql="COPY stocks (stock,date,open,high,low,close,volume,\"Adj Close\") FROM '$(pwd)/downloads/"+stockName+"_fixed.csv' WITH CSV delimiter as ','"
-		cmd='psql -h localhost -U postgres -d postgres -c "' + sql + '"'
-		subprocess.call(cmd, shell=True)
-
-	print "downloadInstruments finished"
-
