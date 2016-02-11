@@ -10,10 +10,12 @@ downlUrlDict = {"YAHOO" : r"http://real-chart.finance.yahoo.com/table.csv?s={0}&
 				"FM"    : r"http://195.128.78.52/{0}.csv?market=5\&em=181410\&code={0}\&df={2}\&mf={1}\&yf={3}\&from={2}.{4}.{3}\&dt=31\&mt=11\&yt=2025\&to=31.12.2025\&p=8\&f={0}\&e=.csv\&cn={0}\&dtf=1\&tmf=4\&MSOR=0\&mstimever=0\&sep=1\&sep2=3\&datf=5\&at=1"}
 
 def fmDownlParseFunc(csvrow):
-	(date, time, openV, high, low, close, vol) = tuple(csvrow)
+	print "csvrow start..." + str(csvrow[0:8]) + "...end"
+	(date, time, openV, high, low, close, vol) = tuple(csvrow[0:7])
 	adjclose = close
 	vol = vol.strip()
 	dateFixed = date[0:4] + "-" + date[4:6] + "-" + date[6:8]
+	print "datFixed="+dateFixed
 	return (dateFixed, openV, high, low, close, vol, adjclose)
 
 def yahooDownlParseFunc(csvrow):
@@ -23,7 +25,7 @@ downlParseFuncDict = {"YAHOO": yahooDownlParseFunc, "FM": fmDownlParseFunc}
 
 def downloadInstruments():
 	print "downloadInstruments..."
-	query="select instrument, type from downloadinstruments order by instrument"# where type='YAHOO'"
+	query="select instrument, type from downloadinstruments where type='FM' order by instrument"
 	conn = getdbcon()
 	cur = conn.cursor()
 	curDate = conn.cursor()
@@ -53,22 +55,30 @@ def downloadInstruments():
 		(stdoutdata, stderrdata) = proc.communicate()
 		print stdoutdata
 
-		loadindb = True
-		with open("downloads/"+stockName+".csv", 'rb') as inf, open("downloads/"+stockName+"_fixed.csv", 'w') as outf:
-			firstLine = inf.readline()
-			print "firstLine="+firstLine
-			if "High,Low,Close," not in firstLine:
-				print "downloaded file has no stock price data"
-				loadindb = False
-			else:
-				reader = csv.reader(inf, delimiter=",")
-				writer = csv.writer(outf, delimiter=",")
-				for csvrow in reader:
-					(date, openV, high, low, close, vol, adjclose) = downlParseFuncDict[downlType](csvrow)
-					writer.writerow((stockName, date, openV, high, low, close, vol, adjclose))
+		if os.path.isfile("downloads/"+stockName+".csv"):
+			loadindb = True
+			with open("downloads/"+stockName+".csv", 'rb') as inf, open("downloads/"+stockName+"_fixed.csv", 'w') as outf:
+				firstLine = inf.readline()
+				print "firstLine="+firstLine
+				if "High,Low,Close," not in firstLine and "<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>" not in firstLine:
+					print "downloaded file has no stock price data"
+					loadindb = False
+				else:
+					reader = csv.reader(inf, delimiter=",")
+					writer = csv.writer(outf, delimiter=",")
+					for csvrow in reader:
+						(date, openV, high, low, close, vol, adjclose) = downlParseFuncDict[downlType](csvrow)
+						writer.writerow((stockName, date, openV, high, low, close, vol, adjclose))
 
-		if loadindb:
-			sql="COPY stocks (stock,date,open,high,low,close,volume,\\\"Adj Close\\\") FROM '" + str(os.getcwd()) \
-				+ "/downloads/"+stockName+"_fixed.csv' WITH CSV delimiter as ','"
-			print "SQL=" + sql
-			subprocess.call('export PGPASSWORD=\'postgres\';psql -h localhost -U postgres -d postgres -c "' + sql + '"', shell=True)
+			if loadindb:
+				sql="COPY stocks (stock,date,open,high,low,close,volume,\\\"Adj Close\\\") FROM '" + str(os.getcwd()) \
+					+ "/downloads/"+stockName+"_fixed.csv' WITH CSV delimiter as ','"
+				print "SQL=" + sql
+				subprocess.call('export PGPASSWORD=\'postgres\';psql -h localhost -U postgres -d postgres -c "' + sql + '"', shell=True)
+			# here a downloaded stock file has been processed
+		# here arow in cursor for stocks and types been processed
+			
+	# here is done all stocks
+	print "Synchronising aggregations..."
+	cmd="export PGPASSWORD=\'postgres\';psql -h localhost -U postgres -d postgres -c \"select sync_aggr((now() - interval '1 month')::date);\""
+	print subprocess.check_output(cmd, shell=True)
