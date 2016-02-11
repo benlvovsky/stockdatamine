@@ -25,7 +25,7 @@ downlParseFuncDict = {"YAHOO": yahooDownlParseFunc, "FM": fmDownlParseFunc}
 
 def downloadInstruments():
 	print "downloadInstruments..."
-	query="select instrument, type from downloadinstruments where type='FM' order by instrument"
+	query="select instrument, type from downloadinstruments order by instrument"
 	conn = getdbcon()
 	cur = conn.cursor()
 	curDate = conn.cursor()
@@ -76,9 +76,10 @@ def downloadInstruments():
 				print "SQL=" + sql
 				subprocess.call('export PGPASSWORD=\'postgres\';psql -h localhost -U postgres -d postgres -c "' + sql + '"', shell=True)
 			# here a downloaded stock file has been processed
-		# here arow in cursor for stocks and types been processed
+		# here a row in cursor for stocks and types been processed
 			
 	# here is done all stocks
 	print "Synchronising aggregations..."
-	cmd="export PGPASSWORD=\'postgres\';psql -h localhost -U postgres -d postgres -c \"select sync_aggr((now() - interval '1 month')::date);\""
-	print subprocess.check_output(cmd, shell=True)
+	curSync = conn.cursor()
+	curSync.execute("select sync_aggr((now() - interval '3 months')::date)")
+	print "Synchronised " + str(curSync.fetchone()[0]) + " rows"
