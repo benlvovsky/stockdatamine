@@ -23,7 +23,7 @@ downlParseFuncDict = {"YAHOO": yahooDownlParseFunc, "FM": fmDownlParseFunc}
 
 def downloadInstruments():
 	print "downloadInstruments..."
-	query="select instrument, type from downloadinstruments"# where type='YAHOO'"
+	query="select instrument, type from downloadinstruments order by instrument"# where type='YAHOO'"
 	conn = getdbcon()
 	cur = conn.cursor()
 	curDate = conn.cursor()
@@ -53,15 +53,22 @@ def downloadInstruments():
 		(stdoutdata, stderrdata) = proc.communicate()
 		print stdoutdata
 
+		loadindb = True
 		with open("downloads/"+stockName+".csv", 'rb') as inf, open("downloads/"+stockName+"_fixed.csv", 'w') as outf:
-			reader = csv.reader(inf, delimiter=",")
-			writer = csv.writer(outf, delimiter=",")
-			reader.next() # skip header
-			for csvrow in reader:
-				(date, openV, high, low, close, vol, adjclose) = downlParseFuncDict[downlType](csvrow)
-				writer.writerow((stockName, date, openV, high, low, close, vol, adjclose))
+			firstLine = inf.readline()
+			print "firstLine="+firstLine
+			if "High,Low,Close," not in firstLine:
+				print "downloaded file has no stock price data"
+				loadindb = False
+			else:
+				reader = csv.reader(inf, delimiter=",")
+				writer = csv.writer(outf, delimiter=",")
+				for csvrow in reader:
+					(date, openV, high, low, close, vol, adjclose) = downlParseFuncDict[downlType](csvrow)
+					writer.writerow((stockName, date, openV, high, low, close, vol, adjclose))
 
-		sql="COPY stocks (stock,date,open,high,low,close,volume,\\\"Adj Close\\\") FROM '" + str(os.getcwd()) \
-			+ "/downloads/"+stockName+"_fixed.csv' WITH CSV delimiter as ','"
-		print "SQL=" + sql
-		subprocess.call('psql -h localhost -U postgres -d postgres -c "' + sql + '"', shell=True)
+		if loadindb:
+			sql="COPY stocks (stock,date,open,high,low,close,volume,\\\"Adj Close\\\") FROM '" + str(os.getcwd()) \
+				+ "/downloads/"+stockName+"_fixed.csv' WITH CSV delimiter as ','"
+			print "SQL=" + sql
+			subprocess.call('export PGPASSWORD=\'postgres\';psql -h localhost -U postgres -d postgres -c "' + sql + '"', shell=True)
