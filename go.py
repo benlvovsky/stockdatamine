@@ -126,10 +126,16 @@ def buildModels(runtype):
 	query="select stockname, excludedattributes, bestcost, bestnu from "+ dataminestocksViewName + " where active=true and topredict=true order by stockname asc"
 	conn = getdbcon()
 	cur = conn.cursor()
-	
+
 	cvArg = ''
 	if runtype == 'cv':
 		cvArg=cv
+		print "only correlation calculation with crossvalidation = " + str(cv)
+	elif runtype is None or runtype == '' or runtype == 'build':
+		print "Building models, no correlation calculation"
+	else:
+		print "Allowed parameter for 'go bm' only 'cv' for correlation calculation with crossvalidation or empty for building models"
+		sys.exit(99)
 
 	curDate = conn.cursor()
 	cur.execute(query)
@@ -233,7 +239,7 @@ def doPredictions():
 	trs="<tr style='tr:nth-child(even){background-color: #f2f2f2}'>"
 	ths="<th style='padding-top: 11px;padding-bottom: 11px;background-color: #4CAF50;color: white;border: 1px solid #ddd;text-align: left;padding: 8px;'>"
 
-	style=""#"style=\"font-size:16px;font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif;border-collapse: collapse;border-spacing: 0;width: 100%;\""
+	style=""
 	msg = "<!DOCTYPE html><div><b>Predictions from run date " + rundate + "</b></div><div>\n"
 
 	for row in records:
@@ -269,7 +275,6 @@ def doPredictions():
 	text_file.close()
 
 	cmd = "mail -a \"MIME-Version: 1.0\" -a \"Content-type: text/html\" -s \"SVM Results from " + rundate + "\" ben@lvovsky.com < ./mail.html"
-#	cmd = "mail -s \"SVM Results from " + rundate + "\" ben@lvovsky.com"
 	print cmd
 	proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	(outputdata, errdata) = proc.communicate()
@@ -302,7 +307,7 @@ def main():
 		print "Done, it took {0}".format(timeEnd-timeStart)
 
 	else:
-		print "Allowed commands: 'attr', 'nu', 'bm [crossValNumber]', 'pr', 'downloaddata'"
+		print "Allowed commands: 'attr', 'nu', 'bm [cv]', 'pr', 'downloaddata'"
 
 if __name__ == "__main__":
 	main()
