@@ -4,7 +4,7 @@
 
 -- Dumped from database version 9.3.11
 -- Dumped by pg_dump version 9.3.11
--- Started on 2016-02-15 21:43:55 AEDT
+-- Started on 2016-02-16 23:17:40 AEDT
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -59,7 +59,7 @@ CREATE TYPE avg_type AS (
 ALTER TYPE public.avg_type OWNER TO postgres;
 
 --
--- TOC entry 586 (class 1247 OID 42116)
+-- TOC entry 577 (class 1247 OID 42116)
 -- Name: dm_type; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -404,7 +404,7 @@ CREATE TYPE dm_type AS (
 ALTER TYPE public.dm_type OWNER TO postgres;
 
 --
--- TOC entry 210 (class 1255 OID 42037)
+-- TOC entry 211 (class 1255 OID 21934022)
 -- Name: change(text, date, interval); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -416,7 +416,7 @@ DECLARE firstAvailableCloseInterval double precision;
 DECLARE firstAvailableClose double precision;
 	BEGIN
 	-- find first available close. Maybe it is not available by that date. Then take the first available below that date
-	select "Adj Close" into firstAvailableClose from stocks
+	select "close" into firstAvailableClose from stocks
 	  where
 	    stock = stockname and
 	    date <= dt
@@ -424,7 +424,7 @@ DECLARE firstAvailableClose double precision;
 	  limit 1;
 
 	-- find first available close in interval. Then take the first available below that date
-	select "Adj Close" into firstAvailableCloseInterval from stocks
+	select "close" into firstAvailableCloseInterval from stocks
 	  where
 	    stock = stockname and
 	    date <= dt + intr
@@ -441,7 +441,7 @@ $$;
 ALTER FUNCTION public.change(stockname text, dt date, intr interval) OWNER TO postgres;
 
 --
--- TOC entry 215 (class 1255 OID 12554498)
+-- TOC entry 212 (class 1255 OID 21934023)
 -- Name: datamine(character varying, bigint, bigint); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -793,7 +793,7 @@ CREATE FUNCTION datamine(stcknm character varying, ofst bigint, lmt bigint) RETU
 ALTER FUNCTION public.datamine(stcknm character varying, ofst bigint, lmt bigint) OWNER TO postgres;
 
 --
--- TOC entry 216 (class 1255 OID 12554501)
+-- TOC entry 213 (class 1255 OID 21934025)
 -- Name: datamine1(character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1143,7 +1143,7 @@ CREATE FUNCTION datamine1(stcknm character varying) RETURNS TABLE(a1 double prec
 ALTER FUNCTION public.datamine1(stcknm character varying) OWNER TO postgres;
 
 --
--- TOC entry 213 (class 1255 OID 12554468)
+-- TOC entry 214 (class 1255 OID 21934027)
 -- Name: datamine_aggr_sp(character varying, bigint, bigint); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1497,7 +1497,7 @@ CREATE FUNCTION datamine_aggr_sp(stockname character varying, ofst bigint, lmt b
 ALTER FUNCTION public.datamine_aggr_sp(stockname character varying, ofst bigint, lmt bigint) OWNER TO postgres;
 
 --
--- TOC entry 217 (class 1255 OID 12557861)
+-- TOC entry 215 (class 1255 OID 21934029)
 -- Name: datamine_extra(character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1848,7 +1848,7 @@ CREATE FUNCTION datamine_extra(stcknm character varying) RETURNS TABLE(date date
 ALTER FUNCTION public.datamine_extra(stcknm character varying) OWNER TO postgres;
 
 --
--- TOC entry 204 (class 1255 OID 41455)
+-- TOC entry 216 (class 1255 OID 21934031)
 -- Name: forexavgdif(text, date, interval); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1880,7 +1880,7 @@ $_$;
 ALTER FUNCTION public.forexavgdif(pair text, dt date, intr interval) OWNER TO postgres;
 
 --
--- TOC entry 206 (class 1255 OID 41456)
+-- TOC entry 217 (class 1255 OID 21934032)
 -- Name: forexavgdiffset(text, date); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1910,7 +1910,7 @@ $$;
 ALTER FUNCTION public.forexavgdiffset(forex text, dt date) OWNER TO postgres;
 
 --
--- TOC entry 199 (class 1255 OID 41206)
+-- TOC entry 218 (class 1255 OID 21934033)
 -- Name: h_bigint(text); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1924,7 +1924,7 @@ $_$;
 ALTER FUNCTION public.h_bigint(text) OWNER TO postgres;
 
 --
--- TOC entry 200 (class 1255 OID 41207)
+-- TOC entry 219 (class 1255 OID 21934034)
 -- Name: h_int(text); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1938,7 +1938,7 @@ $_$;
 ALTER FUNCTION public.h_int(text) OWNER TO postgres;
 
 --
--- TOC entry 209 (class 1255 OID 42001)
+-- TOC entry 199 (class 1255 OID 21934035)
 -- Name: islastthurthday(date); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1968,7 +1968,7 @@ $$;
 ALTER FUNCTION public.islastthurthday(dt date) OWNER TO postgres;
 
 --
--- TOC entry 207 (class 1255 OID 41478)
+-- TOC entry 200 (class 1255 OID 21934036)
 -- Name: nextavgdif(text, date, interval); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1980,14 +1980,14 @@ DECLARE avg_v double precision;
 DECLARE firstAvailableClose double precision;
 	BEGIN
 	-- find first available close. Maybe it is not available by that date. Then take the first available below that date
-	select "Adj Close" into firstAvailableClose from stocks
+	select "close" into firstAvailableClose from stocks
 	  where
 	    stock = stockname and
 	    date <= dt
 	  order by date desc
 	  limit 1;
 
-	select avg(s1."Adj Close") into avg_v from stocks s1
+	select avg(s1."close") into avg_v from stocks s1
 	  where
 	    s1.stock = stockname and
 	    s1.date <= dt + intr and
@@ -2027,7 +2027,7 @@ CREATE TABLE stocks (
 ALTER TABLE public.stocks OWNER TO postgres;
 
 --
--- TOC entry 201 (class 1255 OID 41208)
+-- TOC entry 201 (class 1255 OID 21934037)
 -- Name: nextrec(date, integer, text); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2053,7 +2053,7 @@ $_$;
 ALTER FUNCTION public.nextrec(dt date, diff integer, code text) OWNER TO postgres;
 
 --
--- TOC entry 202 (class 1255 OID 41209)
+-- TOC entry 202 (class 1255 OID 21934038)
 -- Name: prevrec(date, integer, text); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2078,7 +2078,7 @@ $_$;
 ALTER FUNCTION public.prevrec(dt date, diff integer, code text) OWNER TO postgres;
 
 --
--- TOC entry 203 (class 1255 OID 41383)
+-- TOC entry 203 (class 1255 OID 21934039)
 -- Name: stockavg(text, date, interval); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2087,7 +2087,7 @@ CREATE FUNCTION stockavg(stockname text, dt date, intr interval) RETURNS double 
     AS $$
 DECLARE ret double precision;
 	BEGIN
-	select avg(s1."Adj Close") into ret from stocks s1
+	select avg(s1."close") into ret from stocks s1
 where
 s1.stock = stockname and
 s1.date > dt - intr and
@@ -2100,7 +2100,7 @@ $$;
 ALTER FUNCTION public.stockavg(stockname text, dt date, intr interval) OWNER TO postgres;
 
 --
--- TOC entry 211 (class 1255 OID 41415)
+-- TOC entry 204 (class 1255 OID 21934040)
 -- Name: stockavgdif(text, date, interval); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2112,14 +2112,14 @@ DECLARE avg_v double precision;
 DECLARE firstAvailableClose double precision;
 	BEGIN
 	-- find first available close. Maybe it is not available by that date. Then take the first available below that date
-	select "Adj Close" into firstAvailableClose from stocks
+	select "close" into firstAvailableClose from stocks
 	  where
 	    stock = stockname and
 	    date <= dt
 	  order by date desc
 	  limit 1;
 	    
-	select avg(s1."Adj Close") into avg_v from stocks s1
+	select avg(s1."close") into avg_v from stocks s1
 	  where
 	    s1.stock = stockname and
 	    s1.date >= dt - intr and
@@ -2138,7 +2138,7 @@ $$;
 ALTER FUNCTION public.stockavgdif(stockname text, dt date, intr interval) OWNER TO postgres;
 
 --
--- TOC entry 208 (class 1255 OID 41429)
+-- TOC entry 205 (class 1255 OID 21934041)
 -- Name: stockavgdiffset(text, date); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2168,7 +2168,7 @@ $$;
 ALTER FUNCTION public.stockavgdiffset(stock text, dt date) OWNER TO postgres;
 
 --
--- TOC entry 205 (class 1255 OID 41428)
+-- TOC entry 206 (class 1255 OID 21934042)
 -- Name: stockavgdiffset(text, date, interval); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2197,7 +2197,7 @@ $$;
 ALTER FUNCTION public.stockavgdiffset(stock text, dt date, intr interval) OWNER TO postgres;
 
 --
--- TOC entry 212 (class 1255 OID 42140)
+-- TOC entry 207 (class 1255 OID 21934043)
 -- Name: sync_aggr(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2215,7 +2215,7 @@ CREATE FUNCTION sync_aggr() RETURNS integer
 ALTER FUNCTION public.sync_aggr() OWNER TO postgres;
 
 --
--- TOC entry 214 (class 1255 OID 11887369)
+-- TOC entry 208 (class 1255 OID 21934044)
 -- Name: sync_aggr(date); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2246,7 +2246,7 @@ CREATE FUNCTION sync_aggr(startdate date) RETURNS integer
 ALTER FUNCTION public.sync_aggr(startdate date) OWNER TO postgres;
 
 --
--- TOC entry 218 (class 1255 OID 13907266)
+-- TOC entry 209 (class 1255 OID 21934045)
 -- Name: sync_aggr_all(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2268,7 +2268,7 @@ CREATE FUNCTION sync_aggr_all() RETURNS integer
 ALTER FUNCTION public.sync_aggr_all() OWNER TO postgres;
 
 --
--- TOC entry 219 (class 1255 OID 12566082)
+-- TOC entry 210 (class 1255 OID 21934046)
 -- Name: updatepredictions(text, date[], double precision[], double precision[]); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2289,7 +2289,7 @@ $$;
 ALTER FUNCTION public.updatepredictions(stocknm text, datear date[], pricear double precision[], predictionar double precision[]) OWNER TO postgres;
 
 --
--- TOC entry 183 (class 1259 OID 11887388)
+-- TOC entry 180 (class 1259 OID 11887388)
 -- Name: datamine_aggr; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2365,7 +2365,7 @@ CREATE TABLE datamine_aggr (
 ALTER TABLE public.datamine_aggr OWNER TO postgres;
 
 --
--- TOC entry 177 (class 1259 OID 41738)
+-- TOC entry 176 (class 1259 OID 41738)
 -- Name: dataminestocks; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2391,7 +2391,7 @@ ALTER TABLE public.dataminestocks OWNER TO postgres;
 
 --
 -- TOC entry 2094 (class 0 OID 0)
--- Dependencies: 177
+-- Dependencies: 176
 -- Name: COLUMN dataminestocks.corrdate; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -2400,7 +2400,7 @@ COMMENT ON COLUMN dataminestocks.corrdate IS 'date correlation was calculated';
 
 --
 -- TOC entry 2095 (class 0 OID 0)
--- Dependencies: 177
+-- Dependencies: 176
 -- Name: COLUMN dataminestocks.preddate; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -2409,7 +2409,7 @@ COMMENT ON COLUMN dataminestocks.preddate IS 'date of last data prediction based
 
 --
 -- TOC entry 2096 (class 0 OID 0)
--- Dependencies: 177
+-- Dependencies: 176
 -- Name: COLUMN dataminestocks.active; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -2417,7 +2417,7 @@ COMMENT ON COLUMN dataminestocks.active IS 'is stock active like used in calcult
 
 
 --
--- TOC entry 185 (class 1259 OID 12555313)
+-- TOC entry 181 (class 1259 OID 12555313)
 -- Name: dataminestocks_py; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2442,14 +2442,14 @@ CREATE TABLE dataminestocks_py (
 ALTER TABLE public.dataminestocks_py OWNER TO postgres;
 
 --
--- TOC entry 184 (class 1259 OID 12554477)
+-- TOC entry 183 (class 1259 OID 21934047)
 -- Name: datamining_aggr_view; Type: VIEW; Schema: public; Owner: postgres
 --
 
 CREATE VIEW datamining_aggr_view AS
  SELECT s.date,
     s.stock AS stockname,
-    s."Adj Close" AS price,
+    s.close AS price,
     stockavgdiffset(s.stock, s.date) AS stockavg,
     stockavgdiffset('^AORD'::text, s.date) AS aord,
     stockavgdiffset('^N225'::text, s.date) AS n225,
@@ -2521,14 +2521,14 @@ CREATE VIEW datamining_aggr_view AS
 ALTER TABLE public.datamining_aggr_view OWNER TO postgres;
 
 --
--- TOC entry 180 (class 1259 OID 42032)
+-- TOC entry 184 (class 1259 OID 21934052)
 -- Name: datamining_avg_stocks_view; Type: VIEW; Schema: public; Owner: postgres
 --
 
 CREATE VIEW datamining_avg_stocks_view AS
  SELECT s.date,
     s.stock AS stockname,
-    s."Adj Close" AS price,
+    s.close AS price,
     stockavgdiffset(s.stock, s.date) AS stockavg,
     stockavgdiffset('^AORD'::text, s.date) AS aord,
     stockavgdiffset('^N225'::text, s.date) AS n225,
@@ -2598,7 +2598,7 @@ CREATE VIEW datamining_avg_stocks_view AS
 ALTER TABLE public.datamining_avg_stocks_view OWNER TO postgres;
 
 --
--- TOC entry 181 (class 1259 OID 42038)
+-- TOC entry 185 (class 1259 OID 21934057)
 -- Name: datamining_stocks_view; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -2675,14 +2675,14 @@ CREATE VIEW datamining_stocks_view AS
 ALTER TABLE public.datamining_stocks_view OWNER TO postgres;
 
 --
--- TOC entry 176 (class 1259 OID 41542)
+-- TOC entry 186 (class 1259 OID 21934062)
 -- Name: datamining_view; Type: VIEW; Schema: public; Owner: postgres
 --
 
 CREATE VIEW datamining_view AS
  SELECT s.date,
     s.stock AS stockname,
-    s."Adj Close" AS price,
+    s.close AS price,
     stockavgdiffset(s.stock, s.date) AS stockavg,
     stockavgdiffset('^AORD'::text, s.date) AS aord,
     stockavgdiffset('^N225'::text, s.date) AS n225,
@@ -2731,7 +2731,7 @@ CREATE VIEW datamining_view AS
 ALTER TABLE public.datamining_view OWNER TO postgres;
 
 --
--- TOC entry 178 (class 1259 OID 41750)
+-- TOC entry 177 (class 1259 OID 41750)
 -- Name: downloadinstruments; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2820,7 +2820,7 @@ ALTER SEQUENCE forex_id_seq OWNED BY forex.id;
 
 
 --
--- TOC entry 186 (class 1259 OID 12566069)
+-- TOC entry 182 (class 1259 OID 12566069)
 -- Name: predictions; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2860,7 +2860,7 @@ ALTER SEQUENCE stocks_id_seq OWNED BY stocks.id;
 
 
 --
--- TOC entry 179 (class 1259 OID 41782)
+-- TOC entry 178 (class 1259 OID 41782)
 -- Name: tmpinstr; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2872,7 +2872,7 @@ CREATE TABLE tmpinstr (
 ALTER TABLE public.tmpinstr OWNER TO postgres;
 
 --
--- TOC entry 1942 (class 2604 OID 41470)
+-- TOC entry 1942 (class 2604 OID 21934067)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2880,7 +2880,7 @@ ALTER TABLE ONLY forex ALTER COLUMN id SET DEFAULT nextval('forex_id_seq'::regcl
 
 
 --
--- TOC entry 1941 (class 2604 OID 41399)
+-- TOC entry 1941 (class 2604 OID 21934068)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -3033,7 +3033,7 @@ CREATE INDEX stocks_stock_idx ON stocks USING btree (stock);
 
 --
 -- TOC entry 2092 (class 0 OID 0)
--- Dependencies: 6
+-- Dependencies: 7
 -- Name: public; Type: ACL; Schema: -; Owner: postgres
 --
 
@@ -3043,7 +3043,7 @@ GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2016-02-15 21:43:55 AEDT
+-- Completed on 2016-02-16 23:17:40 AEDT
 
 --
 -- PostgreSQL database dump complete
