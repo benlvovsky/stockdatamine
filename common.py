@@ -62,7 +62,7 @@ def csv2libsvm(iStr, output_file, label_index, skip_headers):
 
 #calculates mode with crossvalidating, saves into models/${1}.model
 #used for building models mostly for calculation of best attributes and other parameters
-def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault):
+def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault, extraTrainParam=""):
 #	print "stockname='{0}', cv='{1}', cost='{2}', excludeAttrs={3}".format(stockname, cvNum, svmCost, exclude)
 	print "stockname='{0}', cv='{1}', cost='{2}', nu={3}".format(stockname, cvNum, svmCost, nu)
 	svmNu = "{0}".format(nu)
@@ -99,7 +99,8 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault):
 		True
 #	sys.stdout.write("...scaling finished\n")
 
-	cmd=LSLIB+'/svm-train -s 4 -t 2 -c ' + svmCost + ' -n ' + svmNu + ' ' + cvOption + ' extracts/{0}.ls.scaled models/{0}.ls.model'.format(stockname)
+	cmd=LSLIB+'/svm-train -s 4 -t 2 -c ' + svmCost + ' -n ' + svmNu + ' ' + extraTrainParam + ' ' + \
+		cvOption + ' extracts/{0}.ls.scaled models/{0}.ls.model'.format(stockname)
 	sys.stdout.write("Training... command='"+cmd+"'\n")
 	#sys.stdout.write("Training...")
 	proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
