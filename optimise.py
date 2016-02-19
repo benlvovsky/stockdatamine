@@ -7,8 +7,8 @@ import subprocess
 from common import *
 
 def genOptimiseAll(optimiseFunc, startPar, stopPar, stepPar, dbCol, paramOption):
-	query="select stockname, excludedattributes from {0} where " + 
-		"active=true and excludedattributes is not NULL and excludedattributes<>'' " + 
+	query="select stockname, excludedattributes, bestcost, bestnu from {0} where " +
+		"active=true and excludedattributes is not NULL and excludedattributes<>'' " +
 		"and {1} is NULL order by stockname asc".\
 		format(dataminestocksViewName, dbCol)
 	conn = getdbcon()
@@ -18,6 +18,8 @@ def genOptimiseAll(optimiseFunc, startPar, stopPar, stepPar, dbCol, paramOption)
 	for row in cur:
 		stockname=row[0]
 		excludedattributes=row[1]
+		bestCost=row[2]
+		bestNu=row[3]
 		extractdata = extractData(stockname)
 		(nu, corr)=genOptimiseOne(paramOption, stockname, excludedattributes, extractdata, startPar, stopPar, stepPar)
 		print "1---------------------------------------------"
@@ -54,5 +56,5 @@ def genOptimiseOne(paramOption, stockname, excludedattributes, extractdata, star
 			print "Not better. Best nu={0} with correlation={1}".format(bestParam, bestCorrelation)
 			break
 		tryParam=tryParam+step
-	
+
 	return (bestParam, bestCorrelation)
