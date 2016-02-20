@@ -198,7 +198,7 @@ def doPredictions1():
 
         stockname = row[0]
         excludedattributes = row[1]
-        bestcost = row[2]
+#        bestcost = row[2]
         nu = row[3]
         extractdata = extractData(stockname, 0, 1)
 
@@ -209,9 +209,12 @@ def doPredictions1():
 #        print 'date='+date
         (prediction, trainres, errorres) = lsPredict(stockname, excludedattributes, extractdata, nu)
         curUp = conn.cursor()
-        curUp.execute("update {0} set prediction=%s, preddate=%s where stockname=%s".format(
-            dataminestocksViewName), (prediction, date, stockname))
+        sql = "update {0} set prediction={1}, preddate={2} where stockname={3}".\
+            format(dataminestocksViewName, prediction, date, stockname)
+        print sql
+        curUp.execute(sql)
 
+    curUp.commit()
     conn.commit()
     conn.close()
 
@@ -228,11 +231,11 @@ def doPredictions():
     for row in cur:
         stockname = row[0]
         excludedattributes = row[1]
-        bestcost = row[2]
+#        bestcost = row[2]
         nu = row[3]
 
-        sql = "COPY (SELECT * from datamine_extra('{0}') where date >= (now()::date - interval '7 days') ) TO STDOUT DELIMITER ',' CSV HEADER".format(
-            stockname)
+        sql = "COPY (SELECT * from datamine_extra('{0}') where date >= (now()::date - interval '7 days') )"\
+            " TO STDOUT DELIMITER ',' CSV HEADER".format(stockname)
         print sql
         extracolsdata = subprocess.check_output(
             "export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
@@ -255,11 +258,16 @@ def doPredictions():
         (predictionAr, trainres, errorres) = lsPredictMulti(stockname, excludedattributes, extractdata, nu)
         print 'predictions array=' + str(predictionAr)
         curUp.execute("select updatePredictions(%s, %s, %s, %s)", (stockname, dateAr, priceAr, predictionAr))
+        sql = "update {0} set prediction={1}, preddate='{2}' where stockname='{3}'".\
+            format(dataminestocksViewName, priceAr[0], dateAr[0], stockname)
+        curUp.execute(sql)
 
     conn.commit()
 
     # read predictions and email report
-    cur.execute("select p.*, d.correlation, d.error from predictions p join dataminestocks_py d on d.stockname=p.stockname where rundate = now()::date order by correlation/error desc")
+    cur.execute("select p.*, d.correlation, d.error from predictions p join "
+                "dataminestocks_py d on d.stockname=p.stockname where rundate = now()::date "
+                "order by correlation/error desc")
     records = cur.fetchall()
     rec = records[0]
     rundate = str(rec[0])
@@ -268,7 +276,7 @@ def doPredictions():
     trs = "<tr style='tr:nth-child(even){background-color: #f2f2f2}'>"
     ths = "<th style='padding-top: 11px;padding-bottom: 11px;background-color: #4CAF50;color: white;border: 1px solid #ddd;text-align: left;padding: 8px;'>"
 
-    style = ""
+#    style = ""
     msg = "<!DOCTYPE html><div><b>Predictions from run date " + rundate + "</b></div><div>\n"
 
     for row in records:
