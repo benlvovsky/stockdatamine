@@ -14,7 +14,7 @@ dataminestocksViewName="dataminestocks_py"
 startNu=0.00000001
 initialStepNu=0.1
 
-LSLIB="libsvm-3.21"
+LSLIB = "libsvm-3.21"
 
 from collections import defaultdict
 
@@ -42,7 +42,7 @@ def construct_line( label, line ):
 def csv2libsvm(iStr, output_file, label_index, skip_headers):
 	i = cStringIO.StringIO(iStr)
 	o = open( output_file, 'wb' )
-	
+
 	reader = csv.reader( i )
 
 	if skip_headers:
@@ -66,7 +66,7 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault, extraTrainPara
 #	print "stockname='{0}', cv='{1}', cost='{2}', excludeAttrs={3}".format(stockname, cvNum, svmCost, exclude)
 	print "stockname='{0}', cv='{1}', cost='{2}', nu={3}".format(stockname, cvNum, svmCost, nu)
 	svmNu = "{0}".format(nu)
-	
+
 	if (not cvNum) or (cvNum==""):
 		cvOption=""
 	else:
@@ -82,13 +82,13 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault, extraTrainPara
 	#sys.stdout.write(", cmd='{0}', ".format(cmd))
 	proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 	extractdata = proc.communicate(input=data)[0]
-	
+
 	header=extractdata.splitlines()[0]
 	hdrArray=header.split(",")
 	hlen=len(hdrArray)
 	sys.stdout.write("array len={0}, class is last title={1}\n".format(hlen, hdrArray[hlen-1]))
 	csv2libsvm(extractdata, "extracts/{0}.ls".format(stockname), hlen-1, True)
-	
+
 	cmd=LSLIB+'/svm-scale -s "extracts/{0}.range"  "extracts/{0}.ls" > "extracts/{0}.ls.scaled"'.format(stockname)
 	proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	try:
@@ -121,7 +121,7 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault, extraTrainPara
 	else:
 		error = 0
 		corr = 0
-	
+
 	return (float(error), float(corr), header)
 
 def lsPredict(stockname, exclude, data, nu=svmNuDefault):
@@ -154,7 +154,7 @@ def lsPredictMulti(stockname, exclude, data, nu=svmNuDefault):
 
 def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc, cmdScale):
 	svmNu = "{0}".format(nu)
-	
+
 	if (not cvNum) or (cvNum==""):
 		cvOption=""
 	else:
@@ -174,7 +174,7 @@ def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc, cmdScale):
 	hlen=len(hdrArray)
 	sys.stdout.write("array len={0}, class is last title={1}\n".format(hlen, hdrArray[hlen-1]))
 	csv2libsvm(extractdata, "extracts/{0}.ls".format(stockname), hlen-1, True)
-	
+
 	#scale
 	proc = subprocess.Popen(cmdScale, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	try:
