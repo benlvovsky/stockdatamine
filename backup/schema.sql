@@ -4,7 +4,7 @@
 
 -- Dumped from database version 9.3.11
 -- Dumped by pg_dump version 9.3.11
--- Started on 2016-02-16 23:17:40 AEDT
+-- Started on 2016-02-22 22:19:45 AEDT
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -14,8 +14,8 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 
 --
--- TOC entry 2090 (class 1262 OID 12066)
--- Dependencies: 2089
+-- TOC entry 2093 (class 1262 OID 12066)
+-- Dependencies: 2092
 -- Name: postgres; Type: COMMENT; Schema: -; Owner: postgres
 --
 
@@ -31,7 +31,7 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- TOC entry 2093 (class 0 OID 0)
+-- TOC entry 2096 (class 0 OID 0)
 -- Dependencies: 1
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
 --
@@ -2390,7 +2390,7 @@ CREATE TABLE dataminestocks (
 ALTER TABLE public.dataminestocks OWNER TO postgres;
 
 --
--- TOC entry 2094 (class 0 OID 0)
+-- TOC entry 2097 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN dataminestocks.corrdate; Type: COMMENT; Schema: public; Owner: postgres
 --
@@ -2399,7 +2399,7 @@ COMMENT ON COLUMN dataminestocks.corrdate IS 'date correlation was calculated';
 
 
 --
--- TOC entry 2095 (class 0 OID 0)
+-- TOC entry 2098 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN dataminestocks.preddate; Type: COMMENT; Schema: public; Owner: postgres
 --
@@ -2408,7 +2408,7 @@ COMMENT ON COLUMN dataminestocks.preddate IS 'date of last data prediction based
 
 
 --
--- TOC entry 2096 (class 0 OID 0)
+-- TOC entry 2099 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN dataminestocks.active; Type: COMMENT; Schema: public; Owner: postgres
 --
@@ -2514,8 +2514,7 @@ CREATE VIEW datamining_aggr_view AS
     change(s.stock, s.date, '7 days'::interval) AS prediction
    FROM (stocks s
      JOIN dataminestocks_py d ON ((d.stockname = s.stock)))
-  WHERE (d.active = true)
-  ORDER BY s.stock, s.date DESC;
+  WHERE (d.active = true);
 
 
 ALTER TABLE public.datamining_aggr_view OWNER TO postgres;
@@ -2811,7 +2810,7 @@ CREATE SEQUENCE forex_id_seq
 ALTER TABLE public.forex_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2097 (class 0 OID 0)
+-- TOC entry 2100 (class 0 OID 0)
 -- Dependencies: 175
 -- Name: forex_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -2851,7 +2850,7 @@ CREATE SEQUENCE stocks_id_seq
 ALTER TABLE public.stocks_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2098 (class 0 OID 0)
+-- TOC entry 2101 (class 0 OID 0)
 -- Dependencies: 173
 -- Name: stocks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -2888,7 +2887,7 @@ ALTER TABLE ONLY stocks ALTER COLUMN id SET DEFAULT nextval('stocks_id_seq'::reg
 
 
 --
--- TOC entry 1966 (class 2606 OID 12554484)
+-- TOC entry 1967 (class 2606 OID 12554484)
 -- Name: PK; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2897,7 +2896,7 @@ ALTER TABLE ONLY datamine_aggr
 
 
 --
--- TOC entry 1964 (class 2606 OID 41894)
+-- TOC entry 1965 (class 2606 OID 41894)
 -- Name: PK_instrument; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2915,7 +2914,7 @@ ALTER TABLE ONLY forex
 
 
 --
--- TOC entry 1962 (class 2606 OID 41766)
+-- TOC entry 1963 (class 2606 OID 41766)
 -- Name: id; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2924,7 +2923,7 @@ ALTER TABLE ONLY dataminestocks
 
 
 --
--- TOC entry 1971 (class 2606 OID 12555323)
+-- TOC entry 1974 (class 2606 OID 12555323)
 -- Name: pk_dataminestocks_py; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2933,7 +2932,7 @@ ALTER TABLE ONLY dataminestocks_py
 
 
 --
--- TOC entry 1973 (class 2606 OID 12566080)
+-- TOC entry 1976 (class 2606 OID 12566080)
 -- Name: predictions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2960,7 +2959,31 @@ ALTER TABLE ONLY stocks
 
 
 --
--- TOC entry 1960 (class 1259 OID 19279399)
+-- TOC entry 1971 (class 1259 OID 23019603)
+-- Name: dataminestocks_py_active_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE INDEX dataminestocks_py_active_idx ON dataminestocks_py USING btree (active);
+
+
+--
+-- TOC entry 1972 (class 1259 OID 23019601)
+-- Name: dataminestocks_py_stockname_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE INDEX dataminestocks_py_stockname_idx ON dataminestocks_py USING btree (stockname);
+
+
+--
+-- TOC entry 1960 (class 1259 OID 23019602)
+-- Name: dataminestocks_stockname_active_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE INDEX dataminestocks_stockname_active_idx ON dataminestocks USING btree (stockname, active);
+
+
+--
+-- TOC entry 1961 (class 1259 OID 19279399)
 -- Name: dataminestocks_stockname_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2968,7 +2991,7 @@ CREATE INDEX dataminestocks_stockname_idx ON dataminestocks USING btree (stockna
 
 
 --
--- TOC entry 1967 (class 1259 OID 12554471)
+-- TOC entry 1968 (class 1259 OID 12554471)
 -- Name: date; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2984,7 +3007,7 @@ CREATE INDEX forex_date_idx ON forex USING btree (date);
 
 
 --
--- TOC entry 1968 (class 1259 OID 11887396)
+-- TOC entry 1969 (class 1259 OID 11887396)
 -- Name: stock_date; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -2992,7 +3015,7 @@ CREATE INDEX stock_date ON datamine_aggr USING btree (stockname, date DESC);
 
 
 --
--- TOC entry 1969 (class 1259 OID 11887398)
+-- TOC entry 1970 (class 1259 OID 11887398)
 -- Name: stockname; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -3032,7 +3055,7 @@ CREATE INDEX stocks_stock_idx ON stocks USING btree (stock);
 
 
 --
--- TOC entry 2092 (class 0 OID 0)
+-- TOC entry 2095 (class 0 OID 0)
 -- Dependencies: 7
 -- Name: public; Type: ACL; Schema: -; Owner: postgres
 --
@@ -3043,7 +3066,7 @@ GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2016-02-16 23:17:40 AEDT
+-- Completed on 2016-02-22 22:19:45 AEDT
 
 --
 -- PostgreSQL database dump complete
