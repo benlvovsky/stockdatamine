@@ -3,6 +3,7 @@
 
 import sys
 import common
+import optimise
 import subprocess
 from downloaddata import downloadInstruments
 # from common import *
@@ -331,12 +332,14 @@ def main():
             doPredictions()
         elif sys.argv[1] == 'downloaddata':
             downloadInstruments()
+        elif sys.argv[1] == 'optgamma':
+            optimise.optimiseAll(0.0001, 1, 0.1, "gamma", "-g")
 
         timeEnd = datetime.now()
         print "Done, it took {0}".format(timeEnd - timeStart)
 
     else:
-        print "Allowed commands: 'attr', 'nu', 'bm [cv]', 'pr', 'downloaddata'"
+        print "Allowed commands: 'attr', 'bm [cv]', 'pr', 'downloaddata', 'nu', 'optgamma'"
 
 if __name__ == "__main__":
     main()

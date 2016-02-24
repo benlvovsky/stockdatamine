@@ -73,7 +73,8 @@ def csv2libsvm(iStr, output_file, label_index, skip_headers):
 def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault, extraTrainParam=""):
     """calculate models."""
     #    print "stockname='{0}', cv='{1}', cost='{2}', excludeAttrs={3}".format(stockname, cvNum, svmCost, exclude)
-    print "stockname='{0}', cv='{1}', cost='{2}', nu={3}".format(stockname, cvNum, svmCost, nu)
+    print "stockname='{0}', cv='{1}', cost='{2}', nu={3}, extraTrainParam='{4}'".\
+        format(stockname, cvNum, svmCost, nu, extraTrainParam)
     svmNu = "{0}".format(nu)
 
     if (not cvNum) or (cvNum == ""):
@@ -113,7 +114,7 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault, extraTrainPara
     sys.stdout.write("Training... command='" + cmd + "'\n")
     # sys.stdout.write("Training...")
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (trainres, errdata) = proc.communicate
+    (trainres, errdata) = proc.communicate()
 #   sys.stdout.write("Train output:\n" + trainres + '\n')
     try:
         if errdata is not None and len(errdata) > 0:
