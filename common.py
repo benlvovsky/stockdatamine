@@ -109,7 +109,13 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault, extraTrainPara
         True
 #    sys.stdout.write("...scaling finished\n")
 
-    cmd = LSLIB + '/svm-train -s 4 -t 2 -c ' + svmCost + ' -n ' + svmNu + ' ' + extraTrainParam + ' ' + \
+    # setting cost option
+    if "-c" not in extraTrainParam:
+        costParam = "-c " + str(svmCost)
+    else:
+        costParam = ""
+
+    cmd = LSLIB + '/svm-train -s 4 -t 2 ' + costParam + ' -n ' + svmNu + ' ' + extraTrainParam + ' ' + \
         cvOption + ' extracts/{0}.ls.scaled models/{0}.ls.model'.format(stockname)
     sys.stdout.write("Training... command='" + cmd + "'\n")
     # sys.stdout.write("Training...")

@@ -334,6 +334,8 @@ def main():
             downloadInstruments()
         elif sys.argv[1] == 'optgamma':
             optimise.optimiseAll(0.0001, 1, 0.1, "gamma", "-g")
+        elif sys.argv[1] == 'optcost':
+            optimise.optimiseAll(1, 1000, 10, "bestcost", "-c")
 
         timeEnd = datetime.now()
         print "Done, it took {0}".format(timeEnd - timeStart)
