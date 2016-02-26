@@ -7,7 +7,7 @@ def optimiseAll(startPar, stopPar, stepPar, dbCol, paramOption):
     """loop requested stocks for optimisation."""
     print "optimisation of parameter '{0}'".format(paramOption)
 
-    query = "select stockname, excludedattributes, bestnu from {0} " \
+    query = "select stockname, excludedattributes, bestnu, bestcost, gamma from {0} " \
         + "where active=true and excludedattributes is not NULL and " \
         + "excludedattributes<>'' and {1} is NULL order by stockname asc"
     query = query.format(common.dataminestocksViewName, dbCol)
@@ -44,6 +44,8 @@ def optimiseOne(paramOption, row, extractdata, start, stop, step):
     stockname = row[0]
     exclAttribs = row[1]
     bestNu = row[2]
+    bestCost = row[3]
+    gamma = row[4]
 
     crossValNum = 5
 
@@ -62,6 +64,13 @@ def optimiseOne(paramOption, row, extractdata, start, stop, step):
     while tryParam < stop:
         # print "Trial {0}={1}".format(paramOption, tryParam)
         extraParam = "{0} {1}".format(paramOption, tryParam)
+
+        if gamma is not None:
+            extraParam += " -g {0}".format(gamma)
+
+        if bestCost is not None:
+            extraParam += " -c {0}".format(bestCost)
+
         print "extraParam='{0}".format(extraParam)
         (trialError, trialCorrelation, trailAttrCsv) = common.lsCalcModel(
             stockname, exclAttribs, crossValNum, extractdata, bestNu, extraParam)

@@ -127,7 +127,7 @@ def optimiseattr(stockname, nu):
 def buildModels(runtype):
     """build models process."""
     print "buildModels"
-    query = "select stockname, excludedattributes, bestcost, bestnu from " + \
+    query = "select stockname, excludedattributes, bestcost, bestnu, gamma from " + \
         common.dataminestocksViewName + " where active=true and topredict=true order by stockname asc"
     conn = common.getdbcon()
     cur = conn.cursor()
@@ -146,11 +146,11 @@ def buildModels(runtype):
     curDate = conn.cursor()
     cur.execute(query)
     for row in cur:
-
         stockname = row[0]
         excludedattributes = row[1]
-#        bestcost = row[2]
+        bestcost = row[2]
         nu = row[3]
+        gamma = row[4]
         extractdata = common.extractData(stockname)
 
         curDate.execute("select date FROM datamining_stocks_view where stockName='{0}' limit 1".format(stockname))
@@ -158,7 +158,14 @@ def buildModels(runtype):
             date = str(dateRow[0])
             print 'date=' + date
 
-        (error, corr, attrCsv) = common.lsCalcModel(stockname, excludedattributes, cvArg, extractdata, nu)
+        extraparam = ""
+        if bestcost is not None:
+            extraparam += " -c {0}".format(bestcost)
+
+        if gamma is not None:
+            extraparam += " -g {0}".format(gamma)
+
+        (error, corr, attrCsv) = common.lsCalcModel(stockname, excludedattributes, cvArg, extractdata, nu, extraparam)
 
         if runtype == 'cv':
             curUp = conn.cursor()
