@@ -348,7 +348,7 @@ def main():
         print "Done, it took {0}".format(timeEnd - timeStart)
 
     else:
-        print "Allowed commands: 'attr', 'bm [cv]', 'pr', 'downloaddata', 'nu', 'optgamma'"
+        print "Allowed commands: 'attr', 'bm [cv]', 'pr', 'downloaddata', 'nu', 'optgamma', 'optcost'"
 
 if __name__ == "__main__":
     main()
