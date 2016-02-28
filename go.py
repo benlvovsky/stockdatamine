@@ -165,6 +165,9 @@ def buildModels(runtype):
         if gamma is not None:
             extraparam += " -g {0}".format(gamma)
 
+        if nu is not None:
+            extraparam += " -n {0}".format(nu)
+
         (error, corr, attrCsv) = common.lsCalcModel(stockname, excludedattributes, cvArg, extractdata, nu, extraparam)
 
         if runtype == 'cv':
@@ -193,7 +196,7 @@ def doPredictions1():
         stockname = row[0]
         excludedattributes = row[1]
 #        bestcost = row[2]
-        nu = row[3]
+#        nu = row[3]
         extractdata = common.extractData(stockname, 0, 1)
 
         curDate.execute("select date FROM datamining_stocks_view where stockName='{0}' limit 1".format(stockname))
@@ -201,7 +204,7 @@ def doPredictions1():
         rec = records[0]
         date = str(rec[0])
 #        print 'date='+date
-        (prediction, trainres, errorres) = common.lsPredict(stockname, excludedattributes, extractdata, nu)
+        (prediction, trainres, errorres) = common.lsPredict(stockname, excludedattributes, extractdata)
         curUp = conn.cursor()
         sql = "update {0} set prediction={1}, preddate={2} where stockname={3}".\
             format(common.dataminestocksViewName, prediction, date, stockname)
@@ -226,8 +229,6 @@ def doPredictions():
     for row in cur:
         stockname = row[0]
         excludedattributes = row[1]
-#        bestcost = row[2]
-        nu = row[3]
 
         sql = "COPY (SELECT * from datamine_extra('{0}') where date >= (now()::date - interval '7 days') )"\
             " TO STDOUT DELIMITER ',' CSV HEADER".format(stockname)
@@ -250,7 +251,7 @@ def doPredictions():
 
         print 'date array=' + str(dateAr)
         print 'price array=' + str(priceAr)
-        (predictionAr, trainres, errorres) = common.lsPredictMulti(stockname, excludedattributes, extractdata, nu)
+        (predictionAr, trainres, errorres) = common.lsPredictMulti(stockname, excludedattributes, extractdata)
         print 'predictions array=' + str(predictionAr)
         curUp.execute("select updatePredictions(%s, %s, %s, %s)", (stockname, dateAr, priceAr, predictionAr))
         sql = "update {0} set prediction={1}, preddate='{2}' where stockname='{3}'".\
@@ -340,7 +341,9 @@ def main():
         elif sys.argv[1] == 'downloaddata':
             downloadInstruments()
         elif sys.argv[1] == 'optgamma':
-            optimise.optimiseAll(0.0001, 1, 0.1, "gamma", "-g")
+            optimise.optimiseAll(0.0001, 1, 0.01, "gamma", "-g")
+        elif sys.argv[1] == 'optnu':
+            optimise.optimiseAll(0.1, 1, 0.01, "bestnu", "-n")
         elif sys.argv[1] == 'optcost':
             optimise.optimiseAll(1, 1000, 10, "bestcost", "-c")
 

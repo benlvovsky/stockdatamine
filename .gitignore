@@ -5,3 +5,4 @@ download/
 nohup.out
 *debug
 *.pyc
+mail.html

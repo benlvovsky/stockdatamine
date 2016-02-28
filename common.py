@@ -115,7 +115,12 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault, extraTrainPara
     else:
         costParam = ""
 
-    cmd = LSLIB + '/svm-train -s 4 -t 2 ' + costParam + ' -n ' + svmNu + ' ' + extraTrainParam + ' ' + \
+    if "-n" not in extraTrainParam:
+        nuParam = "-n " + str(svmNu)
+    else:
+        nuParam = ""  # take from extraParam
+
+    cmd = LSLIB + '/svm-train -s 4 -t 2 ' + costParam + ' ' + nuParam + ' ' + extraTrainParam + ' ' + \
         cvOption + ' extracts/{0}.ls.scaled models/{0}.ls.model'.format(stockname)
     sys.stdout.write("Training... command='" + cmd + "'\n")
     # sys.stdout.write("Training...")
@@ -141,13 +146,13 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault, extraTrainPara
     return (float(error), float(corr), header)
 
 
-def lsPredict(stockname, exclude, data, nu=svmNuDefault):
+def lsPredict(stockname, exclude, data):
     """do prediction process."""
     cmd = LSLIB + "/svm-predict extracts/{0}.ls.scaled models/{0}.ls.model models/{0}.ls.prediction".format(stockname)
     cmdScale = LSLIB + \
         '/svm-scale -r "extracts/{0}.range"  "extracts/{0}.ls" > "extracts/{0}.ls.scaled"'.format(stockname)
 #    print "Command:"+cmd
-    (odata, edata) = extractScaleRunCmd(stockname, exclude, None, data, nu, cmd, cmdScale)
+    (odata, edata) = extractScaleRunCmd(stockname, exclude, data, cmd, cmdScale)
 #    print "odata=:"+odata
     f = open("models/{0}.ls.prediction".format(stockname), "r")
     prStr = f.read()
@@ -157,13 +162,13 @@ def lsPredict(stockname, exclude, data, nu=svmNuDefault):
     return (prFloat, odata, edata)
 
 
-def lsPredictMulti(stockname, exclude, data, nu=svmNuDefault):
+def lsPredictMulti(stockname, exclude, data):
     """predict multiple dates."""
     cmd = LSLIB + "/svm-predict extracts/{0}.ls.scaled models/{0}.ls.model models/{0}.ls.prediction".format(stockname)
     cmdScale = LSLIB + \
         '/svm-scale -r "extracts/{0}.range"  "extracts/{0}.ls" > "extracts/{0}.ls.scaled"'.format(stockname)
 
-    (odata, edata) = extractScaleRunCmd(stockname, exclude, None, data, nu, cmd, cmdScale)
+    (odata, edata) = extractScaleRunCmd(stockname, exclude, data, cmd, cmdScale)
     f = open("models/{0}.ls.prediction".format(stockname), "r")
     prStr = f.read()
     fltAr = []
@@ -175,17 +180,8 @@ def lsPredictMulti(stockname, exclude, data, nu=svmNuDefault):
 #   ./libsvm-3.21/svm-predict extracts/CBA.ls.scaled models/CBA.ls.model models/CBA.ls.prediction
 
 
-def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc, cmdScale):
+def extractScaleRunCmd(stockname, exclude, data, cmdProc, cmdScale):
     """helper method combining several processes."""
-#    svmNu = "{0}".format(nu)
-
-    if (not cvNum) or (cvNum == ""):
-        cvOption = ""
-    else:
-        cvOption = "-v {0}".format(cvNum)
-
-    sys.stdout.write("cvOption=" + cvOption + ", len(data)={0}. ".format(len(data)))
-
     if (exclude is not None) and (exclude != "-") and (exclude != ""):
         cmd = "cut --complement -d, -f {0}".format(exclude)
     else:

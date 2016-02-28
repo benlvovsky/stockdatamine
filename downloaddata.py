@@ -94,4 +94,5 @@ def downloadInstruments():
     print "Synchronising aggregations..."
     curSync = conn.cursor()
     curSync.execute("select sync_aggr((now() - interval '3 months')::date)")
+    conn.commit()
     print "Synchronised " + str(curSync.fetchone()[0]) + " rows"
