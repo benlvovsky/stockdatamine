@@ -4,3 +4,4 @@ downloads/
 download/
 nohup.out
 *debug
+*.pyc
