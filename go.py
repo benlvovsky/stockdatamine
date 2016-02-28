@@ -341,7 +341,7 @@ def main():
         elif sys.argv[1] == 'downloaddata':
             downloadInstruments()
         elif sys.argv[1] == 'optgamma':
-            optimise.optimiseAll(0.0001, 1, 0.01, "gamma", "-g")
+            optimise.optimiseAll(0.001, 1, 0.001, "gamma", "-g")
         elif sys.argv[1] == 'optnu':
             optimise.optimiseAll(0.1, 1, 0.01, "bestnu", "-n")
         elif sys.argv[1] == 'optcost':
