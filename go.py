@@ -5,6 +5,7 @@ import sys
 import common
 import optimise
 import subprocess
+import prediction
 from downloaddata import downloadInstruments
 # from common import *
 from datetime import datetime
@@ -321,6 +322,9 @@ def doPredictions():
 
     conn.close()
 
+def printHelp():
+    print "Allowed commands: 'attr', 'bm [cv]', 'pr', 'predacc', 'downloaddata', 'nu', 'optgamma', 'optcost'"
+
 
 def main():
     """main entry."""
@@ -338,6 +342,8 @@ def main():
             buildModels(par)
         elif sys.argv[1] == 'pr':
             doPredictions()
+        elif sys.argv[1] == 'predacc':
+            prediction.doPredictionsAccuracy()
         elif sys.argv[1] == 'downloaddata':
             downloadInstruments()
         elif sys.argv[1] == 'optgamma':
@@ -346,12 +352,14 @@ def main():
             optimise.optimiseAll(0.1, 1, 0.01, "bestnu", "-n")
         elif sys.argv[1] == 'optcost':
             optimise.optimiseAll(1, 1000, 10, "bestcost", "-c")
+        else:
+            printHelp()
 
         timeEnd = datetime.now()
         print "Done, it took {0}".format(timeEnd - timeStart)
 
     else:
-        print "Allowed commands: 'attr', 'bm [cv]', 'pr', 'downloaddata', 'nu', 'optgamma', 'optcost'"
+        printHelp()
 
 if __name__ == "__main__":
     main()

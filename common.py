@@ -177,8 +177,6 @@ def lsPredictMulti(stockname, exclude, data):
         # print "pr={0}".format(s)
     return (fltAr, odata, edata)
 
-#   ./libsvm-3.21/svm-predict extracts/CBA.ls.scaled models/CBA.ls.model models/CBA.ls.prediction
-
 
 def extractScaleRunCmd(stockname, exclude, data, cmdProc, cmdScale):
     """helper method combining several processes."""
