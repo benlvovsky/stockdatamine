@@ -17,8 +17,8 @@ def doPredictionsAccuracy():
         stockname = row[0]
         excludedattributes = row[1]
 
-        sql = "COPY (SELECT * from datamine_extra('{0}') where date >= (now()::date - interval '7 days') )"\
-            " TO STDOUT DELIMITER ',' CSV HEADER".format(stockname)
+        sql = "COPY (SELECT * from datamine_extra('{0}') order by date desc offset 480 limit 10)"\
+              " TO STDOUT DELIMITER ',' CSV HEADER".format(stockname)
 
         extracolsdata = subprocess.check_output(
             "export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
