@@ -4,7 +4,7 @@
 
 -- Dumped from database version 9.3.11
 -- Dumped by pg_dump version 9.3.11
--- Started on 2016-02-22 22:19:45 AEDT
+-- Started on 2016-03-19 23:38:47 AEDT
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -14,8 +14,8 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 
 --
--- TOC entry 2093 (class 1262 OID 12066)
--- Dependencies: 2092
+-- TOC entry 2103 (class 1262 OID 12066)
+-- Dependencies: 2102
 -- Name: postgres; Type: COMMENT; Schema: -; Owner: postgres
 --
 
@@ -31,7 +31,7 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- TOC entry 2096 (class 0 OID 0)
+-- TOC entry 2106 (class 0 OID 0)
 -- Dependencies: 1
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
 --
@@ -2390,7 +2390,7 @@ CREATE TABLE dataminestocks (
 ALTER TABLE public.dataminestocks OWNER TO postgres;
 
 --
--- TOC entry 2097 (class 0 OID 0)
+-- TOC entry 2107 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN dataminestocks.corrdate; Type: COMMENT; Schema: public; Owner: postgres
 --
@@ -2399,7 +2399,7 @@ COMMENT ON COLUMN dataminestocks.corrdate IS 'date correlation was calculated';
 
 
 --
--- TOC entry 2098 (class 0 OID 0)
+-- TOC entry 2108 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN dataminestocks.preddate; Type: COMMENT; Schema: public; Owner: postgres
 --
@@ -2408,7 +2408,7 @@ COMMENT ON COLUMN dataminestocks.preddate IS 'date of last data prediction based
 
 
 --
--- TOC entry 2099 (class 0 OID 0)
+-- TOC entry 2109 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN dataminestocks.active; Type: COMMENT; Schema: public; Owner: postgres
 --
@@ -2435,7 +2435,8 @@ CREATE TABLE dataminestocks_py (
     bestnu text,
     topredict boolean DEFAULT false NOT NULL,
     optimiseattr boolean DEFAULT false NOT NULL,
-    error double precision
+    error double precision,
+    gamma double precision
 );
 
 
@@ -2810,7 +2811,7 @@ CREATE SEQUENCE forex_id_seq
 ALTER TABLE public.forex_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2100 (class 0 OID 0)
+-- TOC entry 2110 (class 0 OID 0)
 -- Dependencies: 175
 -- Name: forex_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -2850,7 +2851,7 @@ CREATE SEQUENCE stocks_id_seq
 ALTER TABLE public.stocks_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2101 (class 0 OID 0)
+-- TOC entry 2111 (class 0 OID 0)
 -- Dependencies: 173
 -- Name: stocks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -3055,7 +3056,7 @@ CREATE INDEX stocks_stock_idx ON stocks USING btree (stock);
 
 
 --
--- TOC entry 2095 (class 0 OID 0)
+-- TOC entry 2105 (class 0 OID 0)
 -- Dependencies: 7
 -- Name: public; Type: ACL; Schema: -; Owner: postgres
 --
@@ -3066,7 +3067,7 @@ GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2016-02-22 22:19:45 AEDT
+-- Completed on 2016-03-19 23:38:47 AEDT
 
 --
 -- PostgreSQL database dump complete

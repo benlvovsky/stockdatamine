@@ -323,7 +323,7 @@ def doPredictions():
     conn.close()
 
 def printHelp():
-    print "Allowed commands: 'attr', 'bm [cv]', 'pr', 'predacc', 'downloaddata', 'nu', 'optgamma', 'optcost'"
+    print "Allowed commands: 'attr', 'bm [build]<cv>', 'pr', 'predacc', 'downloaddata', 'nu', 'optgamma', 'optcost'"
 
 
 def main():
