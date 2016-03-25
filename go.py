@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Main module to process all stat calculation tasks."""
 
-import os
 import sys
 import common
 import optimise
@@ -322,24 +321,17 @@ def doPredictions():
 
 def printHelp():
     """pront help."""
-    print "Allowed commands: 'attr', 'bm [build]<cv>', 'pr', 'predacc', 'downloaddata', 'nu', 'optgamma', 'optcost'"
+    print "Allowed commands: 'attr', 'bm [build]<cv>', 'pr', 'predacc', 'downloaddata', 'optnu', 'optgamma', 'optcost'"
 
 
 def main():
     """main entry."""
-    global db_host
-    global db_user
-    global db_password
-    db_host = os.getenv('POSTGRES_HOST', "localhost")
-    db_user = os.getenv('POSTGRES_USER', "postgres")
-    db_password = os.getenv('POSTGRES_PASSWORD', "postgres")
-
     if len(sys.argv) >= 2:
         timeStart = datetime.now()
         if sys.argv[1] == 'attr':
             optimiseattrall()
-        elif sys.argv[1] == 'nu':
-            optimiseNuAll()
+#        elif sys.argv[1] == 'nu':
+#            optimiseNuAll()
         elif sys.argv[1] == 'bm':
             if len(sys.argv) < 3:
                 par = 'build'
