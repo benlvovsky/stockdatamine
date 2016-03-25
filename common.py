@@ -1,5 +1,6 @@
 """common module for other modules."""
 
+import os
 import sys
 import csv
 import psycopg2
@@ -17,16 +18,15 @@ initialStepNu = 0.1
 
 LSLIB = "libsvm-3.21"
 
-# from collections import defaultdict
+db_database = os.getenv('DM_POSTGRES_DBNAME', "postgres")
+db_host = os.getenv('DM_POSTGRES_HOST', "localhost")
+db_user = os.getenv('DM_POSTGRES_USER', "postgres")
+db_password = os.getenv('DM_POSTGRES_PASSWORD', "postgres")
 
-# dbnameConst="dataminestocks1"
-dbnameConst = "postgres"
-
-
-def getdbcon(dbname=dbnameConst):
+def getdbcon(dbname=db_database):
     """staddartased DB connection."""
-    return psycopg2.connect("dbname = '{0}' user = 'postgres' host = 'localhost' password = 'postgres'".format(dbname))
-
+    return psycopg2.connect("dbname = '{0}' user = '{1}' host = '{2}' password = '{3}'".
+                            format(dbname, db_user, db_host, db_password))
 
 def construct_line(label, line):
     """construct line for csv2libsvm format."""
@@ -219,6 +219,11 @@ def extractData(stockname, offsetPar=offset, limitPar=limit):
     """extract DB Data as CSV into STDOUT with header."""
     sql = "COPY (SELECT * from datamine1('{0}') offset {1} limit {2}) TO STDOUT DELIMITER ',' CSV HEADER".format(
         stockname, offsetPar, limitPar)
-    extractdata = subprocess.check_output(
-        "export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
+    extractdata = subprocess.check_output(psqlCommand(sql), shell=True)
     return extractdata
+
+
+def psqlCommand(sql):
+    """psql command line to execute using global parameters."""
+    return "export PGPASSWORD='{0}';psql -h {1} -U {2} -d {3} -c \"{4}\"".\
+        format(db_password, db_host, db_user, db_database, sql)

@@ -20,8 +20,7 @@ def doPredictionsAccuracy():
         sql = "COPY (SELECT * from datamine_extra('{0}') order by date desc offset 480 limit 10)"\
               " TO STDOUT DELIMITER ',' CSV HEADER".format(stockname)
 
-        extracolsdata = subprocess.check_output(
-            "export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
+        extracolsdata = subprocess.check_output(common.psqlCommand(sql), shell=True)
         proc = subprocess.Popen("cut --complement -d, -f 1,2", shell=True,
                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         extractdata = proc.communicate(input=extracolsdata)[0]

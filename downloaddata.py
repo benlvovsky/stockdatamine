@@ -84,9 +84,7 @@ def downloadInstruments():
                 sql = "COPY stocks (stock,date,open,high,low,close,volume,\\\"Adj Close\\\") FROM '" \
                     + str(os.getcwd()) + "/downloads/" + stockName + "_fixed.csv' WITH CSV delimiter as ','"
                 print "SQL=" + sql
-                subprocess.call(
-                    'export PGPASSWORD=\'postgres\';psql -h localhost -U postgres -d postgres -c "' + sql + '"',
-                    shell=True)
+                subprocess.call(common.psqlCommand(sql), shell=True)
             # here a downloaded stock file has been processed
         # here a row in cursor for stocks and types been processed
 

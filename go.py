@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Main module to process all stat calculation tasks."""
 
+import os
 import sys
 import common
 import optimise
@@ -10,7 +11,6 @@ from downloaddata import downloadInstruments
 # from common import *
 from datetime import datetime
 from datetime import timedelta
-
 
 def optimiseNuAll():
     """optimisa Nu process. TODO: move into optimise module."""
@@ -33,7 +33,6 @@ def optimiseNuAll():
         (nu, corr) = optimiseNu(stockname, excludedattributes, extractdata, nu - 0.01, 1, 0.001)
         print "33333333333333333333333333333333333333333"
         (nu, corr) = optimiseNu(stockname, excludedattributes, extractdata, nu - 0.001, 1, 0.0001)
-        # psql -h localhost -U postgres -d postgres -c "update dataminestocks set
         # bestnu='${best}', bestCorrelation=$bestCorrelation where
         # stockname='${stockName}'"
         curUp.execute("update {0} set bestnu={1}, bestCorrelation={2} where stockname='{3}'".format(
@@ -118,9 +117,9 @@ def optimiseattr(stockname, nu):
             delim = ","
 
     print 'error=' + str(bestError) + ', corr=' + str(bestCorr)
-    cmd = "psql -h localhost -U postgres -d postgres -c \"update dataminestocks_py set bestattributes='{0}', "
-    "excludedattributes='{1}', bestCorrelation={2}, error={3} where stockname='{4}'\"".format(
-        bestAttrCsv, bestExcludeCsv, bestCorr, bestError, stockname)
+    sql = "update dataminestocks_py set bestattributes='{0}', excludedattributes='{1}', bestCorrelation={2}, "\
+        + "error={3} where stockname='{4}'".format(bestAttrCsv, bestExcludeCsv, bestCorr, bestError, stockname)
+    cmd = common.psqlCommand(sql)
     res = subprocess.check_output(cmd, shell=True)
     print res + ". " + stockname + " stock optimisation finished"
 
@@ -234,8 +233,7 @@ def doPredictions():
         sql = "COPY (SELECT * from datamine_extra('{0}') where date >= (now()::date - interval '7 days') )"\
             " TO STDOUT DELIMITER ',' CSV HEADER".format(stockname)
         print sql
-        extracolsdata = subprocess.check_output(
-            "export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
+        extracolsdata = subprocess.check_output(common.psqlCommand(sql), shell=True)
         proc = subprocess.Popen("cut --complement -d, -f 1,2", shell=True,
                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         extractdata = proc.communicate(input=extracolsdata)[0]
@@ -323,11 +321,19 @@ def doPredictions():
     conn.close()
 
 def printHelp():
+    """pront help."""
     print "Allowed commands: 'attr', 'bm [build]<cv>', 'pr', 'predacc', 'downloaddata', 'nu', 'optgamma', 'optcost'"
 
 
 def main():
     """main entry."""
+    global db_host
+    global db_user
+    global db_password
+    db_host = os.getenv('POSTGRES_HOST', "localhost")
+    db_user = os.getenv('POSTGRES_USER', "postgres")
+    db_password = os.getenv('POSTGRES_PASSWORD', "postgres")
+
     if len(sys.argv) >= 2:
         timeStart = datetime.now()
         if sys.argv[1] == 'attr':
