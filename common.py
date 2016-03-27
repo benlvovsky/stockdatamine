@@ -18,15 +18,16 @@ initialStepNu = 0.1
 
 LSLIB = "libsvm-3.21"
 
-db_database = os.getenv('DM_POSTGRES_DBNAME', "postgres")
-db_host = os.getenv('DM_POSTGRES_HOST', "localhost")
-db_user = os.getenv('DM_POSTGRES_USER', "postgres")
-db_password = os.getenv('DM_POSTGRES_PASSWORD', "postgres")
+os.environ['PGDATABASE'] = os.getenv('PGDATABASE', "postgres")
+os.environ['PGHOST'] = os.getenv('PGHOST', "localhost")
+os.environ['PGUSER'] = os.getenv('PGUSER', "postgres")
+os.environ['PGPASSWORD'] = os.getenv('PGPASSWORD', "postgres")
+os.environ['PGPORT'] = os.getenv('PGPORT', "5432")
 
-def getdbcon(dbname=db_database):
+def getdbcon():
     """staddartased DB connection."""
-    return psycopg2.connect("dbname = '{0}' user = '{1}' host = '{2}' password = '{3}'".
-                            format(dbname, db_user, db_host, db_password))
+    return psycopg2.connect("dbname='{0}' user='{1}' host='{2}' password='{3}'".format(os.getenv('PGDATABASE'),
+                            os.getenv('PGUSER'), os.getenv('PGHOST'), os.getenv('PGPASSWORD')))
 
 def construct_line(label, line):
     """construct line for csv2libsvm format."""
@@ -225,5 +226,4 @@ def extractData(stockname, offsetPar=offset, limitPar=limit):
 
 def psqlCommand(sql):
     """psql command line to execute using global parameters."""
-    return "export PGPASSWORD='{0}';psql -h {1} -U {2} -d {3} -c \"{4}\"".\
-        format(db_password, db_host, db_user, db_database, sql)
+    return "psql -c \"{0}\"".format(sql)
