@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
-import sys
-import psycopg2
-import common
-import subprocess
-from downloaddata import *
-from common import *
 from datetime import datetime
 from datetime import timedelta
+import subprocess
+import sys
+
+from common import *
+import common
+from downloaddata import *
+import psycopg2
 
 
 def optimiseNuAll():
@@ -134,8 +135,8 @@ def optimiseattr(stockname, nu):
             delim = ","
 
     print 'error=' + str(bestError) + ', corr=' + str(bestCorr)
-    cmd = "psql -h localhost -U postgres -d postgres -c \"update dataminestocks_py set bestattributes='{0}', excludedattributes='{1}', bestCorrelation={2}, error={3} where stockname='{4}'\"".format(
-        bestAttrCsv, bestExcludeCsv, bestCorr, bestError, stockname)
+    cmd = "psql -U postgres -d postgres -c \"update dataminestocks_py set bestattributes='{0}', excludedattributes='{1}', bestCorrelation={2}, error={3} where stockname='{4}'\"" \
+        .format(bestAttrCsv, bestExcludeCsv, bestCorr, bestError, stockname)
     res = subprocess.check_output(cmd, shell=True)
     print res + ". " + stockname + " stock optimisation finished"
 
@@ -238,7 +239,7 @@ def doPredictions():
             " TO STDOUT DELIMITER ',' CSV HEADER".format(stockname)
         print sql
         extracolsdata = subprocess.check_output(
-            "export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
+            "export PGPASSWORD='postgres';psql -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
         proc = subprocess.Popen("cut --complement -d, -f 1,2", shell=True,
                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         extractdata = proc.communicate(input=extracolsdata)[0]
@@ -326,6 +327,8 @@ def doPredictions():
 
 
 def main():
+    os.environ['PGHOST'] = PGHOST # visible in this process + all children
+
     if len(sys.argv) >= 2:
         timeStart = datetime.now()
         if sys.argv[1] == 'attr':

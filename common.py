@@ -1,10 +1,10 @@
-import os
-import sys
-import csv
-import psycopg2
-import subprocess
 import cStringIO
+import csv
+import subprocess
+import sys
+import psycopg2
 
+PGHOST='postgres_ml'
 svmCost="100"
 svmNuDefault=0.556015
 offset=50
@@ -16,13 +16,12 @@ initialStepNu=0.1
 
 LSLIB = "libsvm-3.21"
 
-from collections import defaultdict
 
 #dbnameConst="dataminestocks1"
 dbnameConst="postgres"
 
 def getdbcon(dbname=dbnameConst):
-	return psycopg2.connect("dbname = '{0}' user = 'postgres' host = 'localhost' password = 'postgres'".format(dbname))
+	return psycopg2.connect("dbname = '{0}' user = 'postgres' password = 'postgres'".format(dbname))
 
 def construct_line( label, line ):
 	new_line = []
@@ -198,5 +197,5 @@ def extractScaleRunCmd(stockname, exclude, cvNum, data, nu, cmdProc, cmdScale):
 
 def extractData(stockname, offsetPar=offset, limitPar=limit):
 	sql="COPY (SELECT * from datamine1('{0}') offset {1} limit {2}) TO STDOUT DELIMITER ',' CSV HEADER".format(stockname, offsetPar, limitPar)
-	extractdata = subprocess.check_output("export PGPASSWORD='postgres';psql -h localhost -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
+	extractdata = subprocess.check_output("export PGPASSWORD='postgres';psql -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
 	return extractdata

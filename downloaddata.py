@@ -1,10 +1,12 @@
-import os
-import sys
 import csv
-import psycopg2
-import subprocess
 from datetime import *
+import os
+import subprocess
+import sys
+
+import common
 from common import *
+import psycopg2
 
 downlUrlDict = {"YAHOO" : r"http://real-chart.finance.yahoo.com/table.csv?s={0}&a={1}&b={2}&c={3}&d=11&e=4&f=2025&g=d&ignore=.csv",
 				"FM"    : r"http://195.128.78.52/{0}.csv?market=5\&em=181410\&code={0}\&df={2}\&mf={1}\&yf={3}\&from={2}.{4}.{3}\&dt=31\&mt=11\&yt=2025\&to=31.12.2025\&p=8\&f={0}\&e=.csv\&cn={0}\&dtf=1\&tmf=4\&MSOR=0\&mstimever=0\&sep=1\&sep2=3\&datf=5\&at=1"}
@@ -73,8 +75,9 @@ def downloadInstruments():
 			if loadindb:
 				sql="COPY stocks (stock,date,open,high,low,close,volume,\\\"Adj Close\\\") FROM '" + str(os.getcwd()) \
 					+ "/downloads/"+stockName+"_fixed.csv' WITH CSV delimiter as ','"
-				print "SQL=" + sql
-				subprocess.call('export PGPASSWORD=\'postgres\';psql -h localhost -U postgres -d postgres -c "' + sql + '"', shell=True)
+# 				print "SQL=" + sql
+# 				print "PGHOST=" + PGHOST
+				subprocess.call('export PGPASSWORD=\'postgres\';psql -U postgres -d postgres -c "' + sql + '"', shell=True)
 			# here a downloaded stock file has been processed
 		# here a row in cursor for stocks and types been processed
 			
