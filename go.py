@@ -5,10 +5,10 @@ from datetime import timedelta
 import subprocess
 import sys
 
-from common import *
-import common
-from downloaddata import *
 import psycopg2
+
+from common import *
+from downloaddata import *
 
 
 def optimiseNuAll():
@@ -115,6 +115,7 @@ def optimiseattr(stockname, nu):
         print "using default Nu ={0}".format(nu)
 
     extractdata = extractData(stockname)
+#     print "extracrdata={0}".format(extractdata)
     header = extractdata.splitlines()[0]
     hdrArray = header.split(",")
     hlen = len(hdrArray)
@@ -326,6 +327,12 @@ def doPredictions():
     conn.close()
 
 
+def syncaggr():
+    print "synchronizing averages for 3 years"
+    sql = "select sync_aggr((now() - interval '3 years')::date)"
+    extracolsdata = subprocess.check_output(
+            "export PGPASSWORD='postgres';psql -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
+
 def main():
     os.environ['PGHOST'] = PGHOST # visible in this process + all children
 
@@ -345,12 +352,20 @@ def main():
             doPredictions()
         elif sys.argv[1] == 'downloaddata':
             downloadInstruments()
+        elif sys.argv[1] == 'syncaggr':
+            syncaggr()
 
         timeEnd = datetime.now()
         print "Done, it took {0}".format(timeEnd - timeStart)
 
     else:
-        print "Allowed commands: 'attr', 'nu', 'bm [cv]', 'pr', 'downloaddata'"
+        print "Allowed commands:"\
+        "\n\t'attr:           for attributes optimization',"\
+        "\n\t'nu':            for nu optimization',"\
+        "\n\t'bm [cv]':       to build models',"\
+        "\n\t'pr':            for predictions,"\
+        "\n\t'downloaddata':  to download data',"\
+        "\n\t'syncaggr':      to synchronize averages for past 3 years - usually to prime DB after first download"
 
 if __name__ == "__main__":
     main()

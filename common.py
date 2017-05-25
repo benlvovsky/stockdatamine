@@ -15,6 +15,7 @@ startNu=0.00000001
 initialStepNu=0.1
 
 LSLIB = "libsvm-3.21"
+# LSLIB = "libsvm-3.17-GPU_x64-linux-v1.2"
 
 
 #dbnameConst="dataminestocks1"
@@ -78,11 +79,12 @@ def lsCalcModel(stockname, exclude, cvNum, data, nu=svmNuDefault, extraTrainPara
 	else:
 		cmd = "cat"
 
-	#sys.stdout.write(", cmd='{0}', ".format(cmd))
+# 	sys.stdout.write("\ncut/cat command='{0}', ".format(cmd))
 	proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 	extractdata = proc.communicate(input=data)[0]
 
 	header=extractdata.splitlines()[0]
+# 	sys.stdout.write("\nExctract data:='{0}', ".format(extractdata))
 	hdrArray=header.split(",")
 	hlen=len(hdrArray)
 	sys.stdout.write("array len={0}, class is last title={1}\n".format(hlen, hdrArray[hlen-1]))

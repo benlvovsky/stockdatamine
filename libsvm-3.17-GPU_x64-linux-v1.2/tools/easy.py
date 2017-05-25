@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-import sys
 import os
 from subprocess import *
+import sys
+
 
 if len(sys.argv) <= 1:
 	print('Usage: {0} training_file [testing_file]'.format(sys.argv[0]))

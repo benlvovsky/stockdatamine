@@ -12,8 +12,9 @@
 # This program is distributed under the same license of the LIBSVM package.
 # 
 
-from sys import argv, exit
 import os.path
+from sys import argv, exit
+
 
 def err(line_no, msg):
 	print("line {0}: {1}".format(line_no, msg))

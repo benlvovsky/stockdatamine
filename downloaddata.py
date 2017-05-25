@@ -4,11 +4,18 @@ import os
 import subprocess
 import sys
 
-import common
-from common import *
 import psycopg2
 
-downlUrlDict = {"YAHOO" : r"http://real-chart.finance.yahoo.com/table.csv?s={0}&a={1}&b={2}&c={3}&d=11&e=4&f=2025&g=d&ignore=.csv",
+from common import *
+import common
+
+#https://query1.finance.yahoo.com/v7/finance/download/CBA.AX?period1=1451606400&period2=1514764800&interval=1d&events=history&crumb=W9G90F5GRNd
+#https://query1.finance.yahoo.com/v7/finance/download/CBA.AX?period1=1493011050&period2=1495603050&interval=1d&events=history&crumb=W9G90F5GRNd
+
+#https://query1.finance.yahoo.com/v7/finance/download/CBA.AX?period1=1492930738&period2=1495522738&interval=1d&events=history&crumb=W9G90F5GRNd
+
+downlUrlDict = {"YAHOO" : r"https://query1.finance.yahoo.com/v7/finance/download/{ticker}?period1={period1}&period2={period2}&interval=1d&events=history&crumb={crumb}",
+				"YAHOO_OLD" : r"http://real-chart.finance.yahoo.com/table.csv?s={0}&a={1}&b={2}&c={3}&d=11&e=4&f=2025&g=d&ignore=.csv",
 				"FM"    : r"http://195.128.78.52/{0}.csv?market=5\&em=181410\&code={0}\&df={2}\&mf={1}\&yf={3}\&from={2}.{4}.{3}\&dt=31\&mt=11\&yt=2025\&to=31.12.2025\&p=8\&f={0}\&e=.csv\&cn={0}\&dtf=1\&tmf=4\&MSOR=0\&mstimever=0\&sep=1\&sep2=3\&datf=5\&at=1"}
 
 def fmDownlParseFunc(csvrow):

@@ -7,9 +7,10 @@ Expecting no headers. If present, headers can be skipped with argv[4] == 1.
 
 """
 
-import sys
-import csv
 from collections import defaultdict
+import csv
+import sys
+
 
 def construct_line( label, line ):
 	new_line = []

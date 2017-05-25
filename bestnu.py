@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 
-import sys
-import psycopg2
-import common
 import subprocess
+import sys
+
+import psycopg2
+
 from common import *
+import common
+
 
 #OLDIFS=$IFS
 #IFS=,
-
 cv=10
 limit=480
 offset=20

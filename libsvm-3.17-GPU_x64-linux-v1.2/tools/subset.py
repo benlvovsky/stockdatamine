@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-import os, sys, math, random
 from collections import defaultdict
+import os, sys, math, random
+
 
 if sys.version_info[0] >= 3:
 	xrange = range

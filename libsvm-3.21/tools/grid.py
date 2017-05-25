@@ -2,8 +2,9 @@
 __all__ = ['find_parameters']
 
 import os, sys, traceback, getpass, time, re
-from threading import Thread
 from subprocess import *
+from threading import Thread
+
 
 if sys.version_info[0] < 3:
 	from Queue import Queue
