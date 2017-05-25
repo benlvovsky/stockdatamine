@@ -1,6 +1,8 @@
-import csv
 from datetime import *
+import time
+import csv
 import os
+import calendar
 import subprocess
 import sys
 
@@ -8,6 +10,8 @@ import psycopg2
 
 from common import *
 import common
+
+crumb = None
 
 #https://query1.finance.yahoo.com/v7/finance/download/CBA.AX?period1=1451606400&period2=1514764800&interval=1d&events=history&crumb=W9G90F5GRNd
 #https://query1.finance.yahoo.com/v7/finance/download/CBA.AX?period1=1493011050&period2=1495603050&interval=1d&events=history&crumb=W9G90F5GRNd
@@ -30,7 +34,33 @@ def fmDownlParseFunc(csvrow):
 def yahooDownlParseFunc(csvrow):
 	return tuple(csvrow)
 
+def fmUrlDownlBuilderFunc(stockName, month, day, year):
+	return downlUrlDict["FM"].format(stockName, month-1, day, year, month)
+
+def getCrumb():
+	global crumb
+	if crumb is None:
+		print "Calculating new crumb..."
+		cmd="curl --cookie cookies.txt --cookie-jar cookies.txt https://au.finance.yahoo.com/quote/CBA.AX"
+		proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+		(stdoutdata, stderrdata) = proc.communicate()
+		first = 'CrumbStore":{"crumb":"'
+		last = '"},'
+		crumb = stdoutdata.split(first)[1].split(last)[0]
+		time.sleep(2)
+
+	print "crumb='{0}'".format(crumb)
+	return crumb
+
+def yahooDownlUrlBuilderFunc(stockName, month, day, year):
+	dt1 = datetime(year=year, month=month, day=day)
+	dt2 = datetime(year=2025, month=01, day=01)
+	timestamp1 = calendar.timegm(dt1.timetuple())
+	timestamp2 = calendar.timegm(dt2.timetuple())
+	return downlUrlDict["YAHOO"].format(ticker=stockName, period1=timestamp1, period2=timestamp2, crumb=getCrumb())
+
 downlParseFuncDict = {"YAHOO": yahooDownlParseFunc, "FM": fmDownlParseFunc}
+downlUrlBuilder = {"YAHOO": yahooDownlUrlBuilderFunc, "FM": fmUrlDownlBuilderFunc}
 
 def downloadInstruments():
 	print "downloadInstruments..."
@@ -55,10 +85,11 @@ def downloadInstruments():
 
 		print "date from=" + str(date) + " = " + str(date.day) + "/" + str(date.month)  + "/" + str(date.year)
 
-		url = downlUrlDict[downlType].format(stockName, date.month-1, date.day, date.year, date.month)
-		print "url=" + url
+		url = downlUrlBuilder[downlType](stockName, date.month-1, date.day, date.year)
 
-		cmd="curl -o downloads/"+stockName+".csv '" + url + "'"
+		print "download url=" + url
+
+		cmd="curl --cookie cookies.txt --cookie-jar cookies.txt -o downloads/"+stockName+".csv '" + url + "'"
 		print "cmd=" + cmd
 		proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		(stdoutdata, stderrdata) = proc.communicate()
