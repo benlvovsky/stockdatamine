@@ -28,11 +28,13 @@ def fmDownlParseFunc(csvrow):
 	adjclose = close
 	vol = vol.strip()
 	dateFixed = date[0:4] + "-" + date[4:6] + "-" + date[6:8]
-	print "datFixed="+dateFixed
+	print "dateFixed="+dateFixed
 	return (dateFixed, openV, high, low, close, vol, adjclose)
 
 def yahooDownlParseFunc(csvrow):
-	return tuple(csvrow)
+	(date, openV, high, low, close, adjclose, vol) = tuple(csvrow[0:7])
+# 	return tuple(csvrow)
+	return (date,      openV, high, low, close, vol, adjclose)
 
 def fmUrlDownlBuilderFunc(stockName, month, day, year):
 	return downlUrlDict["FM"].format(stockName, month-1, day, year, month)
@@ -47,13 +49,12 @@ def getCrumb():
 		first = 'CrumbStore":{"crumb":"'
 		last = '"},'
 		crumb = stdoutdata.split(first)[1].split(last)[0]
-		time.sleep(2)
 
 	print "crumb='{0}'".format(crumb)
 	return crumb
 
 def yahooDownlUrlBuilderFunc(stockName, month, day, year):
-	dt1 = datetime(year=year, month=month, day=day)
+	dt1 = datetime(year=year, month=month+1, day=day)
 	dt2 = datetime(year=2025, month=01, day=01)
 	timestamp1 = calendar.timegm(dt1.timetuple())
 	timestamp2 = calendar.timegm(dt2.timetuple())
@@ -113,9 +114,10 @@ def downloadInstruments():
 			if loadindb:
 				sql="COPY stocks (stock,date,open,high,low,close,volume,\\\"Adj Close\\\") FROM '" + str(os.getcwd()) \
 					+ "/downloads/"+stockName+"_fixed.csv' WITH CSV delimiter as ','"
-# 				print "SQL=" + sql
+ 				print "			executing SQL={0}...".format(sql)
 # 				print "PGHOST=" + PGHOST
 				subprocess.call('export PGPASSWORD=\'postgres\';psql -U postgres -d postgres -c "' + sql + '"', shell=True)
+ 				print "			...Done"
 			# here a downloaded stock file has been processed
 		# here a row in cursor for stocks and types been processed
 			
