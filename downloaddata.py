@@ -31,10 +31,17 @@ def fmDownlParseFunc(csvrow):
 	print "dateFixed="+dateFixed
 	return (dateFixed, openV, high, low, close, vol, adjclose)
 
+
+def nullToZero(s):
+	if s == 'null':
+		return '0'
+	else:
+		return s
+
 def yahooDownlParseFunc(csvrow):
 	(date, openV, high, low, close, adjclose, vol) = tuple(csvrow[0:7])
 # 	return tuple(csvrow)
-	return (date,      openV, high, low, close, vol, adjclose)
+	return (date,      nullToZero(openV), nullToZero(high), nullToZero(low), nullToZero(close), nullToZero(vol), nullToZero(adjclose))
 
 def fmUrlDownlBuilderFunc(stockName, month, day, year):
 	return downlUrlDict["FM"].format(stockName, month-1, day, year, month)
