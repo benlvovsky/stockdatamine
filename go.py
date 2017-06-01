@@ -10,6 +10,13 @@ import psycopg2
 from common import *
 from downloaddata import *
 
+availableCommands = "Allowed commands:"\
+        "\n\t'attr:           for attributes optimization',"\
+        "\n\t'nu':            for nu optimization',"\
+        "\n\t'bm [cv]':       to build models',"\
+        "\n\t'pr':            for predictions,"\
+        "\n\t'downloaddata':  to download data',"\
+        "\n\t'syncaggr':      to synchronize averages for past 3 years - usually to prime DB after first download"
 
 def optimiseNuAll():
     print "optimiseNu"
@@ -334,6 +341,7 @@ def syncaggr():
             "export PGPASSWORD='postgres';psql -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
 
 def main():
+    global availableCommands
     os.environ['PGHOST'] = PGHOST # visible in this process + all children
 
     if len(sys.argv) >= 2:
@@ -354,18 +362,14 @@ def main():
             downloadInstruments()
         elif sys.argv[1] == 'syncaggr':
             syncaggr()
+        else:
+            print "There is no command '{0}'\n{1}".format(sys.argv[1], availableCommands)
 
         timeEnd = datetime.now()
         print "Done, it took {0}".format(timeEnd - timeStart)
 
     else:
-        print "Allowed commands:"\
-        "\n\t'attr:           for attributes optimization',"\
-        "\n\t'nu':            for nu optimization',"\
-        "\n\t'bm [cv]':       to build models',"\
-        "\n\t'pr':            for predictions,"\
-        "\n\t'downloaddata':  to download data',"\
-        "\n\t'syncaggr':      to synchronize averages for past 3 years - usually to prime DB after first download"
-
+        print availableCommands
+        
 if __name__ == "__main__":
     main()

@@ -10,7 +10,7 @@ svmNuDefault=0.556015
 offset=50
 limit=480
 cv=10
-dataminestocksViewName="dataminestocks_py"
+dataminestocksViewName="v2.dataminestocks_py"
 startNu=0.00000001
 initialStepNu=0.1
 

@@ -72,7 +72,7 @@ downlUrlBuilder = {"YAHOO": yahooDownlUrlBuilderFunc, "FM": fmUrlDownlBuilderFun
 
 def downloadInstruments():
 	print "downloadInstruments..."
-	query="select instrument, type from downloadinstruments order by instrument"
+	query="select instrument, type from v2.downloadinstruments order by instrument"
 	conn = getdbcon()
 	cur = conn.cursor()
 	curDate = conn.cursor()
@@ -129,7 +129,8 @@ def downloadInstruments():
 		# here a row in cursor for stocks and types been processed
 			
 	# here is done all stocks
-	print "Synchronising aggregations..."
-	curSync = conn.cursor()
-	curSync.execute("select sync_aggr((now() - interval '3 months')::date)")
-	print "Synchronised " + str(curSync.fetchone()[0]) + " rows"
+	# V2: Stop doing sync as moving to a different processing work flow in V2
+# 	print "Synchronising aggregations..."
+# 	curSync = conn.cursor()
+# 	curSync.execute("select sync_aggr((now() - interval '3 months')::date)")
+# 	print "Synchronised " + str(curSync.fetchone()[0]) + " rows"
