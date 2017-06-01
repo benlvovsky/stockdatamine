@@ -11,7 +11,7 @@ import os
 
 os.environ['PGHOST'] = '127.0.0.1' # visible in this process + all children
 
-query = "select * from v2.datamining_aggr_view where instrument = '^AORD' order by date desc limit 10000;"
+query = "select * from v2.datamining_aggr_view where instrument = '^AORD'  and date < (now() - '5 weeks'::interval) order by date desc limit 500;"
 conn = cm.getdbcon()
 cur = conn.cursor()
 cur.execute(query)
@@ -28,8 +28,7 @@ numpyRecords = np.array(records)
 # X = iris.data[:, :2]  # we only take the first two features. We could
 #                       # avoid this ugly slicing by using a two-dim dataset
 # y = iris.target
-X = numpyRecords[30:, 2:]
-predict = numpyRecords[:, 2:]
+X = numpyRecords[:, 2:]
 # print X
 # print '----------------------------------'
 X = X[:, 0:-1:]
@@ -87,4 +86,4 @@ for i, clf in enumerate((svc, rbf_svc, poly_svc)):
 svcLinearPredict = svc.predict(X)
 svcRbfPredict = rbf_svc.predict(X)
 print 'SVC with linear kernel equals to rbf kernel = {0}'.format(np.array_equal(svcLinearPredict, svcRbfPredict))
-print 'The difference between linear and rbf kernel predictions: {0}'.format(svcLinearPredict - svcRbfPredict)
+print 'The difference between linear and rbf kernel predictions: \n{0}'.format(svcLinearPredict - svcRbfPredict)
