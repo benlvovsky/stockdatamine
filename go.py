@@ -4,8 +4,8 @@ from datetime import datetime
 from datetime import timedelta
 import subprocess
 import sys
-
-import psycopg2
+import plot
+# import psycopg2
 
 from common import *
 from downloaddata import *
@@ -16,7 +16,8 @@ availableCommands = "Allowed commands:"\
         "\n\t'bm [cv]':       to build models',"\
         "\n\t'pr':            for predictions,"\
         "\n\t'downloaddata':  to download data',"\
-        "\n\t'syncaggr':      to synchronize averages for past 3 years - usually to prime DB after first download"
+        "\n\t'syncaggr':      to synchronize averages for past 3 years - usually to prime DB after first download,"\
+        "\n\t'v2':            v2 functions"
 
 def optimiseNuAll():
     print "optimiseNu"
@@ -342,7 +343,11 @@ def syncaggr():
 
 def main():
     global availableCommands
-    os.environ['PGHOST'] = PGHOST # visible in this process + all children
+
+    if os.environ.get('PGHOST') is None:
+        os.environ['PGHOST'] = PGHOST # visible in this process + all children
+
+    print 'PGHOST={0}'.format(os.environ.get('PGHOST'))
 
     if len(sys.argv) >= 2:
         timeStart = datetime.now()
@@ -362,6 +367,8 @@ def main():
             downloadInstruments()
         elif sys.argv[1] == 'syncaggr':
             syncaggr()
+        elif sys.argv[1] == 'v2':
+            plot.v2analysis()
         else:
             print "There is no command '{0}'\n{1}".format(sys.argv[1], availableCommands)
 

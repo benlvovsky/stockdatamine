@@ -17,7 +17,6 @@ initialStepNu=0.1
 LSLIB = "libsvm-3.21"
 # LSLIB = "libsvm-3.17-GPU_x64-linux-v1.2"
 
-
 #dbnameConst="dataminestocks1"
 dbnameConst="postgres"
 

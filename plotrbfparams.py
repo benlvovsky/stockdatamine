@@ -88,8 +88,8 @@ class MidpointNormalize(Normalize):
         Normalize.__init__(self, vmin, vmax, clip)
 
     def __call__(self, value, clip=None):
-        x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
-        return np.ma.masked_array(np.interp(value, x, y))
+        x, y_allPredictions = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
+        return np.ma.masked_array(np.interp(value, x, y_allPredictions))
 
 ##############################################################################
 # Load and prepare data set
@@ -97,18 +97,18 @@ class MidpointNormalize(Normalize):
 # dataset for grid search
 
 iris = load_iris()
-X = iris.data
-y = iris.target
-print 'X=\n{0}'.format(X)
-print 'y=\n{0}'.format(y)
+X_allDataSet = iris.data
+y_allPredictions = iris.target
+print 'X_allDataSet=\n{0}'.format(X_allDataSet)
+print 'y_allPredictions=\n{0}'.format(y_allPredictions)
 
 # Dataset for decision function visualization: we only keep the first two
-# features in X and sub-sample the dataset to keep only 2 classes and
+# features in X_allDataSet and sub-sample the dataset to keep only 2 classes and
 # make it a binary classification problem.
 
-X_2d = X[:, :2]
-X_2d = X_2d[y > 0]
-y_2d = y[y > 0]
+X_2d = X_allDataSet[:, :2]
+X_2d = X_2d[y_allPredictions > 0]
+y_2d = y_allPredictions[y_allPredictions > 0]
 y_2d -= 1
 
 # It is usually a good idea to scale the data for SVM training.
@@ -117,7 +117,7 @@ y_2d -= 1
 # just applying it on the test set.
 
 scaler = StandardScaler()
-X = scaler.fit_transform(X)
+X_allDataSet = scaler.fit_transform(X_allDataSet)
 X_2d = scaler.fit_transform(X_2d)
 
 ##############################################################################
@@ -132,7 +132,7 @@ gamma_range = np.logspace(-9, 3, 13)
 param_grid = dict(gamma=gamma_range, C=C_range)
 cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
 grid = GridSearchCV(SVC(), param_grid=param_grid, cv=cv)
-grid.fit(X, y)
+grid.fit(X_allDataSet, y_allPredictions)
 
 print("The best parameters are %s with a score of %0.2f"
       % (grid.best_params_, grid.best_score_))
