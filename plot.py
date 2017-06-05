@@ -1,10 +1,14 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn import svm, metrics #, datasets
+#import matplotlib.pyplot as plt
+from sklearn import svm, feature_selection #, metrics, datasets
 import common as cm
 import os
 import time
 from sklearn.model_selection import cross_val_score, train_test_split, ShuffleSplit, StratifiedShuffleSplit, GridSearchCV
+import pickle
+import psycopg2
+import StringIO
+
 # import some data to play with
 # iris = datasets.load_iris()
 # print type(iris.target)
@@ -26,26 +30,17 @@ def gridSearch(clf, X, y):
     
     print 'grid.best_params_ keys=value:'
     for key in grid.best_params_:
-      print '      {0}={1}'.format(key, grid.best_params_[key])
+        print '      {0}={1}'.format(key, grid.best_params_[key])
 
-      # Now we need to fit a classifier for all parameters in the 2d version
-    # (we use a smaller set of parameters here because it takes a while to train)
-#     C_2d_range = [1e-2, 1, 1e2]
-#     gamma_2d_range = [1e-1, 1, 1e1]
-#     classifiers = []
-#     for C in C_2d_range:
-#         for gamma in gamma_2d_range:
-#             clf = svm.SVC(C=C, gamma=gamma)
-#             clf.fit(X_2d, y_2d)
-#             classifiers.append((C, gamma, clf))
     return grid.best_params_
 
-def v2analysis():
+def v2analysis(symbol = '^AORD'):
     if os.environ.get('PGHOST') is None:
         os.environ['PGHOST'] = '127.0.0.1' # visible in this process + all children
         print 'PGHOST was None => set PGHOST to {0}'.format(os.environ['PGHOST'])
 
-    query = "select * from v2.datamining_aggr_view where instrument = '^AORD' and date < (now() - '6 weeks'::interval) order by date desc limit 2500"
+    query = ("select * from v2.datamining_aggr_view where instrument = \'{0}\'"
+             " and date < (now() - '6 weeks'::interval) order by date desc limit 2500").format(symbol)
     conn = cm.getdbcon()
     cur = conn.cursor()
     
@@ -145,3 +140,125 @@ def v2analysis():
     # svcRbfPredict = rbf_svc.predict(X_allDataSet)
     # print 'SVC with linear kernel equals to rbf kernel = {0}'.format(np.array_equal(svcLinearPredict, svcRbfPredict))
     # print 'The difference between linear and rbf kernel predictions: \n{0}'.format(svcLinearPredict - svcRbfPredict)
+
+def gammaCostCalc(symbol):
+    if os.environ.get('PGHOST') is None:
+        os.environ['PGHOST'] = '127.0.0.1' # visible in this process + all children
+        print 'PGHOST was None => set PGHOST to {0}'.format(os.environ['PGHOST'])
+
+    query = ("select * from v2.datamining_aggr_view where instrument = \'{0}\'"
+             " and date < (now() - '7 weeks'::interval) order by date desc limit 2500").format(symbol)
+    conn = cm.getdbcon()
+    cur = conn.cursor()
+    
+    start = time.time()
+    print 'Start SQL query...'
+    cur.execute(query)
+    print '                  ...done in {0} seconds'.format(time.time() - start)
+    
+    start = time.time()
+    records = cur.fetchall()
+    
+    numpyRecords = np.array(records)
+    X_allDataSet = numpyRecords[:, 2:]
+    X_allDataSet = X_allDataSet[:, 0:-1:]
+    
+    yRaw = numpyRecords[:, len(numpyRecords[0]) - 1:]
+    
+    yArr = []
+    
+    for line in yRaw:
+        if line[0] > 1.02:
+            yArr.append(1)
+        elif line[0] < 1.02:
+            yArr.append(2)
+        else:
+            yArr.append(0)
+    
+    start = time.time()
+    y_allPredictions = np.array(yArr)
+    
+    X_train, X_test, y_train, y_test = train_test_split(X_allDataSet, y_allPredictions, test_size=0.3, random_state=0)
+    decision_function_shape='ovr'
+    clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
+
+    # calculate best parameters to calculate on some of the data set
+    bestParams = gridSearch(clf, X_allDataSet[:1000, :], y_allPredictions[:1000])
+#     bestParams = gridSearch(clf, X_allDataSet, y_allPredictions)
+    query = ("UPDATE v2.instrumentsprops SET bestcost={0}, bestgamma={1} WHERE symbol = '{2}';"
+             .format(bestParams['C'], bestParams['gamma'], symbol))
+    cur.execute(query)
+    conn.commit()               # commit separately to ensure this is in as the next operation might fail 
+
+    clfTrained = svm.SVC(kernel='rbf', gamma=bestParams['gamma'], C=bestParams['C'], \
+                         decision_function_shape=decision_function_shape).fit(X_train, y_train)
+    binDump = pickle.dumps(clfTrained)
+    #    use clf = pickle.load(xxx)
+    cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s where symbol=%s", (psycopg2.Binary(binDump), symbol))
+    conn.commit()
+    print '    stored in DB'
+    
+    cur.execute("SELECT (classifierdump) FROM v2.instrumentsprops where symbol=%s;", (symbol,))
+    readClfDump = cur.fetchone()[0];
+    resultClf = StringIO.StringIO(readClfDump)
+    print 'Read back classifier bin dump length = {0}'.format(len(readClfDump))
+    cur.close();
+
+    # reuse loaded classifier
+    clfLoaded = pickle.load(resultClf)
+    
+    print 'test dataset score={0}'.format(clfLoaded.score(X_test, y_test))
+    
+    model = feature_selection.SelectFromModel(clfLoaded, prefit=True)
+    X_new = model.transform(X_train)
+    print "X_new.shape={0}, get_params={1}".format(X_new.shape, model.get_params(True))
+
+
+def optimiseFeautures(symbol):
+    query = ("select * from v2.datamining_aggr_view where instrument = \'{0}\'"
+             " and date < (now() - '7 weeks'::interval) order by date desc limit 2500").format(symbol)
+    conn = cm.getdbcon()
+    cur = conn.cursor()
+    
+    start = time.time()
+    print 'Start SQL query...'
+    cur.execute(query)
+    print '                  ...done in {0} seconds'.format(time.time() - start)
+    
+    start = time.time()
+    records = cur.fetchall()
+    
+    numpyRecords = np.array(records)
+    X_allDataSet = numpyRecords[:, 2:]
+    X_allDataSet = X_allDataSet[:, 0:-1:]
+    
+    yRaw = numpyRecords[:, len(numpyRecords[0]) - 1:]
+    
+    yArr = []
+    
+    for line in yRaw:
+        if line[0] > 1.02:
+            yArr.append(1)
+        elif line[0] < 1.02:
+            yArr.append(2)
+        else:
+            yArr.append(0)
+    
+    start = time.time()
+    y_allPredictions = np.array(yArr)
+    
+    X_train, X_test, y_train, y_test = train_test_split(X_allDataSet, y_allPredictions, test_size=0.3, random_state=0)
+    decision_function_shape='ovr'
+    clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
+
+    cur.execute("SELECT (classifierdump) FROM v2.instrumentsprops where symbol=%s;", (symbol,))
+    readClfDump = cur.fetchone()[0];
+    clfLoaded = pickle.loads(readClfDump)
+    
+    print 'test dataset score={0}'.format(clfLoaded.score(X_test, y_test))
+    
+    clfFit = clfLoaded.fit(X_train, y_train)
+    model = feature_selection.SelectFromModel(clfFit, prefit=True)
+    X_new = model.transform(X_train)
+    print "X_new.shape={0}, get_params={1}".format(X_new.shape, model.get_params(True))
+    cur.close();

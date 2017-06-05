@@ -11,13 +11,15 @@ from common import *
 from downloaddata import *
 
 availableCommands = "Allowed commands:"\
-        "\n\t'attr:           for attributes optimization',"\
-        "\n\t'nu':            for nu optimization',"\
-        "\n\t'bm [cv]':       to build models',"\
-        "\n\t'pr':            for predictions,"\
-        "\n\t'downloaddata':  to download data',"\
-        "\n\t'syncaggr':      to synchronize averages for past 3 years - usually to prime DB after first download,"\
-        "\n\t'v2':            v2 functions"
+        "\n\t'attr':                    for attributes optimization,"\
+        "\n\t'nu':                      for nu optimization,"\
+        "\n\t'bm [cv]':                 to build models,"\
+        "\n\t'pr':                      for predictions,"\
+        "\n\t'downloaddata':            to download data,"\
+        "\n\t'syncaggr':                to synchronize averages for past 3 years"\
+        "\n\t                            - usually to prime DB after first download,"\
+        "\n\t'v2' <symbol>:             v2 functions",\
+        "\n\t'v2GammaCost <symbol>':    calculate Gamma and Cost and save to DB"
 
 def optimiseNuAll():
     print "optimiseNu"
@@ -341,6 +343,14 @@ def syncaggr():
     extracolsdata = subprocess.check_output(
             "export PGPASSWORD='postgres';psql -U postgres -d postgres -c \"{0}\"".format(sql), shell=True)
 
+def getDefaultArg(argNum, dflt):
+    if len(sys.argv) < argNum + 1:
+        par = dflt
+        print 'As argument number {0} was not supplied the default "{1}" is used'.format(argNum, dflt)
+    else:
+        par = sys.argv[argNum]
+    return par;
+
 def main():
     global availableCommands
 
@@ -368,7 +378,11 @@ def main():
         elif sys.argv[1] == 'syncaggr':
             syncaggr()
         elif sys.argv[1] == 'v2':
-            plot.v2analysis()
+            plot.v2analysis(getDefaultArg(2, '^AORD'))
+        elif sys.argv[1] == 'v2GammaCost':
+            plot.gammaCostCalc(getDefaultArg(2, '^AORD'))
+        elif sys.argv[1] == 'v2Features':
+            plot.optimiseFeautures(getDefaultArg(2, '^AORD'))
         else:
             print "There is no command '{0}'\n{1}".format(sys.argv[1], availableCommands)
 
