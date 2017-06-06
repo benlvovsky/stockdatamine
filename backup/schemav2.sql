@@ -5,6 +5,8 @@
 -- Dumped from database version 9.6.3
 -- Dumped by pg_dump version 9.6.2
 
+-- Started on 2017-06-06 16:55:44 AEST
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -15,6 +17,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- TOC entry 8 (class 2615 OID 1093208)
 -- Name: v2; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
@@ -24,6 +27,8 @@ CREATE SCHEMA v2;
 ALTER SCHEMA v2 OWNER TO postgres;
 
 --
+-- TOC entry 2223 (class 0 OID 0)
+-- Dependencies: 8
 -- Name: SCHEMA v2; Type: COMMENT; Schema: -; Owner: postgres
 --
 
@@ -33,6 +38,7 @@ COMMENT ON SCHEMA v2 IS 'Version 2 approach';
 SET search_path = v2, pg_catalog;
 
 --
+-- TOC entry 239 (class 1255 OID 1095820)
 -- Name: chngdiv(text, date, text); Type: FUNCTION; Schema: v2; Owner: postgres
 --
 
@@ -74,6 +80,7 @@ $$;
 ALTER FUNCTION v2.chngdiv(stockname text, dt date, intr text) OWNER TO postgres;
 
 --
+-- TOC entry 238 (class 1255 OID 1095900)
 -- Name: chngdivfuture(text, date, text); Type: FUNCTION; Schema: v2; Owner: postgres
 --
 
@@ -120,11 +127,12 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- TOC entry 202 (class 1259 OID 1093225)
 -- Name: instrumentsprops; Type: TABLE; Schema: v2; Owner: postgres
 --
 
 CREATE TABLE instrumentsprops (
-    stockname text NOT NULL,
+    symbol text NOT NULL,
     correlation double precision,
     corrdate date,
     prediction double precision,
@@ -133,17 +141,20 @@ CREATE TABLE instrumentsprops (
     bestcorrelation double precision,
     excludedattributes text,
     active boolean DEFAULT false NOT NULL,
-    bestcost text,
-    bestnu text,
     topredict boolean DEFAULT false NOT NULL,
     optimiseattr boolean DEFAULT false NOT NULL,
-    error double precision
+    error double precision,
+    bestgamma double precision,
+    bestcost double precision,
+    bestnu double precision,
+    classifierdump bytea
 );
 
 
 ALTER TABLE instrumentsprops OWNER TO postgres;
 
 --
+-- TOC entry 204 (class 1259 OID 1095901)
 -- Name: datamining_aggr_view; Type: VIEW; Schema: v2; Owner: postgres
 --
 
@@ -299,7 +310,7 @@ CREATE VIEW datamining_aggr_view AS
     chngdiv('UHN'::text, s.date, '1 month'::text) AS cmduhnmonthly,
     chngdivfuture(s.stock, s.date, '1 month'::text) AS prediction
    FROM (public.stocks s
-     JOIN instrumentsprops d ON ((d.stockname = s.stock)))
+     JOIN instrumentsprops d ON ((d.symbol = s.stock)))
   WHERE (d.active = true)
   ORDER BY s.stock, s.date DESC;
 
@@ -307,6 +318,7 @@ CREATE VIEW datamining_aggr_view AS
 ALTER TABLE datamining_aggr_view OWNER TO postgres;
 
 --
+-- TOC entry 203 (class 1259 OID 1095843)
 -- Name: downloadinstruments; Type: TABLE; Schema: v2; Owner: postgres
 --
 
@@ -319,6 +331,7 @@ CREATE TABLE downloadinstruments (
 ALTER TABLE downloadinstruments OWNER TO postgres;
 
 --
+-- TOC entry 2096 (class 2606 OID 1095850)
 -- Name: downloadinstruments downloadinstruments_pkey; Type: CONSTRAINT; Schema: v2; Owner: postgres
 --
 
@@ -327,12 +340,15 @@ ALTER TABLE ONLY downloadinstruments
 
 
 --
+-- TOC entry 2094 (class 2606 OID 1093235)
 -- Name: instrumentsprops pk_dataminestocks_py; Type: CONSTRAINT; Schema: v2; Owner: postgres
 --
 
 ALTER TABLE ONLY instrumentsprops
-    ADD CONSTRAINT pk_dataminestocks_py PRIMARY KEY (stockname);
+    ADD CONSTRAINT pk_dataminestocks_py PRIMARY KEY (symbol);
 
+
+-- Completed on 2017-06-06 16:55:46 AEST
 
 --
 -- PostgreSQL database dump complete
