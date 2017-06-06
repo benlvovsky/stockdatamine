@@ -1,25 +1,22 @@
 #!/usr/bin/env python
 
-from datetime import datetime
-from datetime import timedelta
-import subprocess
-import sys
 import plot
-# import psycopg2
 
 from common import *
 from downloaddata import *
 
-availableCommands = "Allowed commands:"\
-        "\n\t'attr':                    for attributes optimization,"\
-        "\n\t'nu':                      for nu optimization,"\
-        "\n\t'bm [cv]':                 to build models,"\
-        "\n\t'pr':                      for predictions,"\
-        "\n\t'downloaddata':            to download data,"\
-        "\n\t'syncaggr':                to synchronize averages for past 3 years"\
-        "\n\t                            - usually to prime DB after first download,"\
-        "\n\t'v2' <symbol>:             v2 functions",\
-        "\n\t'v2GammaCost <symbol>':    calculate Gamma and Cost and save to DB"
+availableCommands = """Allowed commands:
+   'attr':                    for attributes optimization,
+   'nu':                      for nu optimization,
+   'bm [cv]':                 to build models,
+   'pr':                      for predictions,
+   'downloaddata':            to download data,
+   'syncaggr':                to synchronize averages for past 3 years
+                               - usually to prime DB after first download,
+   'v2' <symbol>:             v2 functions,
+   'v2GammaCost <symbol>':    calculate Gamma and Cost and save to DB
+   'v2Features <symbol>':     exclude noisy features and save to DB
+   """
 
 def optimiseNuAll():
     print "optimiseNu"
@@ -346,7 +343,7 @@ def syncaggr():
 def getDefaultArg(argNum, dflt):
     if len(sys.argv) < argNum + 1:
         par = dflt
-        print 'As argument number {0} was not supplied the default "{1}" is used'.format(argNum, dflt)
+        print 'As argument number {0} was not supplied the default \'{1}\' is used'.format(argNum, dflt)
     else:
         par = sys.argv[argNum]
     return par;
