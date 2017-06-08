@@ -5,7 +5,7 @@
 -- Dumped from database version 9.6.3
 -- Dumped by pg_dump version 9.6.2
 
--- Started on 2017-06-06 16:55:44 AEST
+-- Started on 2017-06-08 13:58:49 AEST
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -348,7 +348,7 @@ ALTER TABLE ONLY instrumentsprops
     ADD CONSTRAINT pk_dataminestocks_py PRIMARY KEY (symbol);
 
 
--- Completed on 2017-06-06 16:55:46 AEST
+-- Completed on 2017-06-08 13:58:51 AEST
 
 --
 -- PostgreSQL database dump complete
