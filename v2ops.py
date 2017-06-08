@@ -1,14 +1,10 @@
 import numpy as np
-#import matplotlib.pyplot as plt
-from sklearn import svm, feature_selection #, metrics, datasets
+from sklearn import svm #, feature_selection #, metrics, datasets
 import common as cm
-import os
 import time
 from sklearn.model_selection import cross_val_score, train_test_split, ShuffleSplit, StratifiedShuffleSplit, GridSearchCV
 import pickle
 import psycopg2
-import StringIO
-import sys
 
 def gridSearch(clf, X, y):
     start = time.time()
@@ -69,10 +65,8 @@ def v2analysis(symbol = '^AORD'):
     
     print '                               ...done in {0} seconds'.format(time.time() - start)
     
-def gammaCostCalc(symbol):
-    (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol)
-    
-    X_train, X_test, y_train, y_test = train_test_split(X_allDataSet, y_allPredictions, test_size=0.3, random_state=0)
+def gammaCostCalc(symbol, bestFeautures = False):
+    (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol, bestFeautures)    
     decision_function_shape='ovr'
     clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
     # calculate best parameters to calculate on some of the data set
@@ -88,19 +82,28 @@ def gammaCostCalc(symbol):
     conn.commit()               # commit separately to ensure this is in as the next operation might fail 
 
     clfTrained = svm.SVC(kernel='rbf', gamma=bestParams['gamma'], C=bestParams['C'], \
-                         decision_function_shape=decision_function_shape).fit(X_train, y_train)
+                         decision_function_shape=decision_function_shape).fit(X_allDataSet, y_allPredictions)
     binDump = pickle.dumps(clfTrained)
-    #    use clf = pickle.load(xxx)
     cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s where symbol=%s", (psycopg2.Binary(binDump), symbol))
     conn.commit()
     print '    stored in DB'
     cur.close();
 
-def loadDataSet(symbol):
-    query = ("select * from v2.datamining_aggr_view where instrument = \'{0}\'"
-             " and date < (now() - '7 weeks'::interval) order by date desc limit 2500").format(symbol)
+def loadDataSet(symbol, isUseBestFeautures = False):
     conn = cm.getdbcon()
     cur = conn.cursor()
+    if isUseBestFeautures:
+        cur.execute("select bestattributes from v2.instrumentsprops where symbol = '{0}'".format(symbol))
+        bestFeatures = cur.fetchone()
+        print 'type(bestFeatures)={0}, bestFeatures: {1}'.format(type(bestFeatures), bestFeatures[0])
+        query = ("select date,instrument,{0},prediction from v2.datamining_aggr_view where instrument = \'{1}\' order by date desc offset 50 limit 2500")\
+            .format(bestFeatures[0], symbol)
+    else:
+#     query = ("select * from v2.datamining_aggr_view where instrument = \'{0}\'"
+#              " and date < (now() - '7 weeks'::interval) order by date desc limit 2500").format(symbol)
+        print 'Using all available features'
+        query = ("select * from v2.datamining_aggr_view where instrument = \'{0}\' order by date desc offset 50 limit 2500")\
+            .format(symbol)
 
     start = time.time()
     print 'Start SQL query...'
@@ -181,3 +184,40 @@ def optimiseFeautures(symbol):
     conn.commit()               # commit separately to ensure this is in as the next operation might fail 
     cur.close();
     print 'optimiseFeautures done. bestMeanScore={0}'.format(bestMeanScore)
+
+def testPerformance(symbol):
+    (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol, True)
+    print "arr lengths: colNames={0}, X_allDataSet={1}".format(len(colNames), len(X_allDataSet[0]))
+    conn = cm.getdbcon()
+    cur = conn.cursor()
+    cur.execute("SELECT (classifierdump) FROM v2.instrumentsprops where symbol=%s;", (symbol,))
+    readClfDump = cur.fetchone()[0];
+    clfLoaded = pickle.loads(readClfDump)
+    meanScore = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions)
+    print 'meanScore={0}'.format(meanScore)
+
+
+def loadLastRecord(symbol):
+    conn = cm.getdbcon()
+    cur = conn.cursor()
+    cur.execute("select bestattributes from v2.instrumentsprops where symbol = '{0}'".format(symbol))
+    bestFeatures = cur.fetchone()
+    query = ("select date,instrument,{0},prediction from v2.datamining_aggr_view where instrument = \'{1}\'"
+             " order by date desc limit 1").format(bestFeatures[0], symbol)
+    cur.execute(query)
+    records = cur.fetchall()
+    numpyRecords = np.array(records)
+    X_allDataSet = numpyRecords[:, 2:-1]
+    return X_allDataSet
+
+def predict(symbolCSV):
+    symbolList = symbolCSV.split(",")
+    conn = cm.getdbcon()
+    cur = conn.cursor()
+    for symbol in symbolList:
+        X_allDataSet = loadLastRecord(symbol)
+        cur.execute("SELECT (classifierdump) FROM v2.instrumentsprops where symbol=%s;", (symbol,))
+        readClfDump = cur.fetchone()[0];
+        clfLoaded = pickle.loads(readClfDump)
+        prediction = clfLoaded.predict(X_allDataSet)
+        print "{0},{1}".format(symbol, prediction[0])

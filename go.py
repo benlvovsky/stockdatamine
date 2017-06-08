@@ -1,21 +1,24 @@
 #!/usr/bin/env python
 
-import plot
+import v2ops
 
 from common import *
 from downloaddata import *
 
 availableCommands = """Allowed commands:
-   'attr':                    for attributes optimization,
-   'nu':                      for nu optimization,
-   'bm [cv]':                 to build models,
-   'pr':                      for predictions,
-   'downloaddata':            to download data,
-   'syncaggr':                to synchronize averages for past 3 years
-                               - usually to prime DB after first download,
-   'v2' <symbol>:             v2 functions,
-   'v2GammaCost <symbol>':    calculate Gamma and Cost and save to DB
-   'v2Features <symbol>':     exclude noisy features and save to DB
+   'attr':                             for attributes optimization    
+   'nu':                               for nu optimization            
+   'bm [cv]':                          to build models 
+   'pr':                               for predictions 
+   'downloaddata':                     to download data
+   'syncaggr':                         to synchronize averages for past 3 years
+                                        - usually to prime DB after first download
+   'v2' <symbol>:                      v2 functions
+   'v2GammaCost <symbol> [isBF=False]':
+                                       calculate Gamma and Cost and save to DB. 'Set isBF to 'True'
+                                            to use pre-calculated Best Features from DB
+   'v2Features <symbol>':              exclude noisy features and save to DB          
+   'v2TestPerf <symbol>':              test performance of symbol with previously calculated parameters             
    """
 
 def optimiseNuAll():
@@ -375,11 +378,15 @@ def main():
         elif sys.argv[1] == 'syncaggr':
             syncaggr()
         elif sys.argv[1] == 'v2':
-            plot.v2analysis(getDefaultArg(2, '^AORD'))
+            v2ops.v2analysis(getDefaultArg(2, '^AORD'))
         elif sys.argv[1] == 'v2GammaCost':
-            plot.gammaCostCalc(getDefaultArg(2, '^AORD'))
+            v2ops.gammaCostCalc(getDefaultArg(2, '^AORD'), getDefaultArg(3, 'False') == 'True')
         elif sys.argv[1] == 'v2Features':
-            plot.optimiseFeautures(getDefaultArg(2, '^AORD'))
+            v2ops.optimiseFeautures(getDefaultArg(2, '^AORD'))
+        elif sys.argv[1] == 'v2TestPerf':
+            v2ops.testPerformance(getDefaultArg(2, '^AORD'))
+        elif sys.argv[1] == 'v2Predict':
+            v2ops.predict(getDefaultArg(2, '^AORD'))
         else:
             print "There is no command '{0}'\n{1}".format(sys.argv[1], availableCommands)
 

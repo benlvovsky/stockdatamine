@@ -67,3 +67,83 @@ CREATE OR REPLACE VIEW v2.datamining_aggr_view AS
 
 ALTER TABLE v2.datamining_aggr_view
     OWNER TO postgres;
+
+INSERT INTO v2.downloadinstruments(instrument, type) VALUES ('^AXDJ', 'YAHOO');
+INSERT INTO v2.downloadinstruments(instrument, type) VALUES ('^AXSJ', 'YAHOO');
+INSERT INTO v2.downloadinstruments(instrument, type) VALUES ('^AXEJ', 'YAHOO');
+INSERT INTO v2.downloadinstruments(instrument, type) VALUES ('^AXFJ', 'YAHOO');
+INSERT INTO v2.downloadinstruments(instrument, type) VALUES ('^AXXJ', 'YAHOO');
+INSERT INTO v2.downloadinstruments(instrument, type) VALUES ('^AXHJ', 'YAHOO');
+INSERT INTO v2.downloadinstruments(instrument, type) VALUES ('^AXNJ', 'YAHOO');
+INSERT INTO v2.downloadinstruments(instrument, type) VALUES ('^AXIJ', 'YAHOO');
+INSERT INTO v2.downloadinstruments(instrument, type) VALUES ('^AXMJ', 'YAHOO');
+INSERT INTO v2.downloadinstruments(instrument, type) VALUES ('^AXMM', 'YAHOO');
+INSERT INTO v2.downloadinstruments(instrument, type) VALUES ('^AXJR', 'YAHOO');
+INSERT INTO v2.downloadinstruments(instrument, type) VALUES ('^AXUJ', 'YAHOO');
+
+INSERT INTO v2.instrumentsprops(symbol, active) select '^AXDJ', true where not exists (select symbol from v2.instrumentsprops where symbol='^AXDJ');
+INSERT INTO v2.instrumentsprops(symbol, active) select '^AXSJ', true where not exists (select symbol from v2.instrumentsprops where symbol='^AXSJ');
+INSERT INTO v2.instrumentsprops(symbol, active) select '^AXEJ', true where not exists (select symbol from v2.instrumentsprops where symbol='^AXEJ');
+INSERT INTO v2.instrumentsprops(symbol, active) select '^AXFJ', true where not exists (select symbol from v2.instrumentsprops where symbol='^AXFJ');
+INSERT INTO v2.instrumentsprops(symbol, active) select '^AXXJ', true where not exists (select symbol from v2.instrumentsprops where symbol='^AXXJ');
+INSERT INTO v2.instrumentsprops(symbol, active) select '^AXHJ', true where not exists (select symbol from v2.instrumentsprops where symbol='^AXHJ');
+INSERT INTO v2.instrumentsprops(symbol, active) select '^AXNJ', true where not exists (select symbol from v2.instrumentsprops where symbol='^AXNJ');
+INSERT INTO v2.instrumentsprops(symbol, active) select '^AXIJ', true where not exists (select symbol from v2.instrumentsprops where symbol='^AXIJ');
+INSERT INTO v2.instrumentsprops(symbol, active) select '^AXMJ', true where not exists (select symbol from v2.instrumentsprops where symbol='^AXMJ');
+INSERT INTO v2.instrumentsprops(symbol, active) select '^AXMM', true where not exists (select symbol from v2.instrumentsprops where symbol='^AXMM');
+INSERT INTO v2.instrumentsprops(symbol, active) select '^AXJR', true where not exists (select symbol from v2.instrumentsprops where symbol='^AXJR');
+INSERT INTO v2.instrumentsprops(symbol, active) select '^AXUJ', true where not exists (select symbol from v2.instrumentsprops where symbol='^AXUJ');
+
+./go.py v2GammaCost ^AXDJ False
+./go.py v2GammaCost ^AXSJ False
+./go.py v2GammaCost ^AXEJ False
+./go.py v2GammaCost ^AXFJ False
+./go.py v2GammaCost ^AXXJ False
+./go.py v2GammaCost ^AXHJ False
+./go.py v2GammaCost ^AXNJ False
+./go.py v2GammaCost ^AXIJ False
+./go.py v2GammaCost ^AXMJ False
+./go.py v2GammaCost ^AXMM False
+./go.py v2GammaCost ^AXJR False
+./go.py v2GammaCost ^AXUJ False
+
+./go.py v2Features ^AXDJ
+./go.py v2Features ^AXSJ
+./go.py v2Features ^AXEJ
+./go.py v2Features ^AXFJ
+./go.py v2Features ^AXXJ
+./go.py v2Features ^AXHJ
+./go.py v2Features ^AXNJ
+./go.py v2Features ^AXIJ
+./go.py v2Features ^AXMJ
+./go.py v2Features ^AXMM
+./go.py v2Features ^AXJR
+./go.py v2Features ^AXUJ
+
+./go.py v2GammaCost ^AXDJ True
+./go.py v2GammaCost ^AXSJ True
+./go.py v2GammaCost ^AXEJ True
+./go.py v2GammaCost ^AXFJ True
+./go.py v2GammaCost ^AXXJ True
+./go.py v2GammaCost ^AXHJ True
+./go.py v2GammaCost ^AXNJ True
+./go.py v2GammaCost ^AXIJ True
+./go.py v2GammaCost ^AXMJ True
+#./go.py v2GammaCost ^AXMM True
+./go.py v2GammaCost ^AXJR True
+./go.py v2GammaCost ^AXUJ True
+
+./go.py v2TestPerf ^AXDJ
+./go.py v2TestPerf ^AXSJ
+./go.py v2TestPerf ^AXEJ
+./go.py v2TestPerf ^AXFJ
+./go.py v2TestPerf ^AXXJ
+./go.py v2TestPerf ^AXHJ
+./go.py v2TestPerf ^AXNJ
+./go.py v2TestPerf ^AXIJ
+./go.py v2TestPerf ^AXMJ
+#./go.py v2TestPerf ^AXMM
+./go.py v2TestPerf ^AXJR
+./go.py v2TestPerf ^AXUJ
+
+./go.py v2Predict ^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ

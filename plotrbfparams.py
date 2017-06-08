@@ -16,20 +16,20 @@ simplicity of the decision surface. A low ``C`` makes the decision surface
 smooth, while a high ``C`` aims at classifying all training examples correctly
 by giving the model freedom to select more samples as support vectors.
 
-The first plot is a visualization of the decision function for a variety of
+The first v2ops is a visualization of the decision function for a variety of
 parameter values on a simplified classification problem involving only 2 input
 features and 2 possible target classes (binary classification). Note that this
-kind of plot is not possible to do for problems with more features or target
+kind of v2ops is not possible to do for problems with more features or target
 classes.
 
-The second plot is a heatmap of the classifier's cross-validation accuracy as a
+The second v2ops is a heatmap of the classifier's cross-validation accuracy as a
 function of ``C`` and ``gamma``. For this example we explore a relatively large
 grid for illustration purposes. In practice, a logarithmic grid from
 :math:`10^{-3}` to :math:`10^3` is usually sufficient. If the best parameters
 lie on the boundaries of the grid, it can be extended in that direction in a
 subsequent search.
 
-Note that the heat map plot has a special colorbar with a midpoint value close
+Note that the heat map v2ops has a special colorbar with a midpoint value close
 to the score values of the best performing models so as to make it easy to tell
 them appart in the blink of an eye.
 
@@ -44,7 +44,7 @@ support vector would include the whole training set. The resulting model will
 behave similarly to a linear model with a set of hyperplanes that separate the
 centers of high density of any pair of two classes.
 
-For intermediate values, we can see on the second plot that good models can
+For intermediate values, we can see on the second v2ops that good models can
 be found on a diagonal of ``C`` and ``gamma``. Smooth models (lower ``gamma``
 values) can be made more complex by selecting a larger number of support
 vectors (larger ``C`` values) hence the diagonal of good performing models.
