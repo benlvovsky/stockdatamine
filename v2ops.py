@@ -171,47 +171,48 @@ def getCrossValMeanScore(clf, dataSet, predictions):
     return scores.mean()
     #, scores.std() * 2))
 
-def optimiseFeautures(symbol):
-    (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol)
-    print "arr lengths: colNames={0}, X_allDataSet={1}".format(len(colNames), len(X_allDataSet[0]))
+def optimiseFeautures(symbolCSV):
+    symbolList = symbolCSV.split(",")
     conn = cm.getdbcon()
     cur = conn.cursor()
-    cur.execute("SELECT (classifierdump) FROM v2.instrumentsprops where symbol=%s;", (symbol,))
-    readClfDump = cur.fetchone()[0];
-    clfLoaded = pickle.loads(readClfDump)
-
-    excludedIndexes = []
-    excludedCols = []
-    goodIndexes = []
-    goodCols = []
-    bestMeanScore = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions)
-    X_reduced = np.copy(X_allDataSet)
-    for curIdx, colName in enumerate(colNames):
-        testExcludedIndexes = np.append(excludedIndexes, curIdx)
-        testX_reduced = np.delete(X_reduced, testExcludedIndexes, axis=1)
-        meanScore = getCrossValMeanScore(clfLoaded, testX_reduced, y_allPredictions)
-        if bestMeanScore < meanScore:
-            excludedIndexes.append(curIdx)
-            excludedCols.append(colName)
-            bestMeanScore = meanScore
-            print 'Excluded column {0}. bestMeanscore {1} < meanScore {2}'.format(colName, bestMeanScore, meanScore)
-        else:
-            goodCols.append(colName)
-            goodIndexes.append(curIdx)
-            print 'Column {0} is good. bestMeanScore {1} >= meanScore {2}'.format(colName, bestMeanScore, meanScore)
+    for symbol in symbolList:
+        (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol)
+        print "arr lengths: colNames={0}, X_allDataSet={1}".format(len(colNames), len(X_allDataSet[0]))
+        cur.execute("SELECT (classifierdump) FROM v2.instrumentsprops where symbol=%s;", (symbol,))
+        readClfDump = cur.fetchone()[0];
+        clfLoaded = pickle.loads(readClfDump)
     
-    goodColsStr = ','.join(goodCols)
-    excludedColsStr = ','.join(excludedCols)
+        excludedIndexes = []
+        excludedCols = []
+        goodIndexes = []
+        goodCols = []
+        bestMeanScore = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions)
+        X_reduced = np.copy(X_allDataSet)
+        for curIdx, colName in enumerate(colNames):
+            testExcludedIndexes = np.append(excludedIndexes, curIdx)
+            testX_reduced = np.delete(X_reduced, testExcludedIndexes, axis=1)
+            meanScore = getCrossValMeanScore(clfLoaded, testX_reduced, y_allPredictions)
+            if bestMeanScore < meanScore:
+                excludedIndexes.append(curIdx)
+                excludedCols.append(colName)
+                bestMeanScore = meanScore
+                print 'Excluded column {0}. bestMeanscore {1} < meanScore {2}'.format(colName, bestMeanScore, meanScore)
+            else:
+                goodCols.append(colName)
+                goodIndexes.append(curIdx)
+                print 'Column {0} is good. bestMeanScore {1} >= meanScore {2}'.format(colName, bestMeanScore, meanScore)
+        
+        goodColsStr = ','.join(goodCols)
+        excludedColsStr = ','.join(excludedCols)
+        
+        #to read back is like my_list = my_string.split(",")
     
-    #to read back is like my_list = my_string.split(",")
-
-    query = ("UPDATE v2.instrumentsprops SET bestattributes='{0}', excludedattributes='{1}', bestcorrelation={2}"
-             " WHERE symbol = '{3}';"
-             .format(goodColsStr, excludedColsStr, bestMeanScore, symbol))
-    cur.execute(query)
-    conn.commit()               # commit separately to ensure this is in as the next operation might fail 
-    cur.close();
-    print 'optimiseFeautures done. bestMeanScore={0}'.format(bestMeanScore)
+        query = ("UPDATE v2.instrumentsprops SET bestattributes='{0}', excludedattributes='{1}', bestcorrelation={2}"
+                 " WHERE symbol = '{3}';"
+                 .format(goodColsStr, excludedColsStr, bestMeanScore, symbol))
+        cur.execute(query)
+        conn.commit()               # commit separately to ensure this is in as the next operation might fail 
+        print 'optimiseFeautures done. bestMeanScore={0}'.format(bestMeanScore)
 
 def testPerformance(symbolCSV):
     symbolList = symbolCSV.split(",")
