@@ -9,11 +9,13 @@ import psycopg2
 def gridSearch(clf, X, y):
     start = time.time()
     print 'Start gridSearch...'
-    C_range = np.logspace(-2, 10, 13)
-    gamma_range = np.logspace(-9, 3, 13)
+#     C_range = np.logspace(-2, 10, 13)
+#     gamma_range = np.logspace(-9, 3, 13)
+    C_range = np.logspace(-2, 10, 20)
+    gamma_range = np.logspace(-9, 3, 20)
     param_grid = dict(gamma=gamma_range, C=C_range)
     cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
-    grid = GridSearchCV(clf, param_grid=param_grid, cv=cv)
+    grid = GridSearchCV(clf, param_grid=param_grid, cv=cv, n_jobs=-1)
     grid.fit(X, y)
     
     print '                  ...done in {0} seconds'.format(time.time() - start)
@@ -65,37 +67,63 @@ def v2analysis(symbol = '^AORD'):
     
     print '                               ...done in {0} seconds'.format(time.time() - start)
     
-def gammaCostCalc(symbol, bestFeautures = False):
-    (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol, bestFeautures)    
-    decision_function_shape='ovr'
-    clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
-    # calculate best parameters to calculate on some of the data set
-
-    bestParams = gridSearch(clf, X_allDataSet[:1000, :], y_allPredictions[:1000])
-#     bestParams = gridSearch(clf, X_allDataSet, y_allPredictions)
-    query = ("UPDATE v2.instrumentsprops SET bestcost={0}, bestgamma={1} WHERE symbol = '{2}';"
-             .format(bestParams['C'], bestParams['gamma'], symbol))
+def gammaCostCalc(symbolCSV, bestFeautures = False):
+    symbolList = symbolCSV.split(",")
     conn = cm.getdbcon()
     cur = conn.cursor()
+    for symbol in symbolList:
+        (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol, bestFeautures)    
+        decision_function_shape='ovr'
+        clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
+        # calculate best parameters to calculate on some of the data set
+    
+        bestParams = gridSearch(clf, X_allDataSet[:1000, :], y_allPredictions[:1000])
+    #     bestParams = gridSearch(clf, X_allDataSet, y_allPredictions)
+        query = ("UPDATE v2.instrumentsprops SET bestcost={0}, bestgamma={1} WHERE symbol = '{2}';"
+                 .format(bestParams['C'], bestParams['gamma'], symbol))
+    
+        cur.execute(query)
+        conn.commit()               # commit separately to ensure this is in as the next operation might fail 
+    
+#         clfTrained = svm.SVC(kernel='rbf', gamma=bestParams['gamma'], C=bestParams['C'], \
+#                              decision_function_shape=decision_function_shape).fit(X_allDataSet, y_allPredictions)
+#         binDump = pickle.dumps(clfTrained)
+#         cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s where symbol=%s", (psycopg2.Binary(binDump), symbol))
+#         conn.commit()
+        print '{0} found gamma={1} Cost={2}, saved'.format(symbol, bestParams['gamma'], bestParams['C'])
 
-    cur.execute(query)
-    conn.commit()               # commit separately to ensure this is in as the next operation might fail 
+    cur.close();
 
-    clfTrained = svm.SVC(kernel='rbf', gamma=bestParams['gamma'], C=bestParams['C'], \
-                         decision_function_shape=decision_function_shape).fit(X_allDataSet, y_allPredictions)
-    binDump = pickle.dumps(clfTrained)
-    cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s where symbol=%s", (psycopg2.Binary(binDump), symbol))
-    conn.commit()
-    print '    stored in DB'
+def fitAndSave(symbolCSV, bestFeautures = False):
+    symbolList = symbolCSV.split(",")
+    conn = cm.getdbcon()
+    cur = conn.cursor()
+    for symbol in symbolList:
+        (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol, bestFeautures)    
+        decision_function_shape='ovr'
+        query = ("select bestcost, bestgamma from v2.instrumentsprops WHERE symbol='{0}';".format(symbol))
+        cur.execute(query)
+        bestParams = cur.fetchone();
+        print 'bestParams={0}'.format(bestParams)
+
+        clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
+        clfTrained = svm.SVC(kernel='rbf', gamma=bestParams[1], C=bestParams[0], \
+                             decision_function_shape=decision_function_shape).fit(X_allDataSet, y_allPredictions)
+        binDump = pickle.dumps(clfTrained)
+        cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s where symbol=%s", (psycopg2.Binary(binDump), symbol))
+        conn.commit()
+        print '{0}: Fit classification for gamma={1} Cost={2} saved'.format(symbol, bestParams[1], bestParams[0])
+
     cur.close();
 
 def loadDataSet(symbol, isUseBestFeautures = False):
     conn = cm.getdbcon()
     cur = conn.cursor()
     if isUseBestFeautures:
+        print 'Using best features'
         cur.execute("select bestattributes from v2.instrumentsprops where symbol = '{0}'".format(symbol))
         bestFeatures = cur.fetchone()
-        print 'type(bestFeatures)={0}, bestFeatures: {1}'.format(type(bestFeatures), bestFeatures[0])
+#         print 'type(bestFeatures)={0}, bestFeatures: {1}'.format(type(bestFeatures), bestFeatures[0])
         query = ("select date,instrument,{0},prediction from v2.datamining_aggr_view where instrument = \'{1}\' order by date desc offset 50 limit 2500")\
             .format(bestFeatures[0], symbol)
     else:
@@ -128,7 +156,7 @@ def loadDataSet(symbol, isUseBestFeautures = False):
     for line in yRaw:
         if line[0] > 1.02:
             yArr.append(1)
-        elif line[0] < 1.02:
+        elif line[0] < 0.98:
             yArr.append(2)
         else:
             yArr.append(0)
@@ -185,17 +213,19 @@ def optimiseFeautures(symbol):
     cur.close();
     print 'optimiseFeautures done. bestMeanScore={0}'.format(bestMeanScore)
 
-def testPerformance(symbol):
-    (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol, True)
-    print "arr lengths: colNames={0}, X_allDataSet={1}".format(len(colNames), len(X_allDataSet[0]))
+def testPerformance(symbolCSV):
+    symbolList = symbolCSV.split(",")
     conn = cm.getdbcon()
     cur = conn.cursor()
-    cur.execute("SELECT (classifierdump) FROM v2.instrumentsprops where symbol=%s;", (symbol,))
-    readClfDump = cur.fetchone()[0];
-    clfLoaded = pickle.loads(readClfDump)
-    meanScore = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions)
-    print 'meanScore={0}'.format(meanScore)
 
+    for symbol in symbolList:
+        (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol, True)
+        print "arr lengths: colNames={0}, X_allDataSet={1}".format(len(colNames), len(X_allDataSet[0]))
+        cur.execute("SELECT (classifierdump) FROM v2.instrumentsprops where symbol=%s;", (symbol,))
+        readClfDump = cur.fetchone()[0];
+        clfLoaded = pickle.loads(readClfDump)
+        meanScore = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions)
+        print 'meanScore={0}'.format(meanScore)
 
 def loadLastRecord(symbol):
     conn = cm.getdbcon()

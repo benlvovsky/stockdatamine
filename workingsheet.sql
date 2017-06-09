@@ -146,4 +146,6 @@ INSERT INTO v2.instrumentsprops(symbol, active) select '^AXUJ', true where not e
 ./go.py v2TestPerf ^AXJR
 ./go.py v2TestPerf ^AXUJ
 
+./go.py v2FitAndSave ^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ True
+./go.py v2GammaCost ^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ True
 ./go.py v2Predict ^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ

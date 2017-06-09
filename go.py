@@ -19,6 +19,8 @@ availableCommands = """Allowed commands:
                                             to use pre-calculated Best Features from DB
    'v2Features <symbol>':              exclude noisy features and save to DB          
    'v2TestPerf <symbol>':              test performance of symbol with previously calculated parameters             
+   'v2Predict <symbolCSV>':            predict
+   'v2FitAndSave <symbolCSV>':         fit and save serialized estimator into DB
    """
 
 def optimiseNuAll():
@@ -387,6 +389,8 @@ def main():
             v2ops.testPerformance(getDefaultArg(2, '^AORD'))
         elif sys.argv[1] == 'v2Predict':
             v2ops.predict(getDefaultArg(2, '^AORD'))
+        elif sys.argv[1] == 'v2FitAndSave':
+            v2ops.fitAndSave(getDefaultArg(2, '^AORD'), getDefaultArg(3, 'True') == 'True')
         else:
             print "There is no command '{0}'\n{1}".format(sys.argv[1], availableCommands)
 
