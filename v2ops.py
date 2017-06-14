@@ -5,14 +5,15 @@ import time
 from sklearn.model_selection import cross_val_score, train_test_split, ShuffleSplit, StratifiedShuffleSplit, GridSearchCV
 import pickle
 import psycopg2
+from sklearn.preprocessing import StandardScaler
 
 def gridSearch(clf, X, y):
     start = time.time()
     print 'Start gridSearch...'
-#     C_range = np.logspace(-2, 10, 13)
-#     gamma_range = np.logspace(-9, 3, 13)
-    C_range = np.logspace(-2, 10, 20)
-    gamma_range = np.logspace(-9, 3, 20)
+    C_range = np.logspace(-2, 10, 13)
+    gamma_range = np.logspace(-9, 3, 13)
+#     C_range = np.logspace(-2, 10, 20)
+#     gamma_range = np.logspace(-9, 3, 20)
     param_grid = dict(gamma=gamma_range, C=C_range)
     cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
     grid = GridSearchCV(clf, param_grid=param_grid, cv=cv, n_jobs=-1)
@@ -77,7 +78,7 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
         clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
         # calculate best parameters to calculate on some of the data set
     
-        bestParams = gridSearch(clf, X_allDataSet[:1000, :], y_allPredictions[:1000])
+        bestParams = gridSearch(clf, X_allDataSet[:2000, :], y_allPredictions[:2000])
     #     bestParams = gridSearch(clf, X_allDataSet, y_allPredictions)
         query = ("UPDATE v2.instrumentsprops SET bestcost={0}, bestgamma={1} WHERE symbol = '{2}';"
                  .format(bestParams['C'], bestParams['gamma'], symbol))
@@ -142,7 +143,8 @@ def loadDataSet(symbol, isUseBestFeautures = False):
     records = cur.fetchall()
     
     numpyRecords = np.array(records)
-    X_allDataSet = numpyRecords[:, 2:-1]
+#     X_allDataSet = numpyRecords[:, 2:-1]
+    X_allDataSet = StandardScaler().fit_transform(numpyRecords[:, 2:-1].astype(np.float32))
 
 #     print 'X_allDataSet: {0}'.format(X_allDataSet)
 
@@ -166,10 +168,9 @@ def loadDataSet(symbol, isUseBestFeautures = False):
     return (colNames, X_allDataSet, y_allPredictions)
 
 def getCrossValMeanScore(clf, dataSet, predictions):
-    cv = ShuffleSplit(n_splits=5, test_size=0.3, random_state=0)
+    cv = ShuffleSplit(n_splits=5, test_size=0.1, random_state=0)
     scores = cross_val_score(clf, dataSet, predictions, cv=cv)
-    return scores.mean()
-    #, scores.std() * 2))
+    return (scores.mean(), scores.std())
 
 def optimiseFeautures(symbolCSV):
     symbolList = symbolCSV.split(",")
@@ -177,7 +178,7 @@ def optimiseFeautures(symbolCSV):
     cur = conn.cursor()
     for symbol in symbolList:
         (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol)
-        print "arr lengths: colNames={0}, X_allDataSet={1}".format(len(colNames), len(X_allDataSet[0]))
+        print "{0}: colNames length={1}".format(symbol, len(colNames))
         cur.execute("SELECT (classifierdump) FROM v2.instrumentsprops where symbol=%s;", (symbol,))
         readClfDump = cur.fetchone()[0];
         clfLoaded = pickle.loads(readClfDump)
@@ -186,12 +187,12 @@ def optimiseFeautures(symbolCSV):
         excludedCols = []
         goodIndexes = []
         goodCols = []
-        bestMeanScore = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions)
+        (bestMeanScore, std) = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions)
         X_reduced = np.copy(X_allDataSet)
         for curIdx, colName in enumerate(colNames):
             testExcludedIndexes = np.append(excludedIndexes, curIdx)
             testX_reduced = np.delete(X_reduced, testExcludedIndexes, axis=1)
-            meanScore = getCrossValMeanScore(clfLoaded, testX_reduced, y_allPredictions)
+            (meanScore, std) = getCrossValMeanScore(clfLoaded, testX_reduced, y_allPredictions)
             if bestMeanScore < meanScore:
                 excludedIndexes.append(curIdx)
                 excludedCols.append(colName)
@@ -221,34 +222,44 @@ def testPerformance(symbolCSV):
 
     for symbol in symbolList:
         (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol, True)
-        print "arr lengths: colNames={0}, X_allDataSet={1}".format(len(colNames), len(X_allDataSet[0]))
         cur.execute("SELECT (classifierdump) FROM v2.instrumentsprops where symbol=%s;", (symbol,))
         readClfDump = cur.fetchone()[0];
         clfLoaded = pickle.loads(readClfDump)
-        meanScore = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions)
-        print 'meanScore={0}'.format(meanScore)
+        (meanScore, std) = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions)
+        print '{0} meanScore={1}, std={2}'.format(symbol, meanScore, std)
 
-def loadLastRecord(symbol):
+def loadOneRecord(symbol, offset=0):
     conn = cm.getdbcon()
     cur = conn.cursor()
     cur.execute("select bestattributes from v2.instrumentsprops where symbol = '{0}'".format(symbol))
     bestFeatures = cur.fetchone()
     query = ("select date,instrument,{0},prediction from v2.datamining_aggr_view where instrument = \'{1}\'"
-             " order by date desc limit 1").format(bestFeatures[0], symbol)
+             " order by date desc offset {2} limit 1").format(bestFeatures[0], symbol, offset)
     cur.execute(query)
     records = cur.fetchall()
-    numpyRecords = np.array(records)
-    X_allDataSet = numpyRecords[:, 2:-1]
-    return X_allDataSet
+    numpyRecords = np.array(records, np.float64)
+    X_allDataSet = StandardScaler().fit_transform(numpyRecords[:, 2:-1].astype(np.float32))
+    return (X_allDataSet, numpyRecords[:, 0])
 
-def predict(symbolCSV):
+def predict(symbolCSV, offset=0):
     symbolList = symbolCSV.split(",")
     conn = cm.getdbcon()
     cur = conn.cursor()
     for symbol in symbolList:
-        X_allDataSet = loadLastRecord(symbol)
+        (X_allDataSet, datesList) = loadOneRecord(symbol, offset)
         cur.execute("SELECT (classifierdump) FROM v2.instrumentsprops where symbol=%s;", (symbol,))
         readClfDump = cur.fetchone()[0];
+
+        cur.execute("select \"Adj Close\" from stocks where stock=%s and date = %s", (symbol, datesList[0]))
+        stockPrice = cur.fetchone()[0];
+        cur.execute("select date, \"Adj Close\" from stocks where stock=%s and date > %s order by date desc", (symbol, datesList[0]))
+        stockDateAndPriceInAMonthList = cur.fetchall();
+#         print "stockDateAndPriceInAMonthList = {0}".format(stockDateAndPriceInAMonthList)
+        lastAvailableDateStockPrice = stockDateAndPriceInAMonthList[0][1]
+#         print "lastAvailableDateStockPrice = {0}".format(lastAvailableDateStockPrice)
+        
+#         print "[Adj close] for stock {0} for date date {1} = {2}".format(symbol, datesList[0], stockPrice)
+        
         clfLoaded = pickle.loads(readClfDump)
         prediction = clfLoaded.predict(X_allDataSet)
-        print "{0},{1}".format(symbol, prediction[0])
+        print "{0},{1},{2},{3},{4},{5}".format(datesList[0], symbol, prediction[0], stockPrice, lastAvailableDateStockPrice, lastAvailableDateStockPrice/stockPrice)

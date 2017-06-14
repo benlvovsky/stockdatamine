@@ -6,21 +6,21 @@ from common import *
 from downloaddata import *
 
 availableCommands = """Allowed commands:
-   'attr':                             for attributes optimization    
-   'nu':                               for nu optimization            
-   'bm [cv]':                          to build models 
-   'pr':                               for predictions 
-   'downloaddata':                     to download data
-   'syncaggr':                         to synchronize averages for past 3 years
-                                        - usually to prime DB after first download
-   'v2' <symbol>:                      v2 functions
-   'v2GammaCost <symbol> [isBF=False]':
-                                       calculate Gamma and Cost and save to DB. 'Set isBF to 'True'
-                                            to use pre-calculated Best Features from DB
-   'v2Features <symbol>':              exclude noisy features and save to DB          
-   'v2TestPerf <symbol>':              test performance of symbol with previously calculated parameters             
-   'v2Predict <symbolCSV>':            predict
-   'v2FitAndSave <symbolCSV>':         fit and save serialized estimator into DB
+   'attr':                                for attributes optimization                                       
+   'nu':                                  for nu optimization                                               
+   'bm [cv]':                             to build models                                                   
+   'pr':                                  for predictions                                                   
+   'downloaddata':                        to download data                                                  
+   'syncaggr':                            to synchronize averages for past 3 years                          
+                                           - usually to prime DB after first download                       
+
+   'v2' <symbol>:                         v2 functions                                                      
+   'v2GammaCost <symbol> [isBF=False]':   calculate Gamma and Cost and save to DB. 'Set isBF to 'True'      
+                                               to use pre-calculated Best Features from DB                  
+   'v2Features <symbol>':                 exclude noisy features and save to DB                             
+   'v2TestPerf <symbol>':                 test performance of symbol with previously calculated parameters
+   'v2FitAndSave <symbolCSV>':            fit and save serialized estimator into DB                         
+   'v2Predict <symbolCSV>':               predict                                                           
    """
 
 def optimiseNuAll():
@@ -338,7 +338,6 @@ def doPredictions():
 
     conn.close()
 
-
 def syncaggr():
     print "synchronizing averages for 3 years"
     sql = "select sync_aggr((now() - interval '3 years')::date)"
@@ -387,10 +386,10 @@ def main():
             v2ops.optimiseFeautures(getDefaultArg(2, '^AORD'))
         elif sys.argv[1] == 'v2TestPerf':
             v2ops.testPerformance(getDefaultArg(2, '^AORD'))
-        elif sys.argv[1] == 'v2Predict':
-            v2ops.predict(getDefaultArg(2, '^AORD'))
         elif sys.argv[1] == 'v2FitAndSave':
             v2ops.fitAndSave(getDefaultArg(2, '^AORD'), getDefaultArg(3, 'True') == 'True')
+        elif sys.argv[1] == 'v2Predict':
+            v2ops.predict(getDefaultArg(2, '^AORD'), getDefaultArg(3, '0'))
         else:
             print "There is no command '{0}'\n{1}".format(sys.argv[1], availableCommands)
 
