@@ -9,8 +9,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing.data import Normalizer
 
 def gridSearch(clf, X, y):
-    C_range = np.logspace(-2, 10, 13)
-    gamma_range = np.logspace(-9, 3, 13)
+    C_range = np.logspace(-2, 10, 20)
+    gamma_range = np.logspace(-9, 3, 20)
     param_grid = dict(gamma=gamma_range, C=C_range)
     cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
     grid = GridSearchCV(clf, param_grid=param_grid, cv=cv, n_jobs=-1)
@@ -58,7 +58,7 @@ def v2analysis(symbol = '^AORD'):
     
 def gammaCostCalc(symbolCSV, bestFeautures = False):
     symbolList = symbolCSV.split(",")
-    DATALENGTH = 1000
+    DATALENGTH = 2000
     conn = cm.getdbcon()
     cur = conn.cursor()
     for symbol in symbolList:
@@ -211,8 +211,8 @@ def loadOneRecord(symbol, offset=0):
              " order by date desc offset {2} limit 1").format(bestFeatures[0], symbol, offset)
     cur.execute(query)
     records = cur.fetchall()
-    numpyRecords = np.array(records, np.float64)
-    X_allDataSet = numpyRecords[:, 2:-1].astype(np.float32)
+    numpyRecords = np.array(records)
+    X_allDataSet = numpyRecords[:, 2:-1].astype(np.float64)
     return (X_allDataSet, numpyRecords[:, 0])
 
 def predict(symbolCSV, offset=0):
@@ -226,7 +226,7 @@ def predict(symbolCSV, offset=0):
 
         cur.execute("select \"Adj Close\" from stocks where stock=%s and date = %s", (symbol, datesList[0]))
         stockPrice = cur.fetchone()[0];
-        cur.execute("select date, \"Adj Close\" from stocks where stock=%s and date > %s order by date desc", (symbol, datesList[0]))
+        cur.execute("select date, \"Adj Close\" from stocks where stock=%s and date >= %s order by date desc", (symbol, datesList[0]))
         stockDateAndPriceInAMonthList = cur.fetchall();
 #         print "stockDateAndPriceInAMonthList = {0}".format(stockDateAndPriceInAMonthList)
         lastAvailableDateStockPrice = stockDateAndPriceInAMonthList[0][1]
@@ -236,4 +236,5 @@ def predict(symbolCSV, offset=0):
         
         clfLoaded = pickle.loads(readClfDump)
         prediction = clfLoaded.predict(X_allDataSet)
-        print "{0},{1},{2},{3},{4},{5}".format(datesList[0], symbol, prediction[0], stockPrice, lastAvailableDateStockPrice, lastAvailableDateStockPrice/stockPrice)
+        print "{0},{1},{2},{3},{4},{5}"\
+            .format(datesList[0], symbol, prediction[0], stockPrice, lastAvailableDateStockPrice, lastAvailableDateStockPrice/stockPrice)
