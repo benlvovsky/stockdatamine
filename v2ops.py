@@ -6,35 +6,24 @@ from sklearn.model_selection import cross_val_score, train_test_split, ShuffleSp
 import pickle
 import psycopg2
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing.data import Normalizer
 
 def gridSearch(clf, X, y):
-    start = time.time()
-    print 'Start gridSearch...'
     C_range = np.logspace(-2, 10, 13)
     gamma_range = np.logspace(-9, 3, 13)
-#     C_range = np.logspace(-2, 10, 20)
-#     gamma_range = np.logspace(-9, 3, 20)
     param_grid = dict(gamma=gamma_range, C=C_range)
     cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
     grid = GridSearchCV(clf, param_grid=param_grid, cv=cv, n_jobs=-1)
     grid.fit(X, y)
-    
-    print '                  ...done in {0} seconds'.format(time.time() - start)
-    print("The best parameters are %s with a score of %0.2f"
-          % (grid.best_params_, grid.best_score_))
-    
-    print 'grid.best_params_ keys=value:'
-    for key in grid.best_params_:
-        print '      {0}={1}'.format(key, grid.best_params_[key])
-
-    return grid.best_params_
+    return grid
 
 def v2analysis(symbol = '^AORD'):
     (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol)
     
     X_train, X_test, y_train, y_test = train_test_split(X_allDataSet, y_allPredictions, test_size=0.3, random_state=0)
     
-    bestParams = gridSearch(svm.SVC(kernel='rbf'), X_allDataSet[:1000, :], y_allPredictions[:1000])
+    grid = gridSearch(svm.SVC(kernel='rbf'), X_allDataSet[:1000, :], y_allPredictions[:1000])
+    bestParams = grid.best_params_
     print 'type(bestParams)={0}'.format(type(bestParams))
     
     start = time.time()
@@ -59,7 +48,6 @@ def v2analysis(symbol = '^AORD'):
         print '{0}'.format(titles[i])
         print 'Classifier: {0}'.format(clf)
         print 'test score={0}'.format(clf.score(X_test, y_test))
-    #     print 'train score={0}'.format(clf.score(X_train, y_train))
         cv = ShuffleSplit(n_splits=5, test_size=0.3, random_state=0)
         scores = cross_val_score(clf, X_allDataSet, y_allPredictions, cv=cv)
         print 'cross val scores={0}'.format(scores)
@@ -70,28 +58,22 @@ def v2analysis(symbol = '^AORD'):
     
 def gammaCostCalc(symbolCSV, bestFeautures = False):
     symbolList = symbolCSV.split(",")
+    DATALENGTH = 1000
     conn = cm.getdbcon()
     cur = conn.cursor()
     for symbol in symbolList:
         (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol, bestFeautures)    
         decision_function_shape='ovr'
         clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
-        # calculate best parameters to calculate on some of the data set
     
-        bestParams = gridSearch(clf, X_allDataSet[:2000, :], y_allPredictions[:2000])
-    #     bestParams = gridSearch(clf, X_allDataSet, y_allPredictions)
+        grid = gridSearch(clf, X_allDataSet[:DATALENGTH, :], y_allPredictions[:DATALENGTH])
+        bestParams = grid.best_params_
         query = ("UPDATE v2.instrumentsprops SET bestcost={0}, bestgamma={1} WHERE symbol = '{2}';"
                  .format(bestParams['C'], bestParams['gamma'], symbol))
     
         cur.execute(query)
         conn.commit()               # commit separately to ensure this is in as the next operation might fail 
-    
-#         clfTrained = svm.SVC(kernel='rbf', gamma=bestParams['gamma'], C=bestParams['C'], \
-#                              decision_function_shape=decision_function_shape).fit(X_allDataSet, y_allPredictions)
-#         binDump = pickle.dumps(clfTrained)
-#         cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s where symbol=%s", (psycopg2.Binary(binDump), symbol))
-#         conn.commit()
-        print '{0} found gamma={1} Cost={2}, saved'.format(symbol, bestParams['gamma'], bestParams['C'])
+        print '{0} found gamma={1} Cost={2} bestScore={3}, saved'.format(symbol, bestParams['gamma'], bestParams['C'], grid.best_score_)
 
     cur.close();
 
@@ -124,12 +106,9 @@ def loadDataSet(symbol, isUseBestFeautures = False):
         print 'Using best features'
         cur.execute("select bestattributes from v2.instrumentsprops where symbol = '{0}'".format(symbol))
         bestFeatures = cur.fetchone()
-#         print 'type(bestFeatures)={0}, bestFeatures: {1}'.format(type(bestFeatures), bestFeatures[0])
         query = ("select date,instrument,{0},prediction from v2.datamining_aggr_view where instrument = \'{1}\' order by date desc offset 50 limit 2500")\
             .format(bestFeatures[0], symbol)
     else:
-#     query = ("select * from v2.datamining_aggr_view where instrument = \'{0}\'"
-#              " and date < (now() - '7 weeks'::interval) order by date desc limit 2500").format(symbol)
         print 'Using all available features'
         query = ("select * from v2.datamining_aggr_view where instrument = \'{0}\' order by date desc offset 50 limit 2500")\
             .format(symbol)
@@ -143,14 +122,9 @@ def loadDataSet(symbol, isUseBestFeautures = False):
     records = cur.fetchall()
     
     numpyRecords = np.array(records)
-#     X_allDataSet = numpyRecords[:, 2:-1]
-    X_allDataSet = StandardScaler().fit_transform(numpyRecords[:, 2:-1].astype(np.float32))
-
-#     print 'X_allDataSet: {0}'.format(X_allDataSet)
-
+    X_allDataSet = numpyRecords[:, 2:-1].astype(np.float64)
+#     X_allDataSet = Normalizer().fit_transform(numpyRecords[:, 2:-1].astype(np.float64))
     colNames = np.array(cur.description)[2:-1, 0]
-#     print 'column names: {0}'.format(colNames)
-    
     yRaw = numpyRecords[:, len(numpyRecords[0]) - 1:]
     
     yArr = []
@@ -178,7 +152,7 @@ def optimiseFeautures(symbolCSV):
     cur = conn.cursor()
     for symbol in symbolList:
         (colNames, X_allDataSet, y_allPredictions) = loadDataSet(symbol)
-        print "{0}: colNames length={1}".format(symbol, len(colNames))
+#         print "{0}: colNames length={1}".format(symbol, len(colNames))
         cur.execute("SELECT (classifierdump) FROM v2.instrumentsprops where symbol=%s;", (symbol,))
         readClfDump = cur.fetchone()[0];
         clfLoaded = pickle.loads(readClfDump)
@@ -238,7 +212,7 @@ def loadOneRecord(symbol, offset=0):
     cur.execute(query)
     records = cur.fetchall()
     numpyRecords = np.array(records, np.float64)
-    X_allDataSet = StandardScaler().fit_transform(numpyRecords[:, 2:-1].astype(np.float32))
+    X_allDataSet = numpyRecords[:, 2:-1].astype(np.float32)
     return (X_allDataSet, numpyRecords[:, 0])
 
 def predict(symbolCSV, offset=0):
