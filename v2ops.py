@@ -8,9 +8,48 @@ import psycopg2
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing.data import Normalizer
 
+def redefineLogRange(origRange, centerValue, rangeLength = 7):
+    centerIdxArr, = np.where(origRange >= centerValue) # we will use the first index of that condition and it will be close enough 
+    centerIdx = centerIdxArr[0]
+    print "centerIdxArr={0}, centerIdx={1}, value={2}".format(centerIdxArr, centerIdx, origRange[centerIdx])
+
+    start = origRange[centerIdx]
+    end = start
+    if centerIdx > 0:
+        start = origRange[centerIdx - 1] # get previous value
+    if centerIdx < len(origRange) - 1:
+        end = origRange[centerIdx + 1] # get next value
+    print "start={0}, end={1}".format(start, end)
+    newRange = np.logspace(np.around(start, 2), np.around(end, 2), rangeLength, dtype=np.float64)
+    print "new range={0}".format(newRange)
+    return newRange
+
+def zoomInGridSearch(clf, X, y):
+    startC = -2
+    endC = 11
+    startGamma = -9
+    endGamma = 4
+    rangeLength = 4
+
+    C_range = np.logspace(startC, endC, rangeLength, dtype=np.float64)
+    gamma_range = np.logspace(startGamma, endGamma, rangeLength)
+    print "C_range={0}, gamma_range={1}".format(C_range, gamma_range)
+    for i in range(3):
+        param_grid = dict(gamma=gamma_range, C=C_range)
+        cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
+        grid = GridSearchCV(clf, param_grid=param_grid, cv=cv, n_jobs=-1)
+        grid.fit(X, y)
+        print "Step {0}: startC={1}, endC={2}, startGamma={3}, endGamma={4}, best params={5}"\
+            .format(i, startC, endC, startGamma, endGamma, grid.best_params_)
+            
+        C_range = redefineLogRange(C_range, grid.best_params_['C'], rangeLength)
+        gamma_range = redefineLogRange(gamma_range, grid.best_params_['gamma'], rangeLength)    
+
+    return grid
+
 def gridSearch(clf, X, y):
-    C_range = np.logspace(-2, 10, 20)
-    gamma_range = np.logspace(-9, 3, 20)
+    C_range = np.logspace(-3, 16, 20)
+    gamma_range = np.logspace(-10, 9, 20)
     param_grid = dict(gamma=gamma_range, C=C_range)
     cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
     grid = GridSearchCV(clf, param_grid=param_grid, cv=cv, n_jobs=-1)
@@ -67,6 +106,7 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
         clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
     
         grid = gridSearch(clf, X_allDataSet[:DATALENGTH, :], y_allPredictions[:DATALENGTH])
+#         grid = zoomInGridSearch(clf, X_allDataSet[:DATALENGTH, :], y_allPredictions[:DATALENGTH])
         bestParams = grid.best_params_
         query = ("UPDATE v2.instrumentsprops SET bestcost={0}, bestgamma={1} WHERE symbol = '{2}';"
                  .format(bestParams['C'], bestParams['gamma'], symbol))
@@ -89,7 +129,6 @@ def fitAndSave(symbolCSV, bestFeautures = False):
         bestParams = cur.fetchone();
         print 'bestParams={0}'.format(bestParams)
 
-        clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
         clfTrained = svm.SVC(kernel='rbf', gamma=bestParams[1], C=bestParams[0], \
                              decision_function_shape=decision_function_shape).fit(X_allDataSet, y_allPredictions)
         binDump = pickle.dumps(clfTrained)
@@ -125,7 +164,8 @@ def loadDataSet(symbol, isUseBestFeautures = False):
     X_allDataSet = numpyRecords[:, 2:-1].astype(np.float64)
 #     X_allDataSet = Normalizer().fit_transform(numpyRecords[:, 2:-1].astype(np.float64))
     colNames = np.array(cur.description)[2:-1, 0]
-    yRaw = numpyRecords[:, len(numpyRecords[0]) - 1:]
+#     yRaw = numpyRecords[:, len(numpyRecords[0]) - 1:]
+    yRaw = numpyRecords[:, -1:]
     
     yArr = []
     
@@ -180,8 +220,6 @@ def optimiseFeautures(symbolCSV):
         goodColsStr = ','.join(goodCols)
         excludedColsStr = ','.join(excludedCols)
         
-        #to read back is like my_list = my_string.split(",")
-    
         query = ("UPDATE v2.instrumentsprops SET bestattributes='{0}', excludedattributes='{1}', bestcorrelation={2}"
                  " WHERE symbol = '{3}';"
                  .format(goodColsStr, excludedColsStr, bestMeanScore, symbol))
@@ -219,6 +257,8 @@ def predict(symbolCSV, offset=0):
     symbolList = symbolCSV.split(",")
     conn = cm.getdbcon()
     cur = conn.cursor()
+    print "{0},{1},{2},{3},{4},{5},{6}"\
+        .format('Date From', 'symbol', 'prediction', 'orig stock Price', 'prediction For Date', 'last Available Date Stock Price', 'price Diff')
     for symbol in symbolList:
         (X_allDataSet, datesList) = loadOneRecord(symbol, offset)
         cur.execute("SELECT (classifierdump) FROM v2.instrumentsprops where symbol=%s;", (symbol,))
@@ -226,15 +266,21 @@ def predict(symbolCSV, offset=0):
 
         cur.execute("select \"Adj Close\" from stocks where stock=%s and date = %s", (symbol, datesList[0]))
         stockPrice = cur.fetchone()[0];
-        cur.execute("select date, \"Adj Close\" from stocks where stock=%s and date >= %s order by date desc", (symbol, datesList[0]))
+        
+        # we get a first one record 1 month later from the point of prediction date
+        cur.execute("select date, \"Adj Close\" from stocks where stock=%s and date >= %s + '1 month'::interval order by date asc limit 1", (symbol, datesList[0]))
         stockDateAndPriceInAMonthList = cur.fetchall();
 #         print "stockDateAndPriceInAMonthList = {0}".format(stockDateAndPriceInAMonthList)
-        lastAvailableDateStockPrice = stockDateAndPriceInAMonthList[0][1]
-#         print "lastAvailableDateStockPrice = {0}".format(lastAvailableDateStockPrice)
-        
-#         print "[Adj close] for stock {0} for date date {1} = {2}".format(symbol, datesList[0], stockPrice)
-        
+        if len(stockDateAndPriceInAMonthList) > 0:
+            lastAvailableDateStockPrice = stockDateAndPriceInAMonthList[0][1]
+            predictionForDate = stockDateAndPriceInAMonthList[0][0]
+            priceDiff = lastAvailableDateStockPrice/stockPrice
+        else:
+            lastAvailableDateStockPrice = 'price to diff not present'
+            priceDiff = 'cannot diff'
+            predictionForDate = 'not defined'
+
         clfLoaded = pickle.loads(readClfDump)
         prediction = clfLoaded.predict(X_allDataSet)
-        print "{0},{1},{2},{3},{4},{5}"\
-            .format(datesList[0], symbol, prediction[0], stockPrice, lastAvailableDateStockPrice, lastAvailableDateStockPrice/stockPrice)
+        print "{0},{1},{2},{3},{4},{5},{6}"\
+            .format(datesList[0], symbol, prediction[0], stockPrice, predictionForDate, lastAvailableDateStockPrice, priceDiff)
