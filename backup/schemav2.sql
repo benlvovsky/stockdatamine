@@ -5,7 +5,7 @@
 -- Dumped from database version 9.6.3
 -- Dumped by pg_dump version 9.6.2
 
--- Started on 2017-06-08 13:58:49 AEST
+-- Started on 2017-06-16 17:13:19 AEST
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -38,7 +38,7 @@ COMMENT ON SCHEMA v2 IS 'Version 2 approach';
 SET search_path = v2, pg_catalog;
 
 --
--- TOC entry 239 (class 1255 OID 1095820)
+-- TOC entry 238 (class 1255 OID 1095820)
 -- Name: chngdiv(text, date, text); Type: FUNCTION; Schema: v2; Owner: postgres
 --
 
@@ -80,7 +80,7 @@ $$;
 ALTER FUNCTION v2.chngdiv(stockname text, dt date, intr text) OWNER TO postgres;
 
 --
--- TOC entry 238 (class 1255 OID 1095900)
+-- TOC entry 239 (class 1255 OID 1095900)
 -- Name: chngdivfuture(text, date, text); Type: FUNCTION; Schema: v2; Owner: postgres
 --
 
@@ -105,13 +105,14 @@ DECLARE firstAvailableClose double precision;
 	select "Adj Close" into firstAvailableCloseInterval from stocks
 	  where
 	    stock = stockname and
-	    date between dt + (intr::interval / 4) and dt + intr::interval
+--	    date between dt + (intr::interval / 4) and dt + intr::interval
+		date <= dt + intr::interval
 	    order by date desc
 	  limit 1;
 
 	ret = 0;
-	if firstAvailableCloseInterval <> 0 then
-		select firstAvailableClose / firstAvailableCloseInterval into ret;
+	if firstAvailableClose <> 0 then
+		select firstAvailableCloseInterval / firstAvailableClose into ret;
 	end if;
     
 	return ret;
@@ -348,7 +349,7 @@ ALTER TABLE ONLY instrumentsprops
     ADD CONSTRAINT pk_dataminestocks_py PRIMARY KEY (symbol);
 
 
--- Completed on 2017-06-08 13:58:51 AEST
+-- Completed on 2017-06-16 17:13:23 AEST
 
 --
 -- PostgreSQL database dump complete
