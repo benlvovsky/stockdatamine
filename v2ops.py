@@ -8,10 +8,12 @@ import psycopg2
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing.data import Normalizer
 
-def redefineLogRange(origRange, centerValue, rangeLength = 7):
+DATASETLENGTH = 1000
+TESTSIZE = 0.1
+
+def redefineLogRange(origRange, centerValue, rangeLength):
     centerIdxArr, = np.where(origRange >= centerValue) # we will use the first index of that condition and it will be close enough 
     centerIdx = centerIdxArr[0]
-    print "centerIdxArr={0}, centerIdx={1}, value={2}".format(centerIdxArr, centerIdx, origRange[centerIdx])
 
     start = origRange[centerIdx]
     end = start
@@ -19,39 +21,46 @@ def redefineLogRange(origRange, centerValue, rangeLength = 7):
         start = origRange[centerIdx - 1] # get previous value
     if centerIdx < len(origRange) - 1:
         end = origRange[centerIdx + 1] # get next value
-    print "start={0}, end={1}".format(start, end)
-    newRange = np.logspace(np.around(start, 2), np.around(end, 2), rangeLength, dtype=np.float64)
-    print "new range={0}".format(newRange)
+#     print "start={0}, end={1}".format(start, end)
+#     newRange = np.linspace(np.around(start, 2), np.around(end, 2), rangeLength, dtype=np.float32)
+    newRange = np.linspace(start, end, rangeLength, dtype=np.float32)
+    print "centerIdxArr={0}, centerIdx={1}, value={2}, start={3}, end={4}\n     new range={5}".\
+        format(centerIdxArr, centerIdx, origRange[centerIdx], start, end, newRange)
+#     print "new range={0}".format(newRange)
     return newRange
 
 def zoomInGridSearch(clf, X, y):
     startC = -2
-    endC = 11
+#     endC = 10
+    endC = 13
     startGamma = -9
-    endGamma = 4
+#     endGamma = 3
+    endGamma = 6
+#     rangeLength = 13
     rangeLength = 4
 
-    C_range = np.logspace(startC, endC, rangeLength, dtype=np.float64)
-    gamma_range = np.logspace(startGamma, endGamma, rangeLength)
-    print "C_range={0}, gamma_range={1}".format(C_range, gamma_range)
+    C_range = np.logspace(startC, endC, rangeLength, dtype=np.float32)
+    gamma_range = np.logspace(startGamma, endGamma, rangeLength, dtype=np.float32)
+    print "starting C_range={0}, gamma_range={1}".format(C_range, gamma_range)
+    rangeLength = 16
     for i in range(3):
         param_grid = dict(gamma=gamma_range, C=C_range)
-        cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
+        cv = StratifiedShuffleSplit(n_splits=5, test_size=TESTSIZE, random_state=42)
         grid = GridSearchCV(clf, param_grid=param_grid, cv=cv, n_jobs=-1)
         grid.fit(X, y)
-        print "Step {0}: startC={1}, endC={2}, startGamma={3}, endGamma={4}, best params={5}"\
-            .format(i, startC, endC, startGamma, endGamma, grid.best_params_)
+        print "Step {0}: startC={1}, endC={2}, startGamma={3}, endGamma={4}, best params={5}, score={6}"\
+            .format(i, startC, endC, startGamma, endGamma, grid.best_params_, grid.best_score_)
             
         C_range = redefineLogRange(C_range, grid.best_params_['C'], rangeLength)
-        gamma_range = redefineLogRange(gamma_range, grid.best_params_['gamma'], rangeLength)    
+        gamma_range = redefineLogRange(gamma_range, grid.best_params_['gamma'], rangeLength)
 
     return grid
 
 def gridSearch(clf, X, y):
-    C_range = np.logspace(-3, 16, 20)
-    gamma_range = np.logspace(-10, 9, 20)
+    C_range = np.logspace(-3, 9, 20)
+    gamma_range = np.logspace(-10, 2, 20)
     param_grid = dict(gamma=gamma_range, C=C_range)
-    cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
+    cv = StratifiedShuffleSplit(n_splits=5, test_size=TESTSIZE, random_state=42)
     grid = GridSearchCV(clf, param_grid=param_grid, cv=cv, n_jobs=-1)
     grid.fit(X, y)
     return grid
@@ -97,7 +106,7 @@ def v2analysis(symbol = '^AORD'):
     
 def gammaCostCalc(symbolCSV, bestFeautures = False):
     symbolList = symbolCSV.split(",")
-    DATALENGTH = 2000
+#     DATALENGTH = 1000
     conn = cm.getdbcon()
     cur = conn.cursor()
     for symbol in symbolList:
@@ -105,8 +114,8 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
         decision_function_shape='ovr'
         clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
     
-        grid = gridSearch(clf, X_allDataSet[:DATALENGTH, :], y_allPredictions[:DATALENGTH])
-#         grid = zoomInGridSearch(clf, X_allDataSet[:DATALENGTH, :], y_allPredictions[:DATALENGTH])
+        grid = gridSearch(clf, X_allDataSet[:DATASETLENGTH, :], y_allPredictions[:DATASETLENGTH])
+#         grid = zoomInGridSearch(clf, X_allDataSet[:DATASETLENGTH, :], y_allPredictions[:DATASETLENGTH])
         bestParams = grid.best_params_
         query = ("UPDATE v2.instrumentsprops SET bestcost={0}, bestgamma={1} WHERE symbol = '{2}';"
                  .format(bestParams['C'], bestParams['gamma'], symbol))
@@ -145,12 +154,13 @@ def loadDataSet(symbol, isUseBestFeautures = False):
         print 'Using best features'
         cur.execute("select bestattributes from v2.instrumentsprops where symbol = '{0}'".format(symbol))
         bestFeatures = cur.fetchone()
-        query = ("select date,instrument,{0},prediction from v2.datamining_aggr_view where instrument = \'{1}\' order by date desc offset 50 limit 2500")\
-            .format(bestFeatures[0], symbol)
+        query = ("select date,instrument,{0},prediction from v2.datamining_aggr_view "\
+                 "where instrument = \'{1}\' order by date desc offset 50 limit {2}")\
+            .format(bestFeatures[0], symbol, DATASETLENGTH)
     else:
         print 'Using all available features'
-        query = ("select * from v2.datamining_aggr_view where instrument = \'{0}\' order by date desc offset 50 limit 2500")\
-            .format(symbol)
+        query = ("select * from v2.datamining_aggr_view where instrument = \'{0}\' order by date desc offset 50 limit {1}")\
+            .format(symbol, DATASETLENGTH)
 
     start = time.time()
     print 'Start SQL query...'
@@ -161,8 +171,8 @@ def loadDataSet(symbol, isUseBestFeautures = False):
     records = cur.fetchall()
     
     numpyRecords = np.array(records)
-    X_allDataSet = numpyRecords[:, 2:-1].astype(np.float64)
-#     X_allDataSet = Normalizer().fit_transform(numpyRecords[:, 2:-1].astype(np.float64))
+    X_allDataSet = numpyRecords[:, 2:-1].astype(np.float32)
+#     X_allDataSet = Normalizer().fit_transform(numpyRecords[:, 2:-1].astype(np.float32))
     colNames = np.array(cur.description)[2:-1, 0]
 #     yRaw = numpyRecords[:, len(numpyRecords[0]) - 1:]
     yRaw = numpyRecords[:, -1:]
@@ -170,10 +180,10 @@ def loadDataSet(symbol, isUseBestFeautures = False):
     yArr = []
     
     for line in yRaw:
-        if line[0] > 1.02:
+        if line[0] > 1.03:
             yArr.append(1)
-        elif line[0] < 0.98:
-            yArr.append(2)
+#         elif line[0] < 0.97:
+#             yArr.append(2)
         else:
             yArr.append(0)
     
@@ -182,7 +192,7 @@ def loadDataSet(symbol, isUseBestFeautures = False):
     return (colNames, X_allDataSet, y_allPredictions)
 
 def getCrossValMeanScore(clf, dataSet, predictions):
-    cv = ShuffleSplit(n_splits=5, test_size=0.1, random_state=0)
+    cv = ShuffleSplit(n_splits=5, test_size=TESTSIZE, random_state=0)
     scores = cross_val_score(clf, dataSet, predictions, cv=cv)
     return (scores.mean(), scores.std())
 
@@ -250,7 +260,7 @@ def loadOneRecord(symbol, offset=0):
     cur.execute(query)
     records = cur.fetchall()
     numpyRecords = np.array(records)
-    X_allDataSet = numpyRecords[:, 2:-1].astype(np.float64)
+    X_allDataSet = numpyRecords[:, 2:-1].astype(np.float32)
     return (X_allDataSet, numpyRecords[:, 0])
 
 def predict(symbolCSV, offset=0):
@@ -268,8 +278,9 @@ def predict(symbolCSV, offset=0):
         stockPrice = cur.fetchone()[0];
         
         # we get a first one record 1 month later from the point of prediction date
-        cur.execute("select date, \"Adj Close\" from stocks where stock=%s and date >= %s + '1 month'::interval order by date asc limit 1", (symbol, datesList[0]))
-        stockDateAndPriceInAMonthList = cur.fetchall();
+        cur.execute("select date, \"Adj Close\" from stocks where stock=%s and date >= %s + '1 month'::interval order by date asc limit 1"\
+                    , (symbol, datesList[0]))
+        stockDateAndPriceInAMonthList = cur.fetchall()
 #         print "stockDateAndPriceInAMonthList = {0}".format(stockDateAndPriceInAMonthList)
         if len(stockDateAndPriceInAMonthList) > 0:
             lastAvailableDateStockPrice = stockDateAndPriceInAMonthList[0][1]
