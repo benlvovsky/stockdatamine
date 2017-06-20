@@ -359,6 +359,7 @@ def main():
         os.environ['PGHOST'] = PGHOST # visible in this process + all children
 
     print 'PGHOST={0}'.format(os.environ.get('PGHOST'))
+    v2ops.init()
 
     if len(sys.argv) >= 2:
         timeStart = datetime.now()
@@ -389,6 +390,8 @@ def main():
         elif sys.argv[1] == 'v2FitAndSave':
             v2ops.fitAndSave(getDefaultArg(2, '^AORD'), getDefaultArg(3, 'True') == 'True')
         elif sys.argv[1] == 'v2Predict':
+            print "Expecting v2FitAndSave() and v2GammaCost have been called earlier to optimize and save classifiers"
+            print "Preferably v2Features been called as well to optimize features list"
             v2ops.predict(getDefaultArg(2, '^AORD'), getDefaultArg(3, '0'))
         else:
             print "There is no command '{0}'\n{1}".format(sys.argv[1], availableCommands)
