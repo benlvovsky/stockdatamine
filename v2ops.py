@@ -161,14 +161,13 @@ def loadDataSet(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENG
         bestFeatures = cur.fetchone()
         query = ("select date,instrument,{0},prediction from v2.datamining_aggr_view "\
                  "where instrument = \'{1}\' order by date desc offset {2} limit {3}")\
-            .format(bestFeatures[0], symbol, offset, DATASETLENGTH)
+            .format(bestFeatures[0], symbol, offset, limit)
     else:
         print 'Using all available features'
         query = ("select * from v2.datamining_aggr_view where instrument = \'{0}\' order by date desc offset {1} limit {2}")\
-            .format(symbol, offset, DATASETLENGTH)
+            .format(symbol, offset, limit)
 
     start = time.time()
-    print 'Start SQL query...'
     cur.execute(query)
     print '                  ...done in {0} seconds'.format(time.time() - start)
 
@@ -277,7 +276,10 @@ def testPerformance(symbolCSV):
 #     return (X_allDataSet, numpyRecords[:, 0])
 
 def isPredictionCorrect(prediction, priceDiff):
-    return  (priceDiff > 1 + MOVEPRCNT) and (prediction == 1) or \
+    if type(priceDiff) is str:
+        return "Unknown"
+    else:
+        return  (priceDiff > 1 + MOVEPRCNT) and (prediction == 1) or \
             (priceDiff < 1 - MOVEPRCNT) and (prediction == 2) or \
             (1 - MOVEPRCNT <= priceDiff <= 1 + MOVEPRCNT) and (prediction == 0)
 
@@ -317,6 +319,8 @@ def predict(symbolCSV, offset=0):
             predictionForDate = 'not defined'
 
         prediction = clfLoaded.predict(X_allDataSet)
+#         print "Using samples from array:\n{0}\nshape:{1}".format(X_allDataSet, X_allDataSet.shape)
+        print "Using first from predictions array: {0}".format(prediction)
         print "{0},{1},{2},{3},{4},{5},{6}, {7}"\
             .format(datesList[0], symbol, stockPrice, predictionForDate, lastAvailableDateStockPrice, \
                     prediction[0], priceDiff, isPredictionCorrect(prediction[0], priceDiff))
