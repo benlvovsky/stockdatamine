@@ -17,10 +17,17 @@ availableCommands = """Allowed commands:
    'v2' <symbol>:                         v2 functions                                                      
    'v2GammaCost <symbol> [isBF=False]':   calculate Gamma and Cost and save to DB. 'Set isBF to 'True'      
                                                to use pre-calculated Best Features from DB                  
+   'v2FitAndSave <symbolCSV>':            fit and save serialized estimator into DB                         
    'v2Features <symbol>':                 exclude noisy features and save to DB                             
    'v2TestPerf <symbol>':                 test performance of symbol with previously calculated parameters
-   'v2FitAndSave <symbolCSV>':            fit and save serialized estimator into DB                         
-   'v2Predict <symbolCSV>':               predict                                                           
+   'v2Predict <symbolCSV> <offset=0>':    predict, can specify offset for 'back to future' predict
+   
+   The work flow would normally be like:
+       1. v2GammaCost on all features
+       2. v2Features
+       3. v2FitAndSave on best features
+       4. v2TestPerf (optional)
+       5. v2Predict
    """
 
 def optimiseNuAll():
@@ -390,8 +397,7 @@ def main():
         elif sys.argv[1] == 'v2FitAndSave':
             v2ops.fitAndSave(getDefaultArg(2, '^AORD'), getDefaultArg(3, 'True') == 'True')
         elif sys.argv[1] == 'v2Predict':
-            print "Expecting v2FitAndSave() and v2GammaCost have been called earlier to optimize and save classifiers"
-            print "Preferably v2Features been called as well to optimize features list"
+            print "Expecting v2GammaCost, v2FitAndSave() and v2Features have been called earlier to optimize and save classifier"
             v2ops.predict(getDefaultArg(2, '^AORD'), getDefaultArg(3, '0'))
         else:
             print "There is no command '{0}'\n{1}".format(sys.argv[1], availableCommands)

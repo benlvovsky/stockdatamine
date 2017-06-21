@@ -1,17 +1,32 @@
-<table>
-<tr><th>PGHOST=postgres_ml
-<tr><td>PGHOST=postgres_ml</td></tr>
-<tr><td>2017-05-10</td><td>^AORD</td><td>0</td><td>5911.100098</td><td>5766.5</td><td>0.975537531829</td></tr>
-<tr><td>2017-05-10</td><td>^AXDJ</td><td>0</td><td>2260.699951</td><td>2199.100098</td><td>0.972751866973</td></tr>
-<tr><td>2017-05-10</td><td>^AXSJ</td><td>2</td><td>9627.799805</td><td>9086.599609</td><td>0.943787759721</td></tr>
-<tr><td>2017-05-10</td><td>^AXEJ</td><td>0</td><td>9546.599609</td><td>9019.0</td><td>0.944734289631</td></tr>
-<tr><td>2017-05-10</td><td>^AXFJ</td><td>0</td><td>6677.0</td><td>6399.100098</td><td>0.958379526434</td></tr>
-<tr><td>2017-05-10</td><td>^AXXJ</td><td>0</td><td>7447.100098</td><td>7137.100098</td><td>0.958373058517</td></tr>
-<tr><td>2017-05-10</td><td>^AXHJ</td><td>2</td><td>23760.0</td><td>23616.099609</td><td>0.993943586237</td></tr>
-<tr><td>2017-05-10</td><td>^AXNJ</td><td>2</td><td>5762.700195</td><td>5824.399902</td><td>1.01070673554</td></tr>
-<tr><td>2017-05-10</td><td>^AXIJ</td><td>0</td><td>902.700012</td><td>857.200012</td><td>0.949595658142</td></tr>
-<tr><td>2017-05-10</td><td>^AXMJ</td><td>0</td><td>9637.0</td><td>9803.400391</td><td>1.01726682484</td></tr>
-<tr><td>2017-05-10</td><td>^AXJR</td><td>0</td><td>3313.899902</td><td>3329.5</td><td>1.00470747411</td></tr>
-<tr><td>2017-05-10</td><td>^AXUJ</td><td>2</td><td>9140.5</td><td>8843.700195</td><td>0.967529149937</td></tr>
-<tr><td>Done</td><td> it took 0:00:03.407948</td></tr>
-</table>
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+th {
+    background-color: #4CAF50;
+    color: white;
+}
+tr:nth-child(even) {background-color: #f2f2f2}
+tr:hover {background-color: #f5f5f5}
+th, td {
+    border-bottom: 1px solid #ddd;
+}
+</style>
+</head>
+<table class="pure-table pure-table-horizontal pure-table-striped">
+<thead><tr><th>Date From</th><th>symbol</th><th>orig stock Price</th><th>prediction For Date</th><th>last Available Date Stock Price</th><th>prediction</th><th>price Diff</th><th>is correct</th></tr></thead>
+<tbody>
+<tr><td>2017-05-05</td><td>^AORD</td><td>5863.799805</td><td>2017-06-05</td><td>5792.100098</td><td>1</td><td>0.987772483819</td><td> False</td></tr>
+<tr><td>2017-05-05</td><td>^AXDJ</td><td>2222.5</td><td>2017-06-05</td><td>2225.0</td><td>0</td><td>1.00112485939</td><td> True</td></tr>
+<tr><td>2017-05-05</td><td>^AXSJ</td><td>9410.900391</td><td>2017-06-05</td><td>9388.0</td><td>1</td><td>0.99756660999</td><td> False</td></tr>
+<tr><td>2017-05-05</td><td>^AXEJ</td><td>9167.700195</td><td>2017-06-05</td><td>9359.0</td><td>1</td><td>1.02086671694</td><td> True</td></tr>
+<tr><td>2017-05-05</td><td>^AXFJ</td><td>6802.200195</td><td>2017-06-05</td><td>6322.899902</td><td>0</td><td>0.929537461518</td><td> False</td></tr>
+<tr><td>2017-05-05</td><td>^AXXJ</td><td>7586.799805</td><td>2017-06-05</td><td>7052.100098</td><td>1</td><td>0.929522365063</td><td> False</td></tr>
+<tr><td>2017-05-05</td><td>^AXHJ</td><td>23347.400391</td><td>2017-06-05</td><td>23317.599609</td><td>1</td><td>0.998723593141</td><td> False</td></tr>
+<tr><td>2017-05-05</td><td>^AXNJ</td><td>5606.200195</td><td>2017-06-05</td><td>5908.299805</td><td>1</td><td>1.05388669678</td><td> True</td></tr>
+<tr><td>2017-05-05</td><td>^AXIJ</td><td>873.5</td><td>2017-06-05</td><td>884.599976</td><td>0</td><td>1.01270747109</td><td> True</td></tr>
+<tr><td>2017-05-05</td><td>^AXMJ</td><td>9342.599609</td><td>2017-06-05</td><td>9803.700195</td><td>1</td><td>1.04935463418</td><td> True</td></tr>
+<tr><td>2017-05-05</td><td>^AXJR</td><td>3188.800049</td><td>2017-06-05</td><td>3356.600098</td><td>0</td><td>1.05262169042</td><td> False</td></tr>
+<tr><td>2017-05-05</td><td>^AXUJ</td><td>9111.700195</td><td>2017-06-05</td><td>9024.400391</td><td>1</td><td>0.990418933664</td><td> False</td></tr>
+</tbody>
+</table></html>

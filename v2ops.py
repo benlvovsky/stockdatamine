@@ -127,6 +127,11 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
                  .format(bestParams['C'], bestParams['gamma'], symbol))
     
         cur.execute(query)
+        clfTrained = svm.SVC(kernel='rbf', C=bestParams['C'], gamma=bestParams['gamma'], \
+                             decision_function_shape=decision_function_shape)\
+                                .fit(X_allDataSet, y_allPredictions)
+        binDump = pickle.dumps(clfTrained)
+        cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s where symbol=%s", (psycopg2.Binary(binDump), symbol))
         conn.commit()               # commit separately to ensure this is in as the next operation might fail 
         print '{0} found gamma={1} Cost={2} bestScore={3}, saved'.format(symbol, bestParams['gamma'], bestParams['C'], grid.best_score_)
 
@@ -138,12 +143,8 @@ def fitAndSave(symbolCSV, bestFeautures = False):
     for symbol in symbolList:
         (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, bestFeautures)    
         decision_function_shape='ovr'
-        query = ("select bestcost, bestgamma from v2.instrumentsprops WHERE symbol='{0}';".format(symbol))
-        cur.execute(query)
-        bestParams = cur.fetchone();
-        print 'bestParams={0}'.format(bestParams)
-
-        clfTrained = svm.SVC(kernel='rbf', gamma=bestParams[1], C=bestParams[0], \
+        bestParams = loadBestParams(symbol)
+        clfTrained = svm.SVC(kernel='rbf', C=bestParams[0], gamma=bestParams[1], \
                              decision_function_shape=decision_function_shape).fit(X_allDataSet, y_allPredictions)
         binDump = pickle.dumps(clfTrained)
         cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s where symbol=%s", (psycopg2.Binary(binDump), symbol))
@@ -159,8 +160,8 @@ def loadDataSet(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENG
         cur.execute("select bestattributes from v2.instrumentsprops where symbol = '{0}'".format(symbol))
         bestFeatures = cur.fetchone()
         query = ("select date,instrument,{0},prediction from v2.datamining_aggr_view "\
-                 "where instrument = \'{1}\' order by date desc offset 50 limit {2}")\
-            .format(bestFeatures[0], symbol, DATASETLENGTH)
+                 "where instrument = \'{1}\' order by date desc offset {2} limit {3}")\
+            .format(bestFeatures[0], symbol, offset, DATASETLENGTH)
     else:
         print 'Using all available features'
         query = ("select * from v2.datamining_aggr_view where instrument = \'{0}\' order by date desc offset {1} limit {2}")\
@@ -176,18 +177,19 @@ def loadDataSet(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENG
     numpyRecords = np.array(records)
     X_allDataSet = numpyRecords[:, 2:-1].astype(np.float32)
     colNames = np.array(cur.description)[2:-1, 0]
-    yRaw = numpyRecords[:, -1:]
+    yRaw = numpyRecords[:, -1:].astype(np.float32)
     
     yArr = []
     
     for line in yRaw:
-        if line[0] > 1 + MOVEPRCNT:
+        diff = line[0]
+        if diff > (1 + MOVEPRCNT):
             yArr.append(1)
-        elif line[0] < 1 - MOVEPRCNT:
+        elif diff < (1 - MOVEPRCNT):
             yArr.append(2)
         else:
             yArr.append(0)
-    
+
     y_allPredictions = np.array(yArr)
     dateList = numpyRecords[:, 0]
     return (colNames, X_allDataSet, y_allPredictions, dateList)
@@ -197,6 +199,14 @@ def getCrossValMeanScore(clf, dataSet, predictions):
     scores = cross_val_score(clf, dataSet, predictions, cv=cv)
     return (scores.mean(), scores.std())
 
+def loadBestParams(symbol):
+    query = "select bestcost, bestgamma from v2.instrumentsprops WHERE symbol='{0}';".format(symbol)
+    cur = conn.cursor()
+    cur.execute(query)
+    bestParams = cur.fetchone()
+    print 'bestParams={0}'.format(bestParams)
+    return bestParams
+
 def optimiseFeautures(symbolCSV):
     symbolList = symbolCSV.split(",")
     cur = conn.cursor()
@@ -204,14 +214,11 @@ def optimiseFeautures(symbolCSV):
         (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol)
         print "Optimizing features for '{0}'".format(symbol)
         decision_function_shape='ovr'
-        query = ("select bestcost, bestgamma from v2.instrumentsprops WHERE symbol='{0}';".format(symbol))
-        cur.execute(query)
-        bestParams = cur.fetchone();
-        print 'bestParams={0}'.format(bestParams)
+        bestParams = loadBestParams(symbol)
 
         clfLoaded = svm.SVC(kernel='rbf', C=bestParams[0], gamma=bestParams[1], \
                              decision_function_shape=decision_function_shape).fit(X_allDataSet, y_allPredictions)
-    
+
         excludedIndexes = []
         excludedCols = []
         goodIndexes = []
@@ -247,11 +254,10 @@ def optimiseFeautures(symbolCSV):
 
 def testPerformance(symbolCSV):
     symbolList = symbolCSV.split(",")
-#     cur = conn.cursor()
 
     for symbol in symbolList:
-        (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, True)
-        (colNames, X_allDataSetTest, y_allPredictionsTest, dateList) = loadDataSet(symbol, True, offset=2, limit=30)
+        (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, True, offset=50, limit=DATASETLENGTH)
+        (colNames, X_allDataSetTest, y_allPredictionsTest, dateList) = loadDataSet(symbol, True, offset=30, limit=20)
         clfLoaded = loadClassifier(symbol)
         (meanScore, std) = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions)
         print '{0} meanScore={1}, std={2}, clf score on test={3}'.\
@@ -285,12 +291,12 @@ def loadClassifier(symbol):
 def predict(symbolCSV, offset=0):
     symbolList = symbolCSV.split(",")
     cur = conn.cursor()
-    print "{0},{1},{2},{3},{4},{5},{6}"\
-        .format('Date From', 'symbol', 'orig stock Price', 'prediction For Date', 'last Available Date Stock Price', 'prediction', \
-                'price Diff', 'is correct')
+    print "Using offset={0}".format(offset)
+    print "Date From,symbol,orig stock Price,prediction For Date,last Available Date Stock Price,prediction," \
+                "price Diff,is correct"
     for symbol in symbolList:
 #         (X_allDataSet, datesList) = loadOneRecord(symbol, offset)
-        (colNames, X_allDataSet, y_predictions, datesList) = loadDataSet(symbol, True, offset=offset, limit=1)
+        (colNames, X_allDataSet, y_predictions, datesList) = loadDataSet(symbol, isUseBestFeautures=True, offset=offset, limit=1)
         clfLoaded = loadClassifier(symbol)
 
         cur.execute("select \"Adj Close\" from stocks where stock=%s and date = %s", (symbol, datesList[0]))
