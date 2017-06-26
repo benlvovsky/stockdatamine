@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import v2ops
-
+import tradeindicators as ti
 from common import *
 from downloaddata import *
 
@@ -399,6 +399,9 @@ def main():
         elif sys.argv[1] == 'v2Predict':
             print "Expecting v2GammaCost, v2FitAndSave() and v2Features have been called earlier to optimize and save classifier"
             v2ops.predict(getDefaultArg(2, '^AORD'), getDefaultArg(3, '0'))
+        elif sys.argv[1] == 'v2mvc':
+            ti.loadDataSet('^AORD', False, 30, 1000)
+#             ti.mvCrossOverSignals(getDefaultArg(2, '^AORD'), getDefaultArg(3, 10), getDefaultArg(4, 10))
         else:
             print "There is no command '{0}'\n{1}".format(sys.argv[1], availableCommands)
 

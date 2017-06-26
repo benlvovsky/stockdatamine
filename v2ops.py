@@ -7,14 +7,17 @@ import pickle
 import psycopg2
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing.data import Normalizer
-from sklearn.model_selection._split import KFold, StratifiedShuffleSplit
+from sklearn.model_selection._split import KFold, StratifiedShuffleSplit,\
+    StratifiedKFold
+import tradeindicators
 
 conn = None
-DATASETLENGTH = 1000
-TESTSIZE = 0.1
+DATASETLENGTH = 2000
+# TESTSIZE = 0.2
 MOVEPRCNT = 0.02
-cv = KFold(n_splits=10, shuffle=True) #, random_state=42)
+# cv = KFold(n_splits=5, shuffle=True) #, random_state=42)
 # cv = StratifiedShuffleSplit(n_splits=10, test_size=0.1, random_state=42)
+cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
 
 def init():
     global conn
@@ -133,7 +136,7 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
         binDump = pickle.dumps(clfTrained)
         cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s where symbol=%s", (psycopg2.Binary(binDump), symbol))
         conn.commit()               # commit separately to ensure this is in as the next operation might fail 
-        print '{0} found gamma={1} Cost={2} bestScore={3}, saved'.format(symbol, bestParams['gamma'], bestParams['C'], grid.best_score_)
+        print '{0} found Cost={1} gamma={2} bestScore={3}, saved'.format(symbol, bestParams['C'], bestParams['gamma'], grid.best_score_)
 
     cur.close();
 
@@ -156,14 +159,14 @@ def fitAndSave(symbolCSV, bestFeautures = False):
 def loadDataSet(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENGTH):
     cur = conn.cursor()
     if isUseBestFeautures:
-        print 'Using best features'
+        print 'Using best features. isUseBestFeautures = {0}, offset={1}, limit={2}'.format(isUseBestFeautures, offset, limit)
         cur.execute("select bestattributes from v2.instrumentsprops where symbol = '{0}'".format(symbol))
         bestFeatures = cur.fetchone()
         query = ("select date,instrument,{0},prediction from v2.datamining_aggr_view "\
                  "where instrument = \'{1}\' order by date desc offset {2} limit {3}")\
             .format(bestFeatures[0], symbol, offset, limit)
     else:
-        print 'Using all available features'
+        print 'Using all available features. isUseBestFeautures = {0}, offset={1}, limit={2}'.format(isUseBestFeautures, offset, limit)
         query = ("select * from v2.datamining_aggr_view where instrument = \'{0}\' order by date desc offset {1} limit {2}")\
             .format(symbol, offset, limit)
 
@@ -182,10 +185,12 @@ def loadDataSet(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENG
     
     for line in yRaw:
         diff = line[0]
-        if diff > (1 + MOVEPRCNT):
+#         if diff > (1 + MOVEPRCNT):
+#             yArr.append(1)
+#         elif diff < (1 - MOVEPRCNT):
+#             yArr.append(2)
+        if diff > 1:
             yArr.append(1)
-        elif diff < (1 - MOVEPRCNT):
-            yArr.append(2)
         else:
             yArr.append(0)
 
@@ -194,7 +199,6 @@ def loadDataSet(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENG
     return (colNames, X_allDataSet, y_allPredictions, dateList)
 
 def getCrossValMeanScore(clf, dataSet, predictions):
-#     cv = StratifiedKFold(n_splits=5, test_size=TESTSIZE, random_state=0)
     scores = cross_val_score(clf, dataSet, predictions, cv=cv)
     return (scores.mean(), scores.std())
 
@@ -228,17 +232,17 @@ def optimiseFeautures(symbolCSV):
             testExcludedIndexes = np.append(excludedIndexes, curIdx)
             testX_reduced = np.delete(X_reduced, testExcludedIndexes, axis=1)
             (meanScore, meanStd) = getCrossValMeanScore(clfLoaded, testX_reduced, y_allPredictions)
-            if bestMeanScore/bestMeanStd < meanScore/meanStd:
+            if bestMeanScore/bestMeanStd <= meanScore/meanStd:
                 excludedIndexes.append(curIdx)
                 excludedCols.append(colName)
+                print 'Excluded column {0}. bestMeanScore/bestMeanStd {1}/{2} <= meanScore/meanStd {3}/{4}'\
+                    .format(colName, bestMeanScore, bestMeanStd, meanScore, meanStd)
                 bestMeanScore = meanScore
                 bestMeanStd = meanStd
-                print 'Excluded column {0}. bestMeanScore/bestMeanStd {1}/{2} < meanScore/meanStd {3}/{4}'\
-                    .format(colName, bestMeanScore, bestMeanStd, meanScore, meanStd)
             else:
                 goodCols.append(colName)
                 goodIndexes.append(curIdx)
-                print 'Column {0} is good. bestMeanScore/bestMeanStd {1}/{2} >= meanScore/meanStd {3}/{4}'\
+                print 'Column {0} is good. bestMeanScore/bestMeanStd {1}/{2} > meanScore/meanStd {3}/{4}'\
                     .format(colName, bestMeanScore, bestMeanStd, meanScore, meanStd)
         
         goodColsStr = ','.join(goodCols)
@@ -279,9 +283,12 @@ def isPredictionCorrect(prediction, priceDiff):
     if type(priceDiff) is str:
         return "Unknown"
     else:
-        return  (priceDiff > 1 + MOVEPRCNT) and (prediction == 1) or \
-            (priceDiff < 1 - MOVEPRCNT) and (prediction == 2) or \
-            (1 - MOVEPRCNT <= priceDiff <= 1 + MOVEPRCNT) and (prediction == 0)
+        return  (priceDiff > 1) and (prediction == 1) or \
+            (priceDiff <= 1) and (prediction == 0)
+
+#         return  (priceDiff > 1 + MOVEPRCNT) and (prediction == 1) or \
+#             (priceDiff < 1 - MOVEPRCNT) and (prediction == 2) or \
+#             (1 - MOVEPRCNT <= priceDiff <= 1 + MOVEPRCNT) and (prediction == 0)
 
 def loadClassifier(symbol):
     cur = conn.cursor()
@@ -294,8 +301,8 @@ def predict(symbolCSV, offset=0):
     symbolList = symbolCSV.split(",")
     cur = conn.cursor()
     print "Using offset={0}".format(offset)
-    print "Date From,symbol,orig stock Price,prediction For Date,last Available Date Stock Price,prediction," \
-                "price Diff,is correct"
+    print "Date From,Symbol,Orig Price,Prediction For Date,Last Available Date Price,prediction," \
+                "Price Diff,Is Correct"
     for symbol in symbolList:
 #         (X_allDataSet, datesList) = loadOneRecord(symbol, offset)
         (colNames, X_allDataSet, y_predictions, datesList) = loadDataSet(symbol, isUseBestFeautures=True, offset=offset, limit=1)
