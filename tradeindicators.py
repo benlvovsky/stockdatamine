@@ -6,18 +6,20 @@ import common as cm
 import time
 from pip._vendor.colorama.initialise import atexit_done
 
+earliestDatTime = "2016-1-1"
+
 allinstr = [ 
 '^AORD',
 '^N225',
 '^NDX',
-'^GDAXI',
+#not enough history '^GDAXI',
 '^SSEC',
 '^HSI',
 '^BSESN',
 '^JKSE',
 '^KLSE',
 '^NZ50',
-'^STI',
+#not enough history  '^STI',
 '^KS11',
 '^TWII',
 '^BVSP',
@@ -25,32 +27,32 @@ allinstr = [
 '^MXX',
 '^GSPC',
 '^ATX',
-'^BFX',
+#very sparse data  '^BFX',
 '^FCHI',
-'^OSEAX',
-'^OMXSPI',
+#very sparse data  '^OSEAX',
+#very sparse data  '^OMXSPI',
 'FXA',
 'FXB',
 'FXC',
 'FXE',
 'FXF',
-'FXS',
+#very sparse data  'FXS',
 'FXY',
-'CHOC',
+#very sparse data  'CHOC',
 'CORN',
-'CTNN',
-'CUPM',
-'FOIL',
+#very sparse data  'CTNN',
+#very sparse data  'CUPM',
+#very sparse data  'FOIL',
 'GAZ',
 'GLD',
-'HEVY',
-'LEDD',
-'LSTK',
-'NINI',
+#very sparse data 'HEVY',
+#very sparse data  'LEDD',
+#very sparse data  'LSTK',
+# 'NINI',
 'OIL',
 'PALL',
 'PPLT',
-'SGAR',
+#very sparse data  'SGAR',
 'SLV',
 'SOYB',
 'UHN'
@@ -75,7 +77,7 @@ def loadDataSet(symbol, isUseBestFeautures, offset, limit):
         else:
             joinedDf = joinedDf.join(newDf.set_index('date'), how='outer')
 
-        joinedDf.to_csv('concatDFTest.csv', sep=',')
+#         joinedDf.to_csv('concatDFTest.csv', sep=',')
 #         joinedDf = joinedDf.reindex(['date'])
 #         joinedDf = joinedDf.set_index(['date'])
         
@@ -86,7 +88,8 @@ def loadDataFrame(symbol, offset, limit):
     print 'symbol="{0}" offset={1} limit={2}'.format(symbol, offset, limit)
     start = time.time()
 #     cur.execute("select date, \"Adj Close\" as price from stocks where stock=%s order by date desc offset %s limit %s", (symbol, offset, limit))
-    cur.execute("select * from stocks where stock=%s order by date desc offset %s limit %s", (symbol, offset, limit))
+    cur.execute("select * from stocks where stock=%s and date >= %s order by date desc offset %s limit %s", \
+                (symbol, earliestDatTime, offset, limit))
     print '                  ...done in {0} seconds'.format(time.time() - start)
     records = cur.fetchall()
     colNames = np.array(cur.description)[:,0]

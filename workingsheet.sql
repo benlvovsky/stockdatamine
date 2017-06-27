@@ -30,7 +30,7 @@ CREATE OR REPLACE VIEW v2.datamining_aggr_view AS
     v2.chngDiv('^FCHI',  s.date, '1 day') AS fchiDaily,     v2.chngDiv('^FCHI',  s.date, '1 week') AS fchiWeekly,     v2.chngDiv('^FCHI',  s.date, '1 month') AS fchiMonthly,
     v2.chngDiv('^OSEAX', s.date, '1 day') AS oseaxDaily,    v2.chngDiv('^OSEAX', s.date, '1 week') AS oseaxWeekly,    v2.chngDiv('^OSEAX', s.date, '1 month') AS oseaxMonthly,
     v2.chngDiv('^OMXSPI',s.date, '1 day') AS omxspiDaily,   v2.chngDiv('^OMXSPI',s.date, '1 week') AS omxspiWeekly,   v2.chngDiv('^OMXSPI',s.date, '1 month') AS omxspiMonthly,
-    v2.chngDiv('^SSMI',  s.date, '1 day') AS ssmiDaily,     v2.chngDiv('^SSMI',  s.date, '1 week') AS ssmiWeekly,     v2.chngDiv('^SSMI',  s.date, '1 month') AS ssmiMonthly,
+--    v2.chngDiv('^SSMI',  s.date, '1 day') AS ssmiDaily,     v2.chngDiv('^SSMI',  s.date, '1 week') AS ssmiWeekly,     v2.chngDiv('^SSMI',  s.date, '1 month') AS ssmiMonthly,
 --    v2.chngDiv('GD.AT',  s.date, '1 day') AS gdDaily,       v2.chngDiv('GD.AT',  s.date, '1 week') AS gdWeekly,       v2.chngDiv('GD.AT',  s.date, '1 month') AS gdMonthly,
 
     v2.chngDiv('FXA',    s.date, '1 day') AS fxaDaily,      v2.chngDiv('FXA',    s.date, '1 week') AS fxaWeekly,      v2.chngDiv('FXA',    s.date, '1 month') AS fxaMonthly,
