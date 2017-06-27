@@ -66,10 +66,22 @@ def loadDataSet(symbol, isUseBestFeautures, offset, limit):
     instrAr.remove(symbol)
     instrAr.insert(0, symbol)
     print 'instrAr=', instrAr
+#     for instr in instrAr:
+#         df.append(loadDataFrame(instr, offset, limit))
+    joinedDf = None
     for instr in instrAr:
-        df.append(loadDataFrame(instr, offset, limit))
+        newDf = loadDataFrame(instr, offset, limit)
+        if joinedDf is None:
+            print 'None'
+            joinedDf = newDf
+        else:
+            print 'New df'
+            joinedDf = joinedDf.set_index('date').join(newDf.set_index('date'), how='outer')
 
-    return pd.concat(df, axis=1)
+#     joinedDf = pd.concat(df, axis=1, join='outer')
+#     return pd.join(df, how='outer')
+    joinedDf.to_csv('concatDFTest.csv', sep=',')
+    return joinedDf
 
 def loadDataFrame(symbol, offset, limit):
     print 'symbol="{0}" offset={1} limit={2}'.format(symbol, offset, limit)
@@ -86,7 +98,7 @@ def loadDataFrame(symbol, offset, limit):
 
     date = df['date'].as_matrix()
     close = np.asarray(df['Adj Close'].as_matrix(), dtype='float')
-    print close
+#     print close
     closeSimple = df.close.as_matrix()
     high = df.high.as_matrix()
     low = df.low.as_matrix()
@@ -94,7 +106,7 @@ def loadDataFrame(symbol, offset, limit):
     volume = np.asarray(df.volume.as_matrix(), dtype='float')
 
     analytics = pd.DataFrame()
-    analytics[symbol + 'date'] = date
+    analytics['date'] = date
     analytics[symbol + '_close'] = close
     tempDf = pd.DataFrame()
 #     analytics[symbol + '_close'] = close
@@ -116,6 +128,7 @@ def loadDataFrame(symbol, offset, limit):
 #     print df.rsi.as_matrix(), df.date.as_matrix()
 #     funcsOHLCCalls(df, analytics)
 #     print analytics
+    analytics.set_index('date')
     return analytics
 
 #     exit(0)
