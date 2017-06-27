@@ -8,53 +8,52 @@ from pip._vendor.colorama.initialise import atexit_done
 
 allinstr = [ 
 '^AORD',
-# '^N225',
-# '^NDX',
-# '^GDAXI',
-# '^SSEC',
-# '^HSI',
-# '^BSESN',
+'^N225',
+'^NDX',
+'^GDAXI',
+'^SSEC',
+'^HSI',
+'^BSESN',
 '^JKSE',
-# '^KLSE',
-# '^NZ50',
-# '^STI',
-# '^KS11',
-# '^TWII',
-# '^BVSP',
-# '^GSPTSE',
-# '^MXX',
-# '^GSPC',
-# '^ATX',
-# '^BFX',
-# '^FCHI',
-# '^OSEAX',
-# '^OMXSPI',
-# '^SSMI',
-# 'FXA',
-# 'FXB',
-# 'FXC',
-# 'FXE',
-# 'FXF',
-# 'FXS',
-# 'FXY',
-# 'CHOC',
-# 'CORN',
-# 'CTNN',
-# 'CUPM',
-# 'FOIL',
-# 'GAZ',
-# 'GLD',
-# 'HEVY',
-# 'LEDD',
-# 'LSTK',
-# 'NINI',
-# 'OIL',
-# 'PALL',
-# 'PPLT',
-# 'SGAR',
-# 'SLV',
-# 'SOYB',
-# 'UHN'
+'^KLSE',
+'^NZ50',
+'^STI',
+'^KS11',
+'^TWII',
+'^BVSP',
+'^GSPTSE',
+'^MXX',
+'^GSPC',
+'^ATX',
+'^BFX',
+'^FCHI',
+'^OSEAX',
+'^OMXSPI',
+'FXA',
+'FXB',
+'FXC',
+'FXE',
+'FXF',
+'FXS',
+'FXY',
+'CHOC',
+'CORN',
+'CTNN',
+'CUPM',
+'FOIL',
+'GAZ',
+'GLD',
+'HEVY',
+'LEDD',
+'LSTK',
+'NINI',
+'OIL',
+'PALL',
+'PPLT',
+'SGAR',
+'SLV',
+'SOYB',
+'UHN'
 ]
 
 conn = cm.getdbcon()
@@ -72,14 +71,14 @@ def loadDataSet(symbol, isUseBestFeautures, offset, limit):
     for instr in instrAr:
         newDf = loadDataFrame(instr, offset, limit)
         if joinedDf is None:
-            print 'None'
-            joinedDf = newDf
+            joinedDf = newDf.set_index('date')
         else:
-            print 'New df'
-            joinedDf = joinedDf.set_index('date').join(newDf.set_index('date'), how='outer')
+            joinedDf = joinedDf.join(newDf.set_index('date'), how='outer')
 
-#     joinedDf = pd.concat(df, axis=1, join='outer')
-#     return pd.join(df, how='outer')
+        joinedDf.to_csv('concatDFTest.csv', sep=',')
+#         joinedDf = joinedDf.reindex(['date'])
+#         joinedDf = joinedDf.set_index(['date'])
+        
     joinedDf.to_csv('concatDFTest.csv', sep=',')
     return joinedDf
 
