@@ -140,6 +140,9 @@ def downloadInstruments():
 			
 	# here is done all stocks
 	# V2: Stop doing sync as moving to a different processing work flow in V2
+	sql="delete from stocks where close = 0"
+	subprocess.call('export PGPASSWORD=\'postgres\';psql -U postgres -d postgres -c "' + sql + '"', shell=True)
+
 # 	print "Synchronising aggregations..."
 # 	curSync = conn.cursor()
 # 	curSync.execute("select sync_aggr((now() - interval '3 months')::date)")

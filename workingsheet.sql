@@ -148,5 +148,8 @@ INSERT INTO v2.instrumentsprops(symbol, active) select '^AXUJ', true where not e
 
 ./go.py v2FitAndSave ^AORD,^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ True
 ./go.py v2GammaCost ^AORD,^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ True
-./go.py v2Predict ^AORD,^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ
+./go.py v2Predict ^AORD,^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ 0
 ./go.py v2Features ^AORD,^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ True
+./go.py v2TestPerf ^AORD,^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ
+
+./v2preml.sh 20 > predictions.html

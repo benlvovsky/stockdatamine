@@ -20,7 +20,6 @@ echo '<table class="pure-table pure-table-horizontal pure-table-striped">' ;
 print_header=true
 while read INPUT ; do
   if $print_header;then
-#    echo "<tr><th>$INPUT" | sed -e 's/:[^,]*\(,\|$\)/<\/th><th>/g'
     echo "<thead><tr><th>${INPUT//,/</th><th>}</th></tr></thead>" ;
     print_header=false
     echo "<tbody>"

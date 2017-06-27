@@ -13,6 +13,7 @@ cv=10
 dataminestocksViewName="v2.dataminestocks_py"
 startNu=0.00000001
 initialStepNu=0.1
+DATASETLENGTH = 2000
 
 LSLIB = "libsvm-3.21"
 # LSLIB = "libsvm-3.17-GPU_x64-linux-v1.2"
