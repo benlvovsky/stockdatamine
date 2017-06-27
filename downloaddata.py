@@ -119,8 +119,18 @@ def downloadInstruments():
 						writer.writerow((stockName, date, openV, high, low, close, vol, adjclose))
 
 			if loadindb:
-				sql="COPY stocks (stock,date,open,high,low,close,volume,\\\"Adj Close\\\") FROM '" + str(os.getcwd()) \
-					+ "/downloads/"+stockName+"_fixed.csv' WITH CSV delimiter as ','"
+				sql = ""
+#				sql += "CREATE TEMP TABLE tmp_table ON COMMIT DROP AS SELECT *  FROM stocks WITH NO DATA; "
+#				sql += "CREATE TABLE tmp_table AS SELECT *  FROM stocks WITH NO DATA; "
+				sql += "TRUNCATE table tmp_table;"
+				sql += "COPY tmp_table (stock,date,open,high,low,close,volume,\\\"Adj Close\\\") FROM '" + str(os.getcwd()) \
+					+ "/downloads/"+stockName+"_fixed.csv' WITH CSV delimiter as ','; "
+#				sql += "INSERT INTO stocks SELECT DISTINCT ON (t.stock,t.date) * FROM tmp_table t where t.close <> 0 ORDER BY (t.stock,t.date); ";
+				sql += "INSERT INTO stocks SELECT * FROM tmp_table t where t.close <> 0 "\
+					"and not exists (select NULL from stocks s where s.date = t.date and s.stock = t.stock) "\
+					"ORDER BY (t.stock,t.date); ";
+				sql += "commit; ";
+
  				print "			executing SQL={0}...".format(sql)
 # 				print "PGHOST=" + PGHOST
 				subprocess.call('export PGPASSWORD=\'postgres\';psql -U postgres -d postgres -c "' + sql + '"', shell=True)
