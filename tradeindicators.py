@@ -5,6 +5,7 @@ import pandas as pd
 import common as cm
 import time
 from pip._vendor.colorama.initialise import atexit_done
+from cProfile import label
 
 earliestDatTime = "2016-1-1"
 
@@ -60,46 +61,34 @@ allinstr = [
 
 conn = cm.getdbcon()
 cur = conn.cursor()
+shiftDays = -20
+difftreshhold = 0.03
 
-def getLabel(symbol, df):
-    retVal = df[symbol + '_close'].shift(-1) / df[symbol + '_close']
-    return retVal
-
-def getSignal(df, shifted):
-    retVal = shifted / df > 1.03
-    return retVal
+def formatLabel(x):
+    if x > 1 + difftreshhold:
+        return 'up'
+    elif x < 1 - difftreshhold:
+        return 'down'
+    else:
+        return 'neutral'
 
 def loadDataSet(symbol, isUseBestFeautures, offset, limit):
     df = loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit)
     mlDf = pd.DataFrame()
-    mlDf['label'] = df[symbol + '_close'] - df[symbol + '_close'].shift(-1)
     mlDf['close'] = df[symbol + '_close']
-    mlDf['nextdateclose'] = df[symbol + '_close'].shift(-1)
-    mlDf['prevdateclose'] = df[symbol + '_close'].shift(1)
-    mlDf['nextcloseDiff'] = getLabel(symbol, df)
-    mlDf['nextcloseSignal'] = df[symbol + '_close'].shift(-20) / df[symbol + '_close'] > 1.03
+    mlDf['nextshift'] = df[symbol + '_close'].shift(shiftDays)
+    mlDf['shiftdiff'] = df[symbol + '_close'].shift(shiftDays) / df[symbol + '_close']
+    mlDf['labelFormat'] = (df[symbol + '_close'].shift(shiftDays) / df[symbol + '_close']).map(formatLabel)
+    labels = (df[symbol + '_close'].shift(shiftDays) / df[symbol + '_close']).map(formatLabel)
 
     mlDf.to_csv('shiftsDFTest.csv', sep=',')
 
-    return df
-
-#     numpyRecords = np.array(records)
-#     X_allDataSet = numpyRecords[:, 2:-1].astype(np.float32)
-#     colNames = np.array(cur.description)[2:-1, 0]
-#     yRaw = numpyRecords[:, -1:].astype(np.float32)
-#     
-#     yArr = []
-#     
-#     for line in yRaw:
-#         diff = line[0]
-#         if diff > 1:
-#             yArr.append(1)
-#         else:
-#             yArr.append(0)
-# 
-#     y_allPredictions = np.array(yArr)
-#     dateList = numpyRecords[:, 0]
-#     return (colNames, X_allDataSet, y_allPredictions, dateList)
+#     dateList = df['date'].as_matrix()
+    colNames = df.columns.values
+    X_dataSet = df.as_matrix()
+    y_predictions = labels.values
+    dateList = df.index.values
+    return (colNames, X_dataSet, y_predictions, dateList)
 
 def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
     instrAr = list(allinstr)
@@ -123,9 +112,6 @@ def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
     df = df.loc[:last_valid_loc]
 
     df = df.fillna(method='ffill').fillna(method='bfill')
-
-    #add future change label
-    df['label'] = df[symbol + '_close'].shift(-20)/df[symbol + '_close']
 
     df.to_csv('concatDFTest.csv', sep=',')
     return df
