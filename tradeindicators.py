@@ -6,7 +6,7 @@ import common as cm
 import time
 from pip._vendor.colorama.initialise import atexit_done
 
-earliestDatTime = "2016-1-1"
+earliestDatTime = "2015-05-12"
 
 allinstr = [ 
 '^AORD',
@@ -54,7 +54,7 @@ allinstr = [
 'PPLT',
 #very sparse data  'SGAR',
 'SLV',
-'SOYB',
+#not enough back history 'SOYB',
 'UHN'
 ]
 
