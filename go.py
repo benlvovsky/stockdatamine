@@ -400,9 +400,8 @@ def main():
             print "Expecting v2GammaCost, v2FitAndSave() and v2Features have been called earlier to optimize and save classifier"
             v2ops.predict(getDefaultArg(2, '^AORD'), getDefaultArg(3, '0'))
         elif sys.argv[1] == 'v2mvc':
-            df = ti.loadDataSet('^AORD', False, 30, 1000)
-            print df
-#             ti.mvCrossOverSignals(getDefaultArg(2, '^AORD'), getDefaultArg(3, 10), getDefaultArg(4, 10))
+            (colNames, X_allDataSet, y_allPredictions, dateList) = ti.loadDataSet('^AORD', False, 30, 2000)
+            print colNames, X_allDataSet, y_allPredictions, dateList
         else:
             print "There is no command '{0}'\n{1}".format(sys.argv[1], availableCommands)
 

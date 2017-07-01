@@ -5,6 +5,7 @@ import pandas as pd
 import common as cm
 import time
 from pip._vendor.colorama.initialise import atexit_done
+from cProfile import label
 
 earliestDatTime = "2015-05-12"
 
@@ -60,36 +61,68 @@ allinstr = [
 
 conn = cm.getdbcon()
 cur = conn.cursor()
+shiftDays = -20
+difftreshhold = 0.03
+
+def formatLabel(x):
+    if x > 1 + difftreshhold:
+        return 'up'
+    elif x < 1 - difftreshhold:
+        return 'down'
+    else:
+        return 'neutral'
 
 def loadDataSet(symbol, isUseBestFeautures, offset, limit):
-    df = []
+    df = loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit)
+    mlDf = pd.DataFrame()
+    mlDf['close'] = df[symbol + '_close']
+    mlDf['nextshift'] = df[symbol + '_close'].shift(shiftDays)
+    mlDf['shiftdiff'] = df[symbol + '_close'].shift(shiftDays) / df[symbol + '_close']
+    mlDf['labelFormat'] = (df[symbol + '_close'].shift(shiftDays) / df[symbol + '_close']).map(formatLabel)
+    labels = (df[symbol + '_close'].shift(shiftDays) / df[symbol + '_close']).map(formatLabel)
+
+    mlDf.to_csv('shiftsDFTest.csv', sep=',')
+
+#     dateList = df['date'].as_matrix()
+    colNames = df.columns.values
+    X_dataSet = df.as_matrix()
+    y_predictions = labels.values
+    dateList = df.index.values
+    return (colNames, X_dataSet, y_predictions, dateList)
+
+def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
     instrAr = list(allinstr)
     instrAr.remove(symbol)
     instrAr.insert(0, symbol)
     print 'instrAr=', instrAr
-#     for instr in instrAr:
-#         df.append(loadDataFrame(instr, offset, limit))
     joinedDf = None
     for instr in instrAr:
-        newDf = loadDataFrame(instr, offset, limit)
+        newDf = loadSymbolDataFrame(instr, offset, limit)
         if joinedDf is None:
             joinedDf = newDf.set_index('date')
         else:
             joinedDf = joinedDf.join(newDf.set_index('date'), how='outer')
 
-#         joinedDf.to_csv('concatDFTest.csv', sep=',')
-#         joinedDf = joinedDf.reindex(['date'])
-#         joinedDf = joinedDf.set_index(['date'])
-        
-    joinedDf.to_csv('concatDFTest.csv', sep=',')
-    return joinedDf
+    # get the first valid index for each column and calculate the max
+    first_valid_loc = joinedDf.apply(lambda col: col.first_valid_index()).max()    
+    df = joinedDf.loc[first_valid_loc:]
+    
+    # get the last valid index for each column and calculate the min
+    last_valid_loc = df.apply(lambda col: col.last_valid_index()).min()
+    df = df.loc[:last_valid_loc]
 
-def loadDataFrame(symbol, offset, limit):
+    df = df.fillna(method='ffill').fillna(method='bfill')
+
+    df.to_csv('concatDFTest.csv', sep=',')
+    return df
+
+def loadSymbolDataFrame(symbol, offset, limit):
     print 'symbol="{0}" offset={1} limit={2}'.format(symbol, offset, limit)
     start = time.time()
-#     cur.execute("select date, \"Adj Close\" as price from stocks where stock=%s order by date desc offset %s limit %s", (symbol, offset, limit))
-    cur.execute("select * from stocks where stock=%s and date >= %s order by date desc offset %s limit %s", \
-                (symbol, earliestDatTime, offset, limit))
+    cur.execute("select * from stocks where stock=%s order by date desc offset %s limit %s", \
+                (symbol, offset, limit))
+#     cur.execute("select * from stocks where stock=%s and date >= %s order by date desc offset %s limit %s", \
+#                 (symbol, earliestDatTime, offset, limit))
     print '                  ...done in {0} seconds'.format(time.time() - start)
     records = cur.fetchall()
     colNames = np.array(cur.description)[:,0]
@@ -135,28 +168,6 @@ def loadDataFrame(symbol, offset, limit):
 
 #     exit(0)
 ############################
-
-    numpyRecords = np.array(records)
-    X_allDataSet = numpyRecords[:, 2:-1].astype(np.float32)
-    colNames = np.array(cur.description)[2:-1, 0]
-    yRaw = numpyRecords[:, -1:].astype(np.float32)
-    
-    yArr = []
-    
-    for line in yRaw:
-        diff = line[0]
-#         if diff > (1 + MOVEPRCNT):
-#             yArr.append(1)
-#         elif diff < (1 - MOVEPRCNT):
-#             yArr.append(2)
-        if diff > 1:
-            yArr.append(1)
-        else:
-            yArr.append(0)
-
-    y_allPredictions = np.array(yArr)
-    dateList = numpyRecords[:, 0]
-    return (colNames, X_allDataSet, y_allPredictions, dateList)
 # 
 # function_names_ohlc = "CDLLADDERBOTTOM,CDLSTALLEDPATTERN,CDLUPSIDEGAP2CROWS,CDLMORNINGDOJISTAR,CDL3STARSINSOUTH"
 # 
