@@ -384,6 +384,8 @@ def main():
             doPredictions()
         elif sys.argv[1] == 'downloaddata':
             downloadInstruments()
+        elif sys.argv[1] == 'upload':
+            uploadInvestorDotComDataToDb()
         elif sys.argv[1] == 'syncaggr':
             syncaggr()
         elif sys.argv[1] == 'v2':

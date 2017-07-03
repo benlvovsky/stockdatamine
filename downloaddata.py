@@ -151,3 +151,22 @@ def downloadInstruments():
 # 	curSync = conn.cursor()
 # 	curSync.execute("select sync_aggr((now() - interval '3 months')::date)")
 # 	print "Synchronised " + str(curSync.fetchone()[0]) + " rows"
+
+def uploadInvestorDotComDataToDb():
+	print "Uploading to DB..."
+	sql = '''
+--	TRUNCATE table tmp_table;
+	DROP TABLE IF EXISTS tmp_table;
+	create table tmp_table (stock text,date date,close text,open text,high text,low text,volume text,change text);
+	SET datestyle = 'ISO,DMY';
+	COPY tmp_table (stock,date,close,open,high,low,volume,change) FROM STDIN WITH CSV delimiter as ';' ; 
+	delete from tmp_table t where t.close = 0 or t.high = 0 or t.low = 0 or t.volume = 0 ; "
+	delete from tmp_table t1 where exists 
+		(select 1 from tmp_table t2 where t2.stock = t1.stock and t2.date = t1.date and t2.ctid > t1.ctid) ;
+	INSERT INTO stocks (stock,date,close,open,high,low,volume,\\\"Adj Close\\\") 
+		SELECT stock,date,close,open,high,low,volume,close FROM tmp_table t where not exists 
+			(select 1 from stocks s where s.date = t.date and s.stock = t.stock) ;
+	'''
+	print "SQL='{0}'...".format(sql)
+	subprocess.call('export PGPASSWORD=\'postgres\';psql -U postgres -d postgres -c "' + sql + '"', shell=True)
+ 	print "        ...Done"
