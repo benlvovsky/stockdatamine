@@ -12,3 +12,4 @@ __pycache__/
 *.pyc
 
 /concatDFTest.csv
+/a.txt
