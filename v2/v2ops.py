@@ -9,10 +9,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing.data import Normalizer
 from sklearn.model_selection._split import KFold, StratifiedShuffleSplit,\
     StratifiedKFold
-import tradeindicators
+import tradeindicators as ti
 
 conn = None
 DATASETLENGTH = 2000
+FITDATASETLENGTH= 5000
 # TESTSIZE = 0.2
 MOVEPRCNT = 0.02
 # cv = KFold(n_splits=5, shuffle=True) #, random_state=42)
@@ -144,19 +145,28 @@ def fitAndSave(symbolCSV, bestFeautures = False):
     symbolList = symbolCSV.split(",")
     cur = conn.cursor()
     for symbol in symbolList:
-        (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, bestFeautures)    
+#         print '---fitAndSave: symbol={0}'.format(symbol)
+        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, bestFeautures, limit=FITDATASETLENGTH)
+        scaler = StandardScaler()
+        X_allDataSet = scaler.fit_transform(X_allDataSetUnscaled)
         decision_function_shape='ovr'
         bestParams = loadBestParams(symbol)
-        clfTrained = svm.SVC(kernel='rbf', C=bestParams[0], gamma=bestParams[1], \
+        clfTrained = svm.SVC(kernel='rbf', \
+# use default for now C and gamma         C=bestParams[0], gamma=bestParams[1], \
                              decision_function_shape=decision_function_shape).fit(X_allDataSet, y_allPredictions)
         binDump = pickle.dumps(clfTrained)
-        cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s where symbol=%s", (psycopg2.Binary(binDump), symbol))
+        binDumpScaler = pickle.dumps(scaler)
+        cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s, scalerdump=%s where symbol=%s", \
+                    (psycopg2.Binary(binDump), psycopg2.Binary(binDumpScaler), symbol))
         conn.commit()
         print '{0}: Fit classification for gamma={1} Cost={2} saved'.format(symbol, bestParams[1], bestParams[0])
 
     cur.close();
 
 def loadDataSet(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENGTH):
+    return ti.loadDataSet(symbol, isUseBestFeautures, offset, limit)
+
+def loadDataSet_(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENGTH):
     cur = conn.cursor()
     if isUseBestFeautures:
         print 'Using best features. isUseBestFeautures = {0}, offset={1}, limit={2}'.format(isUseBestFeautures, offset, limit)
@@ -214,13 +224,17 @@ def optimiseFeautures(symbolCSV):
     symbolList = symbolCSV.split(",")
     cur = conn.cursor()
     for symbol in symbolList:
-        (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol)
+        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol)
+        scaler = StandardScaler()
+        X_allDataSet = scaler.fit_transform(X_allDataSetUnscaled)
         print "Optimizing features for '{0}'".format(symbol)
         decision_function_shape='ovr'
         bestParams = loadBestParams(symbol)
 
-        clfLoaded = svm.SVC(kernel='rbf', C=bestParams[0], gamma=bestParams[1], \
-                             decision_function_shape=decision_function_shape).fit(X_allDataSet, y_allPredictions)
+        clfLoaded = svm.SVC(kernel='rbf', 
+# use default for now                 C=bestParams[0],\
+# use default for now                 gamma=bestParams[1], \
+                            decision_function_shape=decision_function_shape).fit(X_allDataSet, y_allPredictions)
 
         excludedIndexes = []
         excludedCols = []
@@ -232,17 +246,17 @@ def optimiseFeautures(symbolCSV):
             testExcludedIndexes = np.append(excludedIndexes, curIdx)
             testX_reduced = np.delete(X_reduced, testExcludedIndexes, axis=1)
             (meanScore, meanStd) = getCrossValMeanScore(clfLoaded, testX_reduced, y_allPredictions)
-            if bestMeanScore/bestMeanStd <= meanScore/meanStd:
+            if bestMeanScore/bestMeanStd < meanScore/meanStd:
                 excludedIndexes.append(curIdx)
                 excludedCols.append(colName)
-                print 'Excluded column {0}. bestMeanScore/bestMeanStd {1}/{2} <= meanScore/meanStd {3}/{4}'\
+                print 'Excluded column {0}. bestMeanScore/bestMeanStd {1}/{2} < meanScore/meanStd {3}/{4}'\
                     .format(colName, bestMeanScore, bestMeanStd, meanScore, meanStd)
                 bestMeanScore = meanScore
                 bestMeanStd = meanStd
             else:
                 goodCols.append(colName)
                 goodIndexes.append(curIdx)
-                print 'Column {0} is good. bestMeanScore/bestMeanStd {1}/{2} > meanScore/meanStd {3}/{4}'\
+                print 'Column {0} is good. bestMeanScore/bestMeanStd {1}/{2} >= meanScore/meanStd {3}/{4}'\
                     .format(colName, bestMeanScore, bestMeanStd, meanScore, meanStd)
         
         goodColsStr = ','.join(goodCols)
@@ -259,9 +273,11 @@ def testPerformance(symbolCSV):
     symbolList = symbolCSV.split(",")
 
     for symbol in symbolList:
-        (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, True, offset=50, limit=DATASETLENGTH)
-        (colNames, X_allDataSetTest, y_allPredictionsTest, dateList) = loadDataSet(symbol, True, offset=30, limit=20)
-        clfLoaded = loadClassifier(symbol)
+        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, True, offset=50, limit=DATASETLENGTH)
+        (colNames, X_allDataSetTestUnscaled, y_allPredictionsTest, dateList) = loadDataSet(symbol, True, offset=30, limit=20)
+        (clfLoaded, scalerLoaded) = loadClassifier(symbol)
+        X_allDataSet = scalerLoaded.transform(X_allDataSetUnscaled)
+        X_allDataSetTest = scalerLoaded.transform(X_allDataSetTestUnscaled)
         (meanScore, std) = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions)
         print '{0} meanScore={1}, std={2}, clf score on test={3}'.\
             format(symbol, meanScore, std, clfLoaded.score(X_allDataSetTest, y_allPredictionsTest))
@@ -292,10 +308,12 @@ def isPredictionCorrect(prediction, priceDiff):
 
 def loadClassifier(symbol):
     cur = conn.cursor()
-    cur.execute("SELECT (classifierdump) FROM v2.instrumentsprops where symbol=%s;", (symbol, ))
+    cur.execute("SELECT (classifierdump, scalerdump) FROM v2.instrumentsprops where symbol=%s;", (symbol, ))
     readClfDump = cur.fetchone()[0]
+    readScalerDump = cur.fetchone()[1]
     clfLoaded = pickle.loads(readClfDump)
-    return clfLoaded
+    scalerLoaded = pickle.loads(readScalerDump)
+    return (clfLoaded, scalerLoaded)
 
 def predict(symbolCSV, offset=0):
     symbolList = symbolCSV.split(",")
@@ -305,8 +323,9 @@ def predict(symbolCSV, offset=0):
                 "Price Diff,Is Correct"
     for symbol in symbolList:
 #         (X_allDataSet, datesList) = loadOneRecord(symbol, offset)
-        (colNames, X_allDataSet, y_predictions, datesList) = loadDataSet(symbol, isUseBestFeautures=True, offset=offset, limit=1)
-        clfLoaded = loadClassifier(symbol)
+        (clfLoaded, scalerLoaded) = loadClassifier(symbol)
+        (colNames, X_allDataSetUnscaled, y_predictions, datesList) = loadDataSet(symbol, isUseBestFeautures=True, offset=offset, limit=1)
+        X_allDataSet = scalerLoaded.transform(X_allDataSetUnscaled)
 
         cur.execute("select \"Adj Close\" from stocks where stock=%s and date = %s", (symbol, datesList[0]))
         stockPrice = cur.fetchone()[0];

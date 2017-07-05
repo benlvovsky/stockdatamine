@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import v2ops
+import v2.v2ops as v2ops
 import tradeindicators as ti
 from common import *
 from downloaddata import *

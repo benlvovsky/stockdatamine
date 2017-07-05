@@ -75,7 +75,7 @@ def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
     instrAr = list(allinstr)
     instrAr.remove(symbol)
     instrAr.insert(0, symbol)
-    print 'instrAr=', instrAr
+#     print 'instrAr=', instrAr
     joinedDf = None
     for instr in instrAr:
         newDf = loadSymbolDataFrame(instr, offset, limit)

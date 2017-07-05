@@ -168,6 +168,6 @@ def uploadInvestorDotComDataToDb():
 		SELECT stock,date,close,open,high,low,volume,close FROM tmp_table t where not exists 
 			(select 1 from stocks s where s.date = t.date and s.stock = t.stock) ;
 	'''
-	print "SQL='{0}'...".format(sql)
+# 	print "SQL='{0}'...".format(sql)
 	subprocess.call('export PGPASSWORD=\'postgres\';psql -U postgres -d postgres -c "' + sql + '"', shell=True)
  	print "        ...Done"

@@ -6,9 +6,6 @@
 			"country" : "US",
 			"id" : "8830"
 		}, {
-			"name" : "^AORD",
-			"id" : "14499"
-		}, {
 			"name" : "^N225",
 			"id" : "946058"
 		}, {
@@ -229,6 +226,53 @@
 			"name" : "Oats",
 			"country" : "US",
 			"id" : "959199"
+		}, {
+			"name" : "^AXDJ",
+			"country" : "AU",
+			"id" : "14507"
+		}, {
+			"name" : "^AXSJ",
+			"country" : "AU",
+			"id" : "14508"
+		}, {
+			"name" : "^AXEJ",
+			"country" : "AU",
+			"id" : "14504"
+		}, {
+			"name" : "^AXFJ",
+			"country" : "AU",
+			"id" : "14510"
+		}, {
+			"name" : "^AXXJ",
+			"country" : "AU",
+			"id" : "14515"
+		}, {
+			"name" : "^AXHJ",
+			"country" : "AU",
+			"id" : "14509"
+		}, {
+			"name" : "^AXNJ",
+			"country" : "AU",
+			"id" : "14509"
+		}, {
+			"name" : "^AXIJ",
+			"country" : "AU",
+			"id" : "14511"
+		}, {
+			"name" : "^AXMJ",
+			"country" : "AU",
+			"id" : "14505"
+		}, {
+			"name" : "^AXJR",
+			"country" : "AU",
+			"id" : "14516"
+		}, {
+			"name" : "^AXUJ",
+			"country" : "AU",
+			"id" : "14513"
+		}, {
+			"name" : "^AORD",
+			"id" : "14499"
 		}
 	]
 }

@@ -5,7 +5,7 @@
 -- Dumped from database version 9.6.3
 -- Dumped by pg_dump version 9.6.2
 
--- Started on 2017-06-16 17:13:19 AEST
+-- Started on 2017-07-05 15:27:19 AEST
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -27,7 +27,7 @@ CREATE SCHEMA v2;
 ALTER SCHEMA v2 OWNER TO postgres;
 
 --
--- TOC entry 2223 (class 0 OID 0)
+-- TOC entry 2227 (class 0 OID 0)
 -- Dependencies: 8
 -- Name: SCHEMA v2; Type: COMMENT; Schema: -; Owner: postgres
 --
@@ -38,7 +38,7 @@ COMMENT ON SCHEMA v2 IS 'Version 2 approach';
 SET search_path = v2, pg_catalog;
 
 --
--- TOC entry 238 (class 1255 OID 1095820)
+-- TOC entry 239 (class 1255 OID 1095820)
 -- Name: chngdiv(text, date, text); Type: FUNCTION; Schema: v2; Owner: postgres
 --
 
@@ -80,7 +80,7 @@ $$;
 ALTER FUNCTION v2.chngdiv(stockname text, dt date, intr text) OWNER TO postgres;
 
 --
--- TOC entry 239 (class 1255 OID 1095900)
+-- TOC entry 240 (class 1255 OID 1095900)
 -- Name: chngdivfuture(text, date, text); Type: FUNCTION; Schema: v2; Owner: postgres
 --
 
@@ -148,7 +148,8 @@ CREATE TABLE instrumentsprops (
     bestgamma double precision,
     bestcost double precision,
     bestnu double precision,
-    classifierdump bytea
+    classifierdump bytea,
+    scalerdump bytea
 );
 
 
@@ -332,7 +333,7 @@ CREATE TABLE downloadinstruments (
 ALTER TABLE downloadinstruments OWNER TO postgres;
 
 --
--- TOC entry 2096 (class 2606 OID 1095850)
+-- TOC entry 2100 (class 2606 OID 1095850)
 -- Name: downloadinstruments downloadinstruments_pkey; Type: CONSTRAINT; Schema: v2; Owner: postgres
 --
 
@@ -341,7 +342,7 @@ ALTER TABLE ONLY downloadinstruments
 
 
 --
--- TOC entry 2094 (class 2606 OID 1093235)
+-- TOC entry 2098 (class 2606 OID 1093235)
 -- Name: instrumentsprops pk_dataminestocks_py; Type: CONSTRAINT; Schema: v2; Owner: postgres
 --
 
@@ -349,7 +350,7 @@ ALTER TABLE ONLY instrumentsprops
     ADD CONSTRAINT pk_dataminestocks_py PRIMARY KEY (symbol);
 
 
--- Completed on 2017-06-16 17:13:23 AEST
+-- Completed on 2017-07-05 15:27:21 AEST
 
 --
 -- PostgreSQL database dump complete
