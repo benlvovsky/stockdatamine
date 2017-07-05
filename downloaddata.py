@@ -161,7 +161,7 @@ def uploadInvestorDotComDataToDb():
 	create table tmp_table (stock text,date date,close float,open float,high float,low float,volume float);
 	SET datestyle = 'ISO,MDY';
 	COPY tmp_table (stock,date,close,open,high,low,volume) FROM STDIN WITH CSV delimiter as ';' ; 
-	delete from tmp_table t where t.close = 0 or t.high = 0 or t.low = 0 or t.volume = 0 ;
+	delete from tmp_table t where t.close = 0 or t.high = 0 or t.low = 0;-- or t.volume = 0 ;
 	delete from tmp_table t1 where exists 
 		(select 1 from tmp_table t2 where t2.stock = t1.stock and t2.date = t1.date and t2.ctid > t1.ctid) ;
 	INSERT INTO stocks (stock,date,close,open,high,low,volume,\\\"Adj Close\\\") 

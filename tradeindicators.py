@@ -6,33 +6,35 @@ import common as cm
 import time
 from pip._vendor.colorama.initialise import atexit_done
 from cProfile import label
+import json
 
-earliestDatTime = "2015-05-12"
+# earliestDatTime = "2015-05-12"
 
-allinstr = [ 
-'^AORD',
-'^N225',
-'^NDX',
-'^GDAXI',
-'^SSEC',
-'^HSI',
-'^BSESN',
-'^JKSE',
-'^KLSE',
-'^NZ50',
-'^STI',
-'^KS11',
-'^TWII',
-'^BVSP',
-'^GSPTSE',
-'^MXX',
-'^GSPC',
-'^ATX',
-'^BFX',
-'^FCHI',
-'^OSEAX',
-'^OMXSPI',
-]
+allinstr = []
+# [ 
+# '^AORD',
+# '^N225',
+# '^NDX',
+# '^GDAXI',
+# '^SSEC',
+# '^HSI',
+# '^BSESN',
+# '^JKSE',
+# '^KLSE',
+# '^NZ50',
+# '^STI',
+# '^KS11',
+# '^TWII',
+# '^BVSP',
+# '^GSPTSE',
+# '^MXX',
+# '^GSPC',
+# '^ATX',
+# '^BFX',
+# '^FCHI',
+# '^OSEAX',
+# '^OMXSPI',
+# ]
 
 conn = cm.getdbcon()
 cur = conn.cursor()
@@ -49,6 +51,8 @@ def formatLabel(x):
 
 def loadDataSet(symbol, isUseBestFeautures, offset, limit):
     df = loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit)
+    
+    #labels calculation
     mlDf = pd.DataFrame()
     mlDf['close'] = df[symbol + '_close']
     mlDf['nextshift'] = df[symbol + '_close'].shift(shiftDays)
@@ -58,7 +62,7 @@ def loadDataSet(symbol, isUseBestFeautures, offset, limit):
 
     mlDf.to_csv('shiftsDFTest.csv', sep=',')
 
-#     dateList = df['date'].as_matrix()
+    #ret vals creation
     colNames = df.columns.values
     X_dataSet = df.as_matrix()
     y_predictions = labels.values
@@ -66,6 +70,8 @@ def loadDataSet(symbol, isUseBestFeautures, offset, limit):
     return (colNames, X_dataSet, y_predictions, dateList)
 
 def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
+    allinstr = loadAllInstrJson()
+
     instrAr = list(allinstr)
     instrAr.remove(symbol)
     instrAr.insert(0, symbol)
@@ -141,22 +147,12 @@ def loadSymbolDataFrame(symbol, offset, limit):
     analytics.set_index('date')
     return analytics
 
-#     exit(0)
-############################
-# 
-# function_names_ohlc = "CDLLADDERBOTTOM,CDLSTALLEDPATTERN,CDLUPSIDEGAP2CROWS,CDLMORNINGDOJISTAR,CDL3STARSINSOUTH"
-# 
-# def funcsOHLCCalls(dfIn, dfOut):
-#     adjClose = dfIn['Adj Close'].as_matrix()
-#     closePr = dfIn.close.as_matrix()
-#     highPr = dfIn.close.as_matrix()
-#     lowPr = dfIn.close.as_matrix()
-#     openPr = dfIn.close.as_matrix()
-#     volume = dfIn.close.as_matrix()
-# 
-#     funcs = function_names_ohlc.split(',')
-# #     print "funcs=", funcs
-#     for f in funcs:
-#         toExec = getattr(ta, f)
-# #         print f 
-#         dfOut[f] = toExec(openPr, highPr, lowPr, adjClose)
+def loadAllInstrJson():
+    jsonDict = None
+    allinstr = []
+    with open('v2/helper/download-list.json') as json_data:
+        jsonDict = json.load(json_data)
+    for instr in jsonDict["allInstr"]:
+        allinstr.append(instr["name"])
+    
+    return allinstr
