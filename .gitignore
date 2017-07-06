@@ -14,3 +14,4 @@ __pycache__/
 /concatDFTest.csv
 /a.txt
 /shiftsDFTest.csv
+/concatDFTestNoCloseCols.csv
