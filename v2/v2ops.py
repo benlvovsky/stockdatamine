@@ -12,7 +12,9 @@ from sklearn.model_selection._split import KFold, StratifiedShuffleSplit,\
 import tradeindicators as ti
 
 conn = None
+FEATURESELECTIONDATASETLENGTH = 500
 DATASETLENGTH = 2000
+GAMMACOSTDATASETLENGTH = 500
 FITDATASETLENGTH= 5000
 # TESTSIZE = 0.2
 MOVEPRCNT = 0.02
@@ -120,11 +122,14 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
 #     DATALENGTH = 1000
     cur = conn.cursor()
     for symbol in symbolList:
-        (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, bestFeautures)    
+        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet( \
+                                        symbol, bestFeautures, limit=GAMMACOSTDATASETLENGTH)    
+        scaler = StandardScaler()
+        X_allDataSet = scaler.fit_transform(X_allDataSetUnscaled)
         decision_function_shape='ovr'
         clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
     
-        grid = gridSearch(clf, X_allDataSet[:DATASETLENGTH, :], y_allPredictions[:DATASETLENGTH])
+        grid = gridSearch(clf, X_allDataSet[:GAMMACOSTDATASETLENGTH, :], y_allPredictions[:GAMMACOSTDATASETLENGTH])
 #         grid = zoomInGridSearch(clf, X_allDataSet[:DATASETLENGTH, :], y_allPredictions[:DATASETLENGTH])
         bestParams = grid.best_params_
         query = ("UPDATE v2.instrumentsprops SET bestcost={0}, bestgamma={1} WHERE symbol = '{2}';"
@@ -137,7 +142,8 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
         binDump = pickle.dumps(clfTrained)
         cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s where symbol=%s", (psycopg2.Binary(binDump), symbol))
         conn.commit()               # commit separately to ensure this is in as the next operation might fail 
-        print '{0} found Cost={1} gamma={2} bestScore={3}, saved'.format(symbol, bestParams['C'], bestParams['gamma'], grid.best_score_)
+        print '{0} found Cost={1} gamma={2} bestScore={3}, saved'.\
+            format(symbol, bestParams['C'], bestParams['gamma'], grid.best_score_)
 
     cur.close();
 
@@ -224,7 +230,8 @@ def optimiseFeautures(symbolCSV):
     symbolList = symbolCSV.split(",")
     cur = conn.cursor()
     for symbol in symbolList:
-        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol)
+        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(\
+                            symbol, limit=FEATURESELECTIONDATASETLENGTH)
         scaler = StandardScaler()
         X_allDataSet = scaler.fit_transform(X_allDataSetUnscaled)
         print "Optimizing features for '{0}'".format(symbol)
@@ -246,17 +253,17 @@ def optimiseFeautures(symbolCSV):
             testExcludedIndexes = np.append(excludedIndexes, curIdx)
             testX_reduced = np.delete(X_reduced, testExcludedIndexes, axis=1)
             (meanScore, meanStd) = getCrossValMeanScore(clfLoaded, testX_reduced, y_allPredictions)
-            if bestMeanScore/bestMeanStd < meanScore/meanStd:
+            if bestMeanScore/bestMeanStd <= meanScore/meanStd:
                 excludedIndexes.append(curIdx)
                 excludedCols.append(colName)
-                print 'Excluded column {0}. bestMeanScore/bestMeanStd {1}/{2} < meanScore/meanStd {3}/{4}'\
+                print 'Excluded column {0}. bestMeanScore/bestMeanStd {1}/{2} <= meanScore/meanStd {3}/{4}'\
                     .format(colName, bestMeanScore, bestMeanStd, meanScore, meanStd)
                 bestMeanScore = meanScore
                 bestMeanStd = meanStd
             else:
                 goodCols.append(colName)
                 goodIndexes.append(curIdx)
-                print 'Column {0} is good. bestMeanScore/bestMeanStd {1}/{2} >= meanScore/meanStd {3}/{4}'\
+                print 'Column {0} is good. bestMeanScore/bestMeanStd {1}/{2} > meanScore/meanStd {3}/{4}'\
                     .format(colName, bestMeanScore, bestMeanStd, meanScore, meanStd)
         
         goodColsStr = ','.join(goodCols)

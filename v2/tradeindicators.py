@@ -4,37 +4,15 @@ import numpy as np
 import pandas as pd
 import common as cm
 import time
-from pip._vendor.colorama.initialise import atexit_done
-from cProfile import label
 import json
+import re
 
 # earliestDatTime = "2015-05-12"
 
 allinstr = []
-# [ 
-# '^AORD',
-# '^N225',
-# '^NDX',
-# '^GDAXI',
-# '^SSEC',
-# '^HSI',
-# '^BSESN',
-# '^JKSE',
-# '^KLSE',
-# '^NZ50',
-# '^STI',
-# '^KS11',
-# '^TWII',
-# '^BVSP',
-# '^GSPTSE',
-# '^MXX',
-# '^GSPC',
-# '^ATX',
-# '^BFX',
-# '^FCHI',
-# '^OSEAX',
-# '^OMXSPI',
-# ]
+
+global fullDataFrame
+fullDataFrame = None
 
 conn = cm.getdbcon()
 cur = conn.cursor()
@@ -49,25 +27,37 @@ def formatLabel(x):
     else:
         return 'neutral'
 
+def getFullDataFrameInstance(symbol, isUseBestFeautures, offset, limit):
+    global fullDataFrame
+    if fullDataFrame == None:
+        fullDataFrame = loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit)
+    return fullDataFrame
+
 def loadDataSet(symbol, isUseBestFeautures, offset, limit):
-    df = loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit)
+    fullDataFrame = getFullDataFrameInstance(symbol, isUseBestFeautures, offset, limit)
     
-    #labels calculation
+    #classificationLabels calculation
     mlDf = pd.DataFrame()
-    mlDf['close'] = df[symbol + '_close']
-    mlDf['nextshift'] = df[symbol + '_close'].shift(shiftDays)
-    mlDf['shiftdiff'] = df[symbol + '_close'].shift(shiftDays) / df[symbol + '_close']
-    mlDf['labelFormat'] = (df[symbol + '_close'].shift(shiftDays) / df[symbol + '_close']).map(formatLabel)
-    labels = (df[symbol + '_close'].shift(shiftDays) / df[symbol + '_close']).map(formatLabel)
+    mlDf['close'] = fullDataFrame[symbol + '_close']
+    mlDf['nextshift'] = fullDataFrame[symbol + '_close'].shift(shiftDays)
+    mlDf['shiftdiff'] = fullDataFrame[symbol + '_close'].shift(shiftDays) / fullDataFrame[symbol + '_close']
+    mlDf['labelFormat'] = (fullDataFrame[symbol + '_close'].shift(shiftDays) / fullDataFrame[symbol + '_close']).map(formatLabel)
+    classificationLabels = (fullDataFrame[symbol + '_close'].shift(shiftDays) / fullDataFrame[symbol + '_close']).map(formatLabel)
 
     mlDf.to_csv('shiftsDFTest.csv', sep=',')
 
     #ret vals creation
-    colNames = df.columns.values
-    X_dataSet = df.as_matrix()
-    y_predictions = labels.values
-    dateList = df.index.values
-    return (colNames, X_dataSet, y_predictions, dateList)
+    p = re.compile('^.+_close$')
+    closeOnlyColNames = filter(p.match, fullDataFrame.columns.values)
+    noCloseDf = fullDataFrame.drop(closeOnlyColNames, axis=1)
+    noCloseColNames = noCloseDf.columns.values
+    noCloseDf.to_csv('concatDFTestNoCloseCols.csv', sep=',')
+#     print "closeOnlyColNames={0}".format(closeOnlyColNames)
+#     print "noCloseColNames={0}".format(noCloseColNames)
+    X_dataSet = noCloseDf.as_matrix()
+    y_predictions = classificationLabels.values
+    dateList = fullDataFrame.index.values
+    return (noCloseColNames, X_dataSet, y_predictions, dateList)
 
 def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
     allinstr = loadAllInstrJson()
@@ -95,6 +85,7 @@ def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
     df = df.fillna(method='ffill').fillna(method='bfill')
 
     df.to_csv('concatDFTest.csv', sep=',')
+    
     return df
 
 def loadSymbolDataFrame(symbol, offset, limit):
