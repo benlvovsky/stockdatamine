@@ -156,7 +156,7 @@ def uploadInvestorDotComDataToDb():
 	print "Uploading to DB..."
 	sql = '''
 --	TRUNCATE table tmp_table;
-	TRUNCATE table stocks;
+-- 	TRUNCATE table stocks;
 	DROP TABLE IF EXISTS tmp_table;
 	create table tmp_table (stock text,date date,close float,open float,high float,low float,volume float);
 	SET datestyle = 'ISO,MDY';

@@ -16,6 +16,7 @@ FEATURESELECTIONDATASETLENGTH = 500
 DATASETLENGTH = 2000
 GAMMACOSTDATASETLENGTH = 500
 FITDATASETLENGTH= 5000
+TESTDATASETLENGTH= 10
 # TESTSIZE = 0.2
 MOVEPRCNT = 0.02
 # cv = KFold(n_splits=5, shuffle=True) #, random_state=42)
@@ -136,12 +137,14 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
                  .format(bestParams['C'], bestParams['gamma'], symbol))
     
         cur.execute(query)
-        clfTrained = svm.SVC(kernel='rbf', C=bestParams['C'], gamma=bestParams['gamma'], \
-                             decision_function_shape=decision_function_shape)\
-                                .fit(X_allDataSet, y_allPredictions)
-        binDump = pickle.dumps(clfTrained)
-        cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s where symbol=%s", (psycopg2.Binary(binDump), symbol))
-        conn.commit()               # commit separately to ensure this is in as the next operation might fail 
+        
+        # No need to save scaler and classifier here. They have to be savesd only in fitAndSave()
+#         clfTrained = svm.SVC(kernel='rbf', C=bestParams['C'], gamma=bestParams['gamma'], \
+#                              decision_function_shape=decision_function_shape)\
+#                                 .fit(X_allDataSet, y_allPredictions)
+#         binDump = pickle.dumps(clfTrained)
+#         cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s where symbol=%s", (psycopg2.Binary(binDump), symbol))
+#         conn.commit()               # commit separately to ensure this is in as the next operation might fail 
         print '{0} found Cost={1} gamma={2} bestScore={3}, saved'.\
             format(symbol, bestParams['C'], bestParams['gamma'], grid.best_score_)
 
@@ -151,15 +154,20 @@ def fitAndSave(symbolCSV, bestFeautures = False):
     symbolList = symbolCSV.split(",")
     cur = conn.cursor()
     for symbol in symbolList:
-#         print '---fitAndSave: symbol={0}'.format(symbol)
-        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, bestFeautures, limit=FITDATASETLENGTH)
+#         (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, bestFeautures, offset=200, limit=FITDATASETLENGTH)
+        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, offset=0, limit=FITDATASETLENGTH, useCache=True)
+        X_reduced = X_allDataSetUnscaled[TESTDATASETLENGTH:,]
+        y_reduced = y_allPredictions[TESTDATASETLENGTH:,]
+        print ' all data shape: {0}, X_reduced shape: {1}'.format(X_allDataSetUnscaled.shape, X_reduced.shape)
+
         scaler = StandardScaler()
-        X_allDataSet = scaler.fit_transform(X_allDataSetUnscaled)
+        X_allDataSet = scaler.fit_transform(X_reduced)
         decision_function_shape='ovr'
         bestParams = loadBestParams(symbol)
         clfTrained = svm.SVC(kernel='rbf', \
+                             C=10,
 # use default for now C and gamma         C=bestParams[0], gamma=bestParams[1], \
-                             decision_function_shape=decision_function_shape).fit(X_allDataSet, y_allPredictions)
+                             decision_function_shape=decision_function_shape).fit(X_allDataSet, y_reduced)
         binDump = pickle.dumps(clfTrained)
         binDumpScaler = pickle.dumps(scaler)
         cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s, scalerdump=%s where symbol=%s", \
@@ -169,8 +177,8 @@ def fitAndSave(symbolCSV, bestFeautures = False):
 
     cur.close();
 
-def loadDataSet(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENGTH):
-    return ti.loadDataSet(symbol, isUseBestFeautures, offset, limit)
+def loadDataSet(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENGTH, useCache=False):
+    return ti.loadDataSet(symbol, isUseBestFeautures, offset, limit, useCache)
 
 def loadDataSet_(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENGTH):
     cur = conn.cursor()
@@ -280,27 +288,20 @@ def testPerformance(symbolCSV):
     symbolList = symbolCSV.split(",")
 
     for symbol in symbolList:
-        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, True, offset=50, limit=DATASETLENGTH)
-        (colNames, X_allDataSetTestUnscaled, y_allPredictionsTest, dateList) = loadDataSet(symbol, True, offset=30, limit=20)
-        (clfLoaded, scalerLoaded) = loadClassifier(symbol)
-        X_allDataSet = scalerLoaded.transform(X_allDataSetUnscaled)
-        X_allDataSetTest = scalerLoaded.transform(X_allDataSetTestUnscaled)
-        (meanScore, std) = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions)
-        print '{0} meanScore={1}, std={2}, clf score on test={3}'.\
-            format(symbol, meanScore, std, clfLoaded.score(X_allDataSetTest, y_allPredictionsTest))
-
-# def loadOneRecord(symbol, offset=0):
-#     return loadDataSet(symbol, True, offset=offset, limit=1)
-#     cur = conn.cursor()
-#     cur.execute("select bestattributes from v2.instrumentsprops where symbol = '{0}'".format(symbol))
-#     bestFeatures = cur.fetchone()
-#     query = ("select date,instrument,{0},prediction from v2.datamining_aggr_view where instrument = \'{1}\'"
-#              " order by date desc offset {2} limit 1").format(bestFeatures[0], symbol, offset)
-#     cur.execute(query)
-#     records = cur.fetchall()
-#     numpyRecords = np.array(records)
-#     X_allDataSet = numpyRecords[:, 2:-1].astype(np.float32)
-#     return (X_allDataSet, numpyRecords[:, 0])
+#         (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, True, offset=200, limit=DATASETLENGTH)
+#         (colNames, X_allDataSetTestUnscaled, y_allPredictionsTest, dateList) = loadDataSet(symbol, True, offset=100, limit=100)
+#         print ' all data shape: {0}, test shape: {1}'.format(X_allDataSet.shape, X_allDataSetTestUnscaled.shape)
+        (clf, scaler) = loadClassifier(symbol)
+        (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, isUseBestFeautures=False, offset=0, limit=FITDATASETLENGTH, useCache=True)
+        X_allDataSetScaled = scaler.transform(X_allDataSet)
+        X_reduced = X_allDataSetScaled[TESTDATASETLENGTH:,]
+        y_reduced = y_allPredictions[TESTDATASETLENGTH:,]
+        X_test = X_allDataSetScaled[0:TESTDATASETLENGTH,]
+        y_test = y_allPredictions[0:TESTDATASETLENGTH,]
+        print ' all data shape: {0}, X_reduced shape: {1}, X_test shape: {2}'.format(X_allDataSetScaled.shape, X_reduced.shape, X_test.shape)
+        (meanScore, std) = getCrossValMeanScore(clf, X_reduced, y_reduced)
+        print '{0} meanScore = {1}, std = {2}, clf score on test = {3}'.\
+            format(symbol, meanScore, std, clf.score(X_test, y_test))
 
 def isPredictionCorrect(prediction, priceDiff):
     if type(priceDiff) is str:
@@ -315,9 +316,10 @@ def isPredictionCorrect(prediction, priceDiff):
 
 def loadClassifier(symbol):
     cur = conn.cursor()
-    cur.execute("SELECT (classifierdump, scalerdump) FROM v2.instrumentsprops where symbol=%s;", (symbol, ))
-    readClfDump = cur.fetchone()[0]
-    readScalerDump = cur.fetchone()[1]
+    cur.execute("SELECT classifierdump, scalerdump FROM v2.instrumentsprops where symbol=%s;", (symbol, ))
+    blob = cur.fetchone()
+    readClfDump = blob[0]
+    readScalerDump = blob[1]
     clfLoaded = pickle.loads(readClfDump)
     scalerLoaded = pickle.loads(readScalerDump)
     return (clfLoaded, scalerLoaded)

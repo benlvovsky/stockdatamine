@@ -15,3 +15,6 @@ __pycache__/
 /a.txt
 /shiftsDFTest.csv
 /concatDFTestNoCloseCols.csv
+/cleanedOldDates.csv
+/firstValidIndexSeries.csv
+/lastValidIndexSeries.csv

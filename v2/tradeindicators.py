@@ -6,6 +6,7 @@ import common as cm
 import time
 import json
 import re
+import sys
 
 # earliestDatTime = "2015-05-12"
 
@@ -27,14 +28,14 @@ def formatLabel(x):
     else:
         return 'neutral'
 
-def getFullDataFrameInstance(symbol, isUseBestFeautures, offset, limit):
+def getFullDataFrameInstance(symbol, isUseBestFeautures, offset, limit, useCache):
     global fullDataFrame
-    if fullDataFrame == None:
+    if not useCache or fullDataFrame is None: # then load
         fullDataFrame = loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit)
     return fullDataFrame
 
-def loadDataSet(symbol, isUseBestFeautures, offset, limit):
-    fullDataFrame = getFullDataFrameInstance(symbol, isUseBestFeautures, offset, limit)
+def loadDataSet(symbol, isUseBestFeautures, offset, limit, useCache=False):
+    fullDataFrame = getFullDataFrameInstance(symbol, isUseBestFeautures, offset, limit, useCache)
     
     #classificationLabels calculation
     mlDf = pd.DataFrame()
@@ -67,6 +68,15 @@ def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
     instrAr.insert(0, symbol)
 #     print 'instrAr=', instrAr
     joinedDf = None
+#     for i, instr in enumerate(instrAr):
+#         newDf = loadSymbolDataFrame(instr, offset, limit)
+#         if i % 3 == 0:
+#             sys.stdout.write('.')
+#             sys.stdout.flush()
+#         if joinedDf is None:
+#             joinedDf = newDf.set_index('date')
+#         else:
+#             joinedDf = joinedDf.join(newDf.set_index('date'), how='outer')
     for instr in instrAr:
         newDf = loadSymbolDataFrame(instr, offset, limit)
         if joinedDf is None:
@@ -75,12 +85,20 @@ def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
             joinedDf = joinedDf.join(newDf.set_index('date'), how='outer')
 
     # get the first valid index for each column and calculate the max
-    first_valid_loc = joinedDf.apply(lambda col: col.first_valid_index()).max()    
+    firstValidIndexSeries = joinedDf.apply(lambda col: col.first_valid_index())
+    firstValidIndexSeries.to_csv('firstValidIndexSeries.csv', sep=',')
+    first_valid_loc = firstValidIndexSeries.max()
     df = joinedDf.loc[first_valid_loc:]
+    df = joinedDf.dropna(axis=1, how='all')
+    df.to_csv('cleanedOldDates.csv', sep=',')
     
     # get the last valid index for each column and calculate the min
-    last_valid_loc = df.apply(lambda col: col.last_valid_index()).min()
+    lastValidIndexSeries = df.apply(lambda col: col.last_valid_index())
+    lastValidIndexSeries.to_csv('lastValidIndexSeries.csv', sep=',')
+#     exit(0)
+    last_valid_loc = lastValidIndexSeries.min()
     df = df.loc[:last_valid_loc]
+    df = joinedDf.dropna(axis=1, how='all')
 
     df = df.fillna(method='ffill').fillna(method='bfill')
 
@@ -89,13 +107,14 @@ def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
     return df
 
 def loadSymbolDataFrame(symbol, offset, limit):
-    print 'symbol="{0}" offset={1} limit={2}'.format(symbol, offset, limit)
+#     print 'symbol="{0}" offset={1} limit={2}'.format(symbol, offset, limit)
     start = time.time()
     cur.execute("select * from stocks where stock=%s order by date desc offset %s limit %s", \
                 (symbol, offset, limit))
 #     cur.execute("select * from stocks where stock=%s and date >= %s order by date desc offset %s limit %s", \
 #                 (symbol, earliestDatTime, offset, limit))
-    print '                  ...done in {0} seconds'.format(time.time() - start)
+#     print '                  ...done in {0} seconds'.format(time.time() - start)
+
     records = cur.fetchall()
     colNames = np.array(cur.description)[:,0]
 #     print 'colnames', colNames
