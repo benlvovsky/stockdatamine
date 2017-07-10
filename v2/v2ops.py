@@ -1,3 +1,5 @@
+import csv
+import pandas as pd
 import numpy as np
 from sklearn import svm #, feature_selection #, metrics, datasets
 import common as cm
@@ -12,13 +14,14 @@ from sklearn.model_selection._split import KFold, StratifiedShuffleSplit,\
 import tradeindicators as ti
 
 conn = None
-FEATURESELECTIONDATASETLENGTH = 500
-DATASETLENGTH = 2000
-GAMMACOSTDATASETLENGTH = 500
-FITDATASETLENGTH= 5000
-TESTDATASETLENGTH= 10
-# TESTSIZE = 0.2
-MOVEPRCNT = 0.02
+FEATURESELECTIONDATASETLENGTH = cm.FEATURESELECTIONDATASETLENGTH
+DATASETLENGTH                 = cm.DATASETLENGTH         
+GAMMACOSTDATASETLENGTH        = cm.GAMMACOSTDATASETLENGTH
+FITDATASETLENGTH              = cm.FITDATASETLENGTH      
+TESTDATASETLENGTH             = cm.TESTDATASETLENGTH     
+# TESTSIZE = 0.2                   # TESTSIZE = 0.2      
+# MOVEPRCNT                     = cm.MOVEPRCNT = 0.03
+
 # cv = KFold(n_splits=5, shuffle=True) #, random_state=42)
 # cv = StratifiedShuffleSplit(n_splits=10, test_size=0.1, random_state=42)
 cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
@@ -298,6 +301,7 @@ def testPerformance(symbolCSV):
         y_reduced = y_allPredictions[TESTDATASETLENGTH:,]
         X_test = X_allDataSetScaled[0:TESTDATASETLENGTH,]
         y_test = y_allPredictions[0:TESTDATASETLENGTH,]
+
         print ' all data shape: {0}, X_reduced shape: {1}, X_test shape: {2}'.format(X_allDataSetScaled.shape, X_reduced.shape, X_test.shape)
         (meanScore, std) = getCrossValMeanScore(clf, X_reduced, y_reduced)
         print '{0} meanScore = {1}, std = {2}, clf score on test = {3}'.\
@@ -307,9 +311,9 @@ def isPredictionCorrect(prediction, priceDiff):
     if type(priceDiff) is str:
         return "Unknown"
     else:
-        return  (priceDiff > 1) and (prediction == 1) or \
-            (priceDiff <= 1) and (prediction == 0)
-
+        return prediction == ti.formatLabel(priceDiff)
+#         return  (priceDiff > 1) and (prediction == 1) or \
+#             (priceDiff <= 1) and (prediction == 0)
 #         return  (priceDiff > 1 + MOVEPRCNT) and (prediction == 1) or \
 #             (priceDiff < 1 - MOVEPRCNT) and (prediction == 2) or \
 #             (1 - MOVEPRCNT <= priceDiff <= 1 + MOVEPRCNT) and (prediction == 0)
@@ -331,17 +335,21 @@ def predict(symbolCSV, offset=0):
     print "Date From,Symbol,Orig Price,Prediction For Date,Last Available Date Price,prediction," \
                 "Price Diff,Is Correct"
     for symbol in symbolList:
-#         (X_allDataSet, datesList) = loadOneRecord(symbol, offset)
-        (clfLoaded, scalerLoaded) = loadClassifier(symbol)
-        (colNames, X_allDataSetUnscaled, y_predictions, datesList) = loadDataSet(symbol, isUseBestFeautures=True, offset=offset, limit=1)
-        X_allDataSet = scalerLoaded.transform(X_allDataSetUnscaled)
+        (clf, scaler) = loadClassifier(symbol)
+#         (colNames, X_allDataSetUnscaled, y_predictions, datesList) = loadDataSet(symbol, isUseBestFeautures=False, offset=offset, limit=TESTDATASETLENGTH)
+        (colNames, X_allDataSetUnscaled, y_predictions, datesList) = loadDataSet(symbol, isUseBestFeautures=False, offset=0, limit=TESTDATASETLENGTH)
+        X_allDataSet = scaler.transform(X_allDataSetUnscaled)
 
-        cur.execute("select \"Adj Close\" from stocks where stock=%s and date = %s", (symbol, datesList[0]))
+        np.savetxt(symbol + "_dates.csv", datesList, "%s", ",")
+        offsetInt = int(offset)
+        theDate = datesList[offsetInt]
+        thePrice = X_allDataSet[offsetInt]
+        cur.execute("select \"Adj Close\" from stocks where stock=%s and date = %s", (symbol, theDate))
         stockPrice = cur.fetchone()[0];
         
         # we get a first one record 1 month later from the point of prediction date
         cur.execute("select date, \"Adj Close\" from stocks where stock=%s and date >= %s + '1 month'::interval order by date asc limit 1"\
-                    , (symbol, datesList[0]))
+                    , (symbol, theDate))
         stockDateAndPriceInAMonthList = cur.fetchall()
 #         print "stockDateAndPriceInAMonthList = {0}".format(stockDateAndPriceInAMonthList)
         if len(stockDateAndPriceInAMonthList) > 0:
@@ -353,11 +361,18 @@ def predict(symbolCSV, offset=0):
             priceDiff = 'cannot diff'
             predictionForDate = 'not defined'
 
-        prediction = clfLoaded.predict(X_allDataSet)
+#         print X_allDataSet.shape, int(offset)
+        # get the last value as it is the latest by date 
+        X_test = X_allDataSet
+#         df = pd.DataFrame(y_predictions)
+#         df.to_csv(symbol + "_predictions.csv", sep=',')
+
+        prediction = clf.predict(X_test)
+        thePrediction = prediction[offsetInt]
 #         print "Using samples from array:\n{0}\nshape:{1}".format(X_allDataSet, X_allDataSet.shape)
-        print "Using first from predictions array: {0}".format(prediction)
-        print "{0},{1},{2},{3},{4},{5},{6}, {7}"\
-            .format(datesList[0], symbol, stockPrice, predictionForDate, lastAvailableDateStockPrice, \
-                    prediction[0], priceDiff, isPredictionCorrect(prediction[0], priceDiff))
+#         print "Using first from predictions array: {0}".format(prediction)
+        print "{0},{1},{2},{3},{4},{5},{6},{7}"\
+            .format(theDate, symbol, stockPrice, predictionForDate, lastAvailableDateStockPrice, \
+                    thePrediction, priceDiff, isPredictionCorrect(thePrediction, priceDiff))
 
 #########################

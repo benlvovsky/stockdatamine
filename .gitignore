@@ -18,3 +18,15 @@ __pycache__/
 /cleanedOldDates.csv
 /firstValidIndexSeries.csv
 /lastValidIndexSeries.csv
+/^AORD_dates.csv
+/^AXDJ_dates.csv
+/^AXEJ_dates.csv
+/^AXFJ_dates.csv
+/^AXHJ_dates.csv
+/^AXIJ_dates.csv
+/^AXJR_dates.csv
+/^AXMJ_dates.csv
+/^AXNJ_dates.csv
+/^AXSJ_dates.csv
+/^AXUJ_dates.csv
+/^AXXJ_dates.csv

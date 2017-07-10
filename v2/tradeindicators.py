@@ -18,7 +18,7 @@ fullDataFrame = None
 conn = cm.getdbcon()
 cur = conn.cursor()
 shiftDays = -20
-difftreshhold = 0.03
+difftreshhold = 0.02
 
 def formatLabel(x):
     if x > 1 + difftreshhold:
@@ -32,6 +32,8 @@ def getFullDataFrameInstance(symbol, isUseBestFeautures, offset, limit, useCache
     global fullDataFrame
     if not useCache or fullDataFrame is None: # then load
         fullDataFrame = loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit)
+#         fullDataFrame.to_csv('shiftsDFTest.csv', sep=',')
+#         exit(1)
     return fullDataFrame
 
 def loadDataSet(symbol, isUseBestFeautures, offset, limit, useCache=False):
@@ -45,14 +47,12 @@ def loadDataSet(symbol, isUseBestFeautures, offset, limit, useCache=False):
     mlDf['labelFormat'] = (fullDataFrame[symbol + '_close'].shift(shiftDays) / fullDataFrame[symbol + '_close']).map(formatLabel)
     classificationLabels = (fullDataFrame[symbol + '_close'].shift(shiftDays) / fullDataFrame[symbol + '_close']).map(formatLabel)
 
-    mlDf.to_csv('shiftsDFTest.csv', sep=',')
-
     #ret vals creation
     p = re.compile('^.+_close$')
     closeOnlyColNames = filter(p.match, fullDataFrame.columns.values)
     noCloseDf = fullDataFrame.drop(closeOnlyColNames, axis=1)
     noCloseColNames = noCloseDf.columns.values
-    noCloseDf.to_csv('concatDFTestNoCloseCols.csv', sep=',')
+#     noCloseDf.to_csv('concatDFTestNoCloseCols.csv', sep=',')
 #     print "closeOnlyColNames={0}".format(closeOnlyColNames)
 #     print "noCloseColNames={0}".format(noCloseColNames)
     X_dataSet = noCloseDf.as_matrix()
@@ -90,7 +90,7 @@ def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
     first_valid_loc = firstValidIndexSeries.max()
     df = joinedDf.loc[first_valid_loc:]
     df = joinedDf.dropna(axis=1, how='all')
-    df.to_csv('cleanedOldDates.csv', sep=',')
+#     df.to_csv('cleanedOldDates.csv', sep=',')
     
     # get the last valid index for each column and calculate the min
     lastValidIndexSeries = df.apply(lambda col: col.last_valid_index())
@@ -102,9 +102,9 @@ def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
 
     df = df.fillna(method='ffill').fillna(method='bfill')
 
-    df.to_csv('concatDFTest.csv', sep=',')
+#     df.to_csv('concatDFTest.csv', sep=',')
     
-    return df
+    return df.iloc[::-1]
 
 def loadSymbolDataFrame(symbol, offset, limit):
 #     print 'symbol="{0}" offset={1} limit={2}'.format(symbol, offset, limit)
@@ -121,6 +121,8 @@ def loadSymbolDataFrame(symbol, offset, limit):
     desc_df = pd.DataFrame.from_records(records, columns=colNames)
 #     desc_df.set_index('date')
     df = desc_df.iloc[::-1]
+#     df.to_csv(symbol + '_stocksread.csv', sep=',')
+#     exit(1)
 
     date = df['date'].as_matrix()
     close = np.asarray(df['Adj Close'].as_matrix(), dtype='float')
