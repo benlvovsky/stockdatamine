@@ -8,6 +8,7 @@ from sklearn.model_selection import cross_val_score, train_test_split, GridSearc
 import pickle
 import psycopg2
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing.data import Normalizer
 from sklearn.model_selection._split import KFold, StratifiedShuffleSplit,\
     StratifiedKFold
@@ -19,12 +20,12 @@ DATASETLENGTH                 = cm.DATASETLENGTH
 GAMMACOSTDATASETLENGTH        = cm.GAMMACOSTDATASETLENGTH
 FITDATASETLENGTH              = cm.FITDATASETLENGTH      
 TESTDATASETLENGTH             = cm.TESTDATASETLENGTH     
-# TESTSIZE = 0.2                   # TESTSIZE = 0.2      
-# MOVEPRCNT                     = cm.MOVEPRCNT = 0.03
+PREDICTATASETLENGTH           = cm.PREDICTATASETLENGTH     
 
 # cv = KFold(n_splits=5, shuffle=True) #, random_state=42)
 # cv = StratifiedShuffleSplit(n_splits=10, test_size=0.1, random_state=42)
 cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+g_scaler = MinMaxScaler()
 
 def init():
     global conn
@@ -128,8 +129,8 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
     for symbol in symbolList:
         (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet( \
                                         symbol, bestFeautures, limit=GAMMACOSTDATASETLENGTH)    
-        scaler = StandardScaler()
-        X_allDataSet = scaler.fit_transform(X_allDataSetUnscaled)
+#         g_scaler = StandardScaler()
+        X_allDataSet = g_scaler.fit_transform(X_allDataSetUnscaled)
         decision_function_shape='ovr'
         clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
     
@@ -141,7 +142,7 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
     
         cur.execute(query)
         
-        # No need to save scaler and classifier here. They have to be savesd only in fitAndSave()
+        # No need to save g_scaler and classifier here. They have to be savesd only in fitAndSave()
 #         clfTrained = svm.SVC(kernel='rbf', C=bestParams['C'], gamma=bestParams['gamma'], \
 #                              decision_function_shape=decision_function_shape)\
 #                                 .fit(X_allDataSet, y_allPredictions)
@@ -161,18 +162,18 @@ def fitAndSave(symbolCSV, bestFeautures = False):
         (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, offset=0, limit=FITDATASETLENGTH, useCache=True)
         X_reduced = X_allDataSetUnscaled[TESTDATASETLENGTH:,]
         y_reduced = y_allPredictions[TESTDATASETLENGTH:,]
-        print ' all data shape: {0}, X_reduced shape: {1}'.format(X_allDataSetUnscaled.shape, X_reduced.shape)
+#         print ' all data shape: {0}, X_reduced shape: {1}'.format(X_allDataSetUnscaled.shape, X_reduced.shape)
 
-        scaler = StandardScaler()
-        X_allDataSet = scaler.fit_transform(X_reduced)
+# using global         g_scaler = StandardScaler()
+        X_allDataSet = g_scaler.fit_transform(X_reduced)
         decision_function_shape='ovr'
         bestParams = loadBestParams(symbol)
         clfTrained = svm.SVC(kernel='rbf', \
-                             C=10,
+#                              C=10,
 # use default for now C and gamma         C=bestParams[0], gamma=bestParams[1], \
                              decision_function_shape=decision_function_shape).fit(X_allDataSet, y_reduced)
         binDump = pickle.dumps(clfTrained)
-        binDumpScaler = pickle.dumps(scaler)
+        binDumpScaler = pickle.dumps(g_scaler)
         cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s, scalerdump=%s where symbol=%s", \
                     (psycopg2.Binary(binDump), psycopg2.Binary(binDumpScaler), symbol))
         conn.commit()
@@ -243,8 +244,8 @@ def optimiseFeautures(symbolCSV):
     for symbol in symbolList:
         (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(\
                             symbol, limit=FEATURESELECTIONDATASETLENGTH)
-        scaler = StandardScaler()
-        X_allDataSet = scaler.fit_transform(X_allDataSetUnscaled)
+# using global        g_scaler = StandardScaler()
+        X_allDataSet = g_scaler.fit_transform(X_allDataSetUnscaled)
         print "Optimizing features for '{0}'".format(symbol)
         decision_function_shape='ovr'
         bestParams = loadBestParams(symbol)
@@ -294,18 +295,20 @@ def testPerformance(symbolCSV):
 #         (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, True, offset=200, limit=DATASETLENGTH)
 #         (colNames, X_allDataSetTestUnscaled, y_allPredictionsTest, dateList) = loadDataSet(symbol, True, offset=100, limit=100)
 #         print ' all data shape: {0}, test shape: {1}'.format(X_allDataSet.shape, X_allDataSetTestUnscaled.shape)
-        (clf, scaler) = loadClassifier(symbol)
+        (clf, l_scaler) = loadClassifier(symbol)
         (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, isUseBestFeautures=False, offset=0, limit=FITDATASETLENGTH, useCache=True)
-        X_allDataSetScaled = scaler.transform(X_allDataSet)
+        X_allDataSetScaled = l_scaler.transform(X_allDataSet)
         X_reduced = X_allDataSetScaled[TESTDATASETLENGTH:,]
         y_reduced = y_allPredictions[TESTDATASETLENGTH:,]
         X_test = X_allDataSetScaled[0:TESTDATASETLENGTH,]
         y_test = y_allPredictions[0:TESTDATASETLENGTH,]
 
-        print ' all data shape: {0}, X_reduced shape: {1}, X_test shape: {2}'.format(X_allDataSetScaled.shape, X_reduced.shape, X_test.shape)
+#         print ' all data shape: {0}, X_reduced shape: {1}, X_test shape: {2}'.format(X_allDataSetScaled.shape, X_reduced.shape, X_test.shape)
         (meanScore, std) = getCrossValMeanScore(clf, X_reduced, y_reduced)
-        print '{0} meanScore = {1}, std = {2}, clf score on test = {3}'.\
-            format(symbol, meanScore, std, clf.score(X_test, y_test))
+        print '%6s: meanScore=%.3f std=%.3f  clf score on test=%.3f' % \
+            (symbol, meanScore, std, clf.score(X_test, y_test))
+#         print '{0} meanScore = {1}, std = {2}, clf score on test = {3}'.\
+#             format(symbol, meanScore, std, clf.score(X_test, y_test))
 
 def isPredictionCorrect(prediction, priceDiff):
     if type(priceDiff) is str:
@@ -332,47 +335,41 @@ def predict(symbolCSV, offset=0):
     symbolList = symbolCSV.split(",")
     cur = conn.cursor()
     print "Using offset={0}".format(offset)
-    print "Date From,Symbol,Orig Price,Prediction For Date,Last Available Date Price,prediction," \
+    print "DF date,Date From,Symbol,Orig Price,Prediction For Date,Last Available Date Price,prediction," \
                 "Price Diff,Is Correct"
     for symbol in symbolList:
-        (clf, scaler) = loadClassifier(symbol)
-#         (colNames, X_allDataSetUnscaled, y_predictions, datesList) = loadDataSet(symbol, isUseBestFeautures=False, offset=offset, limit=TESTDATASETLENGTH)
-        (colNames, X_allDataSetUnscaled, y_predictions, datesList) = loadDataSet(symbol, isUseBestFeautures=False, offset=0, limit=TESTDATASETLENGTH)
-        X_allDataSet = scaler.transform(X_allDataSetUnscaled)
+        (clf, l_scaler) = loadClassifier(symbol)
+        (colNames, X_allDataSetUnscaled, y_predictions, datesList) = loadDataSet(\
+                                    symbol, isUseBestFeautures=False, offset=0, limit=PREDICTATASETLENGTH)
+        X_allDataSet = l_scaler.transform(X_allDataSetUnscaled)
 
         np.savetxt(symbol + "_dates.csv", datesList, "%s", ",")
         offsetInt = int(offset)
         theDate = datesList[offsetInt]
-        thePrice = X_allDataSet[offsetInt]
-        cur.execute("select \"Adj Close\" from stocks where stock=%s and date = %s", (symbol, theDate))
-        stockPrice = cur.fetchone()[0];
-        
-        # we get a first one record 1 month later from the point of prediction date
-        cur.execute("select date, \"Adj Close\" from stocks where stock=%s and date >= %s + '1 month'::interval order by date asc limit 1"\
+        toPredictDataSet = X_allDataSet[offsetInt].reshape(1, -1)
+        cur.execute("select date, \"Adj Close\" from stocks where stock = %s and date >= %s order by date asc limit 1",\
+                    (symbol, theDate))
+        dateAndPriceClosest = cur.fetchall()
+        dbFoundDate = dateAndPriceClosest[0][0];
+        dbFoundStockPrice = dateAndPriceClosest[0][1];
+        cur.execute("select date, \"Adj Close\" from stocks where stock = %s and date >= %s + '1 month'::interval order by date asc limit 1"\
                     , (symbol, theDate))
         stockDateAndPriceInAMonthList = cur.fetchall()
-#         print "stockDateAndPriceInAMonthList = {0}".format(stockDateAndPriceInAMonthList)
         if len(stockDateAndPriceInAMonthList) > 0:
-            lastAvailableDateStockPrice = stockDateAndPriceInAMonthList[0][1]
             predictionForDate = stockDateAndPriceInAMonthList[0][0]
-            priceDiff = lastAvailableDateStockPrice/stockPrice
+            lastAvailableDateStockPrice = stockDateAndPriceInAMonthList[0][1]
+            priceDiff = lastAvailableDateStockPrice/dbFoundStockPrice
         else:
-            lastAvailableDateStockPrice = 'price to diff not present'
-            priceDiff = 'cannot diff'
-            predictionForDate = 'not defined'
+            predictionForDate = 'None'
+            lastAvailableDateStockPrice = 'None'
+            priceDiff = 'None'
 
-#         print X_allDataSet.shape, int(offset)
-        # get the last value as it is the latest by date 
-        X_test = X_allDataSet
-#         df = pd.DataFrame(y_predictions)
-#         df.to_csv(symbol + "_predictions.csv", sep=',')
-
-        prediction = clf.predict(X_test)
-        thePrediction = prediction[offsetInt]
+        prediction = clf.predict(toPredictDataSet)
+        thePrediction = prediction[0]
 #         print "Using samples from array:\n{0}\nshape:{1}".format(X_allDataSet, X_allDataSet.shape)
 #         print "Using first from predictions array: {0}".format(prediction)
-        print "{0},{1},{2},{3},{4},{5},{6},{7}"\
-            .format(theDate, symbol, stockPrice, predictionForDate, lastAvailableDateStockPrice, \
+        print "{0},{1},{2},{3},{4},{5},{6},{7},{8}"\
+            .format(theDate, dbFoundDate, symbol, dbFoundStockPrice, predictionForDate, lastAvailableDateStockPrice, \
                     thePrediction, priceDiff, isPredictionCorrect(thePrediction, priceDiff))
 
 #########################

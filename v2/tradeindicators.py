@@ -17,8 +17,8 @@ fullDataFrame = None
 
 conn = cm.getdbcon()
 cur = conn.cursor()
-shiftDays = -20
-difftreshhold = 0.02
+backShiftDays = -20
+difftreshhold = 0.01
 
 def formatLabel(x):
     if x > 1 + difftreshhold:
@@ -32,8 +32,6 @@ def getFullDataFrameInstance(symbol, isUseBestFeautures, offset, limit, useCache
     global fullDataFrame
     if not useCache or fullDataFrame is None: # then load
         fullDataFrame = loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit)
-#         fullDataFrame.to_csv('shiftsDFTest.csv', sep=',')
-#         exit(1)
     return fullDataFrame
 
 def loadDataSet(symbol, isUseBestFeautures, offset, limit, useCache=False):
@@ -41,11 +39,13 @@ def loadDataSet(symbol, isUseBestFeautures, offset, limit, useCache=False):
     
     #classificationLabels calculation
     mlDf = pd.DataFrame()
-    mlDf['close'] = fullDataFrame[symbol + '_close']
-    mlDf['nextshift'] = fullDataFrame[symbol + '_close'].shift(shiftDays)
-    mlDf['shiftdiff'] = fullDataFrame[symbol + '_close'].shift(shiftDays) / fullDataFrame[symbol + '_close']
-    mlDf['labelFormat'] = (fullDataFrame[symbol + '_close'].shift(shiftDays) / fullDataFrame[symbol + '_close']).map(formatLabel)
-    classificationLabels = (fullDataFrame[symbol + '_close'].shift(shiftDays) / fullDataFrame[symbol + '_close']).map(formatLabel)
+    mlDf['close']        =  fullDataFrame[symbol + '_close']
+    mlDf['backshift']    =  fullDataFrame[symbol + '_close'].shift(backShiftDays)
+    mlDf['backshiftdiff']=  fullDataFrame[symbol + '_close'] / fullDataFrame[symbol + '_close'].shift(backShiftDays)
+    mlDf['labelFormat']  = (fullDataFrame[symbol + '_close'] / fullDataFrame[symbol + '_close'].shift(backShiftDays)).map(formatLabel)
+    classificationLabels = (fullDataFrame[symbol + '_close'] / fullDataFrame[symbol + '_close'].shift(backShiftDays)).map(formatLabel)
+#     mlDf.to_csv('shiftsDFTest.csv', sep=',')
+#     exit(1)
 
     #ret vals creation
     p = re.compile('^.+_close$')
@@ -86,7 +86,7 @@ def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
 
     # get the first valid index for each column and calculate the max
     firstValidIndexSeries = joinedDf.apply(lambda col: col.first_valid_index())
-    firstValidIndexSeries.to_csv('firstValidIndexSeries.csv', sep=',')
+#     firstValidIndexSeries.to_csv('firstValidIndexSeries.csv', sep=',')
     first_valid_loc = firstValidIndexSeries.max()
     df = joinedDf.loc[first_valid_loc:]
     df = joinedDf.dropna(axis=1, how='all')
@@ -94,7 +94,7 @@ def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
     
     # get the last valid index for each column and calculate the min
     lastValidIndexSeries = df.apply(lambda col: col.last_valid_index())
-    lastValidIndexSeries.to_csv('lastValidIndexSeries.csv', sep=',')
+#     lastValidIndexSeries.to_csv('lastValidIndexSeries.csv', sep=',')
 #     exit(0)
     last_valid_loc = lastValidIndexSeries.min()
     df = df.loc[:last_valid_loc]
