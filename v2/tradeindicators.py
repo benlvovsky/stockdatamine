@@ -22,50 +22,51 @@ difftreshhold = 0.01
 
 def formatLabel(x):
     if x > 1 + difftreshhold:
-        return 'up'
+        return 'up   '
     elif x < 1 - difftreshhold:
-        return 'down'
+        return 'down '
     else:
-        return 'neutral'
+        return 'undef'
 
-def getFullDataFrameInstance(symbol, isUseBestFeautures, offset, limit, useCache):
+def getFullDataFrameInstance(symbol, isUseBestFeautures, offset, limit, datefrom, useCache):
     global fullDataFrame
-    if not useCache or fullDataFrame is None: # then load
-        fullDataFrame = loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit)
+#     if not useCache or fullDataFrame is None: # then load
+    fullDataFrame = loadCleanAllDataFrame(isUseBestFeautures, offset, limit, datefrom)
     return fullDataFrame
 
-def loadDataSet(symbol, isUseBestFeautures, offset, limit, useCache=False):
-    fullDataFrame = getFullDataFrameInstance(symbol, isUseBestFeautures, offset, limit, useCache)
+def loadDataSet(symbol, isUseBestFeautures, offset, limit, datefrom, useCache=False):
+    fullDataFrame = getFullDataFrameInstance(symbol, isUseBestFeautures, offset, limit, datefrom, useCache)
     
     #classificationLabels calculation
     mlDf = pd.DataFrame()
     mlDf['close']        =  fullDataFrame[symbol + '_close']
     mlDf['backshift']    =  fullDataFrame[symbol + '_close'].shift(backShiftDays)
     mlDf['backshiftdiff']=  fullDataFrame[symbol + '_close'] / fullDataFrame[symbol + '_close'].shift(backShiftDays)
-    mlDf['labelFormat']  = (fullDataFrame[symbol + '_close'] / fullDataFrame[symbol + '_close'].shift(backShiftDays)).map(formatLabel)
-    classificationLabels = (fullDataFrame[symbol + '_close'] / fullDataFrame[symbol + '_close'].shift(backShiftDays)).map(formatLabel)
-#     mlDf.to_csv('shiftsDFTest.csv', sep=',')
+    mlDf['labelFormat']  = (mlDf['close'] / mlDf['backshift']).map(formatLabel)
+    classificationLabels = (mlDf['close'] / mlDf['backshift']).map(formatLabel)
+    mlDf.to_csv(symbol + '_shiftsDFTest.csv', sep=',')
 #     exit(1)
 
+#     print fullDataFrame.index.values
     #ret vals creation
     p = re.compile('^.+_close$')
     closeOnlyColNames = filter(p.match, fullDataFrame.columns.values)
     noCloseDf = fullDataFrame.drop(closeOnlyColNames, axis=1)
     noCloseColNames = noCloseDf.columns.values
 #     noCloseDf.to_csv('concatDFTestNoCloseCols.csv', sep=',')
-#     print "closeOnlyColNames={0}".format(closeOnlyColNames)
-#     print "noCloseColNames={0}".format(noCloseColNames)
     X_dataSet = noCloseDf.as_matrix()
     y_predictions = classificationLabels.values
+#     print "{0}".format(','.join(y_predictions))
+#     exit(1)
     dateList = fullDataFrame.index.values
     return (noCloseColNames, X_dataSet, y_predictions, dateList)
 
-def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
+def loadCleanAllDataFrame(isUseBestFeautures, offset, limit, datefrom):
     allinstr = loadAllInstrJson()
 
     instrAr = list(allinstr)
-    instrAr.remove(symbol)
-    instrAr.insert(0, symbol)
+#     instrAr.remove(symbol)
+#     instrAr.insert(0, symbol)
 #     print 'instrAr=', instrAr
     joinedDf = None
 #     for i, instr in enumerate(instrAr):
@@ -78,7 +79,7 @@ def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
 #         else:
 #             joinedDf = joinedDf.join(newDf.set_index('date'), how='outer')
     for instr in instrAr:
-        newDf = loadSymbolDataFrame(instr, offset, limit)
+        newDf = loadSymbolDataFrame(instr, offset, limit, datefrom)
         if joinedDf is None:
             joinedDf = newDf.set_index('date')
         else:
@@ -106,11 +107,11 @@ def loadCleanAllDataFrame(symbol, isUseBestFeautures, offset, limit):
     
     return df.iloc[::-1]
 
-def loadSymbolDataFrame(symbol, offset, limit):
+def loadSymbolDataFrame(symbol, offset, limit, datefrom):
 #     print 'symbol="{0}" offset={1} limit={2}'.format(symbol, offset, limit)
     start = time.time()
-    cur.execute("select * from stocks where stock=%s order by date desc offset %s limit %s", \
-                (symbol, offset, limit))
+    cur.execute("select * from stocks where stock=%s and date >= %s order by date desc offset %s limit %s", \
+                (symbol, datefrom, offset, limit))
 #     cur.execute("select * from stocks where stock=%s and date >= %s order by date desc offset %s limit %s", \
 #                 (symbol, earliestDatTime, offset, limit))
 #     print '                  ...done in {0} seconds'.format(time.time() - start)

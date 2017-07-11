@@ -172,3 +172,4 @@ node investing-get.js -l -a -s 01/01/1987 -e 01/01/1989 -d >> a.txt
 node investing-get.js -l -a -s 01/01/1985 -e 01/01/1987 -d >> a.txt
 node investing-get.js -l -a -s 01/01/1983 -e 01/01/1985 -d >> a.txt
 node investing-get.js -l -a -s 01/01/1981 -e 01/01/1983 -d >> a.txt
+

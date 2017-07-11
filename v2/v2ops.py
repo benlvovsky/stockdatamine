@@ -1,3 +1,4 @@
+import datetime as dt
 import csv
 import pandas as pd
 import numpy as np
@@ -21,7 +22,8 @@ GAMMACOSTDATASETLENGTH        = cm.GAMMACOSTDATASETLENGTH
 FITDATASETLENGTH              = cm.FITDATASETLENGTH      
 TESTDATASETLENGTH             = cm.TESTDATASETLENGTH     
 PREDICTATASETLENGTH           = cm.PREDICTATASETLENGTH     
-
+# FITDATEFROM                   = dt.datetime.strptime('1992-01-01','%Y-%m-%d')
+FITDATEFROM                   = dt.datetime.strptime('2000-01-01','%Y-%m-%d')
 # cv = KFold(n_splits=5, shuffle=True) #, random_state=42)
 # cv = StratifiedShuffleSplit(n_splits=10, test_size=0.1, random_state=42)
 cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
@@ -159,7 +161,8 @@ def fitAndSave(symbolCSV, bestFeautures = False):
     cur = conn.cursor()
     for symbol in symbolList:
 #         (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, bestFeautures, offset=200, limit=FITDATASETLENGTH)
-        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, offset=0, limit=FITDATASETLENGTH, useCache=True)
+        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, offset=0, 
+                                limit=FITDATASETLENGTH)
         X_reduced = X_allDataSetUnscaled[TESTDATASETLENGTH:,]
         y_reduced = y_allPredictions[TESTDATASETLENGTH:,]
 #         print ' all data shape: {0}, X_reduced shape: {1}'.format(X_allDataSetUnscaled.shape, X_reduced.shape)
@@ -177,12 +180,13 @@ def fitAndSave(symbolCSV, bestFeautures = False):
         cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s, scalerdump=%s where symbol=%s", \
                     (psycopg2.Binary(binDump), psycopg2.Binary(binDumpScaler), symbol))
         conn.commit()
-        print '{0}: Fit classification for gamma={1} Cost={2} saved'.format(symbol, bestParams[1], bestParams[0])
+#         print '{0}: Fit classification for gamma={1} Cost={2} saved'.format(symbol, bestParams[1], bestParams[0])
+        print '{0}: Fit classification and scaler saved'.format(symbol)
 
     cur.close();
 
-def loadDataSet(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENGTH, useCache=False):
-    return ti.loadDataSet(symbol, isUseBestFeautures, offset, limit, useCache)
+def loadDataSet(symbol, isUseBestFeautures = False, offset=0, limit=DATASETLENGTH, datefrom=FITDATEFROM, useCache=False):
+    return ti.loadDataSet(symbol, isUseBestFeautures, offset, limit, datefrom, useCache=False)
 
 def loadDataSet_(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENGTH):
     cur = conn.cursor()
@@ -235,15 +239,15 @@ def loadBestParams(symbol):
     cur = conn.cursor()
     cur.execute(query)
     bestParams = cur.fetchone()
-    print 'bestParams={0}'.format(bestParams)
+#     print 'bestParams={0}'.format(bestParams)
     return bestParams
 
 def optimiseFeautures(symbolCSV):
     symbolList = symbolCSV.split(",")
     cur = conn.cursor()
     for symbol in symbolList:
-        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(\
-                            symbol, limit=FEATURESELECTIONDATASETLENGTH)
+        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(
+                            symbol, offset=50, limit=FEATURESELECTIONDATASETLENGTH)
 # using global        g_scaler = StandardScaler()
         X_allDataSet = g_scaler.fit_transform(X_allDataSetUnscaled)
         print "Optimizing features for '{0}'".format(symbol)
@@ -296,7 +300,7 @@ def testPerformance(symbolCSV):
 #         (colNames, X_allDataSetTestUnscaled, y_allPredictionsTest, dateList) = loadDataSet(symbol, True, offset=100, limit=100)
 #         print ' all data shape: {0}, test shape: {1}'.format(X_allDataSet.shape, X_allDataSetTestUnscaled.shape)
         (clf, l_scaler) = loadClassifier(symbol)
-        (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, isUseBestFeautures=False, offset=0, limit=FITDATASETLENGTH, useCache=True)
+        (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, isUseBestFeautures=False, offset=0, limit=FITDATASETLENGTH)
         X_allDataSetScaled = l_scaler.transform(X_allDataSet)
         X_reduced = X_allDataSetScaled[TESTDATASETLENGTH:,]
         y_reduced = y_allPredictions[TESTDATASETLENGTH:,]
@@ -339,14 +343,15 @@ def predict(symbolCSV, offset=0):
                 "Price Diff,Is Correct"
     for symbol in symbolList:
         (clf, l_scaler) = loadClassifier(symbol)
-        (colNames, X_allDataSetUnscaled, y_predictions, datesList) = loadDataSet(\
-                                    symbol, isUseBestFeautures=False, offset=0, limit=PREDICTATASETLENGTH)
+        (colNames, X_allDataSetUnscaled, y_predictions, datesList) = \
+                        loadDataSet(symbol, limit=PREDICTATASETLENGTH)
         X_allDataSet = l_scaler.transform(X_allDataSetUnscaled)
 
         np.savetxt(symbol + "_dates.csv", datesList, "%s", ",")
         offsetInt = int(offset)
         theDate = datesList[offsetInt]
-        toPredictDataSet = X_allDataSet[offsetInt].reshape(1, -1)
+#         toPredictDataSet = X_allDataSet[offsetInt].reshape(1, -1)
+#         print '{0}: {1}'.format(symbol, ','.join(map(str, X_allDataSetUnscaled[offsetInt])))
         cur.execute("select date, \"Adj Close\" from stocks where stock = %s and date >= %s order by date asc limit 1",\
                     (symbol, theDate))
         dateAndPriceClosest = cur.fetchall()
@@ -364,8 +369,15 @@ def predict(symbolCSV, offset=0):
             lastAvailableDateStockPrice = 'None'
             priceDiff = 'None'
 
-        prediction = clf.predict(toPredictDataSet)
-        thePrediction = prediction[0]
+#         prediction = clf.predict(toPredictDataSet)
+        prediction = clf.predict(X_allDataSet)
+        print ','.join(map(str, prediction))
+        print ','.join(map(str, y_predictions))
+        exit(1)
+        thePrediction = prediction[offsetInt]
+#         print ','.join(clf.predict(X_allDataSet))
+#         print ','.join(map(str, X_allDataSet[:30,]))
+#         exit(1)
 #         print "Using samples from array:\n{0}\nshape:{1}".format(X_allDataSet, X_allDataSet.shape)
 #         print "Using first from predictions array: {0}".format(prediction)
         print "{0},{1},{2},{3},{4},{5},{6},{7},{8}"\
