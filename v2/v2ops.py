@@ -22,8 +22,8 @@ GAMMACOSTDATASETLENGTH        = cm.GAMMACOSTDATASETLENGTH
 FITDATASETLENGTH              = cm.FITDATASETLENGTH      
 TESTDATASETLENGTH             = cm.TESTDATASETLENGTH     
 PREDICTATASETLENGTH           = cm.PREDICTATASETLENGTH     
-# FITDATEFROM                   = dt.datetime.strptime('1992-01-01','%Y-%m-%d')
-FITDATEFROM                   = dt.datetime.strptime('2000-01-01','%Y-%m-%d')
+FITDATEFROM                   = dt.datetime.strptime('1982-01-01','%Y-%m-%d')
+# FITDATEFROM                   = dt.datetime.strptime('2000-01-01','%Y-%m-%d')
 # cv = KFold(n_splits=5, shuffle=True) #, random_state=42)
 # cv = StratifiedShuffleSplit(n_splits=10, test_size=0.1, random_state=42)
 cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
@@ -131,7 +131,6 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
     for symbol in symbolList:
         (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet( \
                                         symbol, bestFeautures, limit=GAMMACOSTDATASETLENGTH)    
-#         g_scaler = StandardScaler()
         X_allDataSet = g_scaler.fit_transform(X_allDataSetUnscaled)
         decision_function_shape='ovr'
         clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
@@ -144,13 +143,6 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
     
         cur.execute(query)
         
-        # No need to save g_scaler and classifier here. They have to be savesd only in fitAndSave()
-#         clfTrained = svm.SVC(kernel='rbf', C=bestParams['C'], gamma=bestParams['gamma'], \
-#                              decision_function_shape=decision_function_shape)\
-#                                 .fit(X_allDataSet, y_allPredictions)
-#         binDump = pickle.dumps(clfTrained)
-#         cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s where symbol=%s", (psycopg2.Binary(binDump), symbol))
-#         conn.commit()               # commit separately to ensure this is in as the next operation might fail 
         print '{0} found Cost={1} gamma={2} bestScore={3}, saved'.\
             format(symbol, bestParams['C'], bestParams['gamma'], grid.best_score_)
 
@@ -185,8 +177,8 @@ def fitAndSave(symbolCSV, bestFeautures = False):
 
     cur.close();
 
-def loadDataSet(symbol, isUseBestFeautures = False, offset=0, limit=DATASETLENGTH, datefrom=FITDATEFROM, useCache=False):
-    return ti.loadDataSet(symbol, isUseBestFeautures, offset, limit, datefrom, useCache=False)
+def loadDataSet(symbol, isUseBestFeautures = False, offset=0, limit=DATASETLENGTH, datefrom=FITDATEFROM):
+    return ti.loadDataSet(symbol, isUseBestFeautures, offset, limit, datefrom)
 
 def loadDataSet_(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENGTH):
     cur = conn.cursor()
@@ -345,7 +337,10 @@ def predict(symbolCSV, offset=0):
         (clf, l_scaler) = loadClassifier(symbol)
         (colNames, X_allDataSetUnscaled, y_predictions, datesList) = \
                         loadDataSet(symbol, limit=PREDICTATASETLENGTH)
-        X_allDataSet = l_scaler.transform(X_allDataSetUnscaled)
+        X_allDataSet    = l_scaler.transform(X_allDataSetUnscaled)
+#         X_allDataSet    = X_allDataSet[0:PREDICTATASETLENGTH,:]
+#         y_predictions   = y_predictions[0:PREDICTATASETLENGTH,]
+#         datesList       = datesList[0:PREDICTATASETLENGTH,]
 
         np.savetxt(symbol + "_dates.csv", datesList, "%s", ",")
         offsetInt = int(offset)
@@ -371,17 +366,34 @@ def predict(symbolCSV, offset=0):
 
 #         prediction = clf.predict(toPredictDataSet)
         prediction = clf.predict(X_allDataSet)
-        print ','.join(map(str, prediction))
-        print ','.join(map(str, y_predictions))
-        exit(1)
+#         f1=open('./1.txt', 'w+')
+#         f2=open('./2.txt', 'w+')
+        dfCompr = pd.DataFrame(
+                {
+                'Dates Actual': datesList,
+                'Outcome Actual': y_predictions,
+                'Outcome Predicted': prediction
+                })
+        dfCompr.to_csv(symbol + '_comparison.csv', sep=',')
+
+#         print >>open('outome_' + symbol + '_prdctd.txt', 'w+'), '\n'.join(map(str, prediction))
+#         print >>open('outome_' + symbol + '_actual.txt', 'w+'), '\n'.join(map(str, y_predictions))
         thePrediction = prediction[offsetInt]
 #         print ','.join(clf.predict(X_allDataSet))
 #         print ','.join(map(str, X_allDataSet[:30,]))
 #         exit(1)
 #         print "Using samples from array:\n{0}\nshape:{1}".format(X_allDataSet, X_allDataSet.shape)
 #         print "Using first from predictions array: {0}".format(prediction)
-        print "{0},{1},{2},{3},{4},{5},{6},{7},{8}"\
-            .format(theDate, dbFoundDate, symbol, dbFoundStockPrice, predictionForDate, lastAvailableDateStockPrice, \
-                    thePrediction, priceDiff, isPredictionCorrect(thePrediction, priceDiff))
+        print '{:10s} {:10s} {:10s} {:10s} {:10s} {:10s} {:10s} {:5.4f} {:10s}'\
+            .format(#l_scaler.get_params(), 
+                    str(theDate),
+                    str(dbFoundDate), 
+                    symbol, 
+                    str(dbFoundStockPrice), 
+                    predictionForDate, 
+                    str(lastAvailableDateStockPrice),
+                    str(thePrediction), 
+                    priceDiff,
+                    str(isPredictionCorrect(thePrediction, priceDiff)))
 
 #########################
