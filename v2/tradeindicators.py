@@ -37,7 +37,7 @@ def getFullDataFrameInstance(isUseBestFeautures, offset, limit, datefrom, useCac
     global fullDataFrame
     if not useCache or fullDataFrame is None: # then load
         fullDataFrame = loadCleanAllDataFrame(isUseBestFeautures, offset, limit, datefrom, symbol)
-        fullDataFrame.to_csv(symbol + 'cacheable.csv', sep=',')
+        fullDataFrame.to_csv(symbol + '_cacheable.csv', sep=',')
         print 'fullDataFrame loaded'
 
     return fullDataFrame
@@ -77,7 +77,7 @@ def loadCleanAllDataFrame(isUseBestFeautures, offset, limit, datefrom, symbol = 
     instrAr = list(allinstr)
     joinedDf = None
     for instr in instrAr:
-        newDf = loadSymbolDataFrame(instr, offset, limit, datefrom)
+        newDf = loadSymbolTechAnalytics(instr, offset, limit, datefrom)
         if joinedDf is None:
             joinedDf = newDf.set_index('date')
         else:
@@ -95,22 +95,21 @@ def loadCleanAllDataFrame(isUseBestFeautures, offset, limit, datefrom, symbol = 
 #     lastValidIndexSeries = df.apply(lambda col: col.last_valid_index())
 #     last_valid_loc = lastValidIndexSeries.min()
 #     df = df.loc[:last_valid_loc]
-    df = cleanDataFrameFromNans(joinedDf)
-    df = df.dropna(axis=1, how='all')
-    df = df.fillna(method='ffill').fillna(method='bfill')
+    df = cleanInvalidRows(joinedDf)
+    df = df.dropna(axis=1, how='all')   # clean NaN columns
+    df = df.fillna(method='ffill').fillna(method='bfill')   #fill missing values
     
     return df.iloc[::-1] # return descending date
 
-def loadSymbolDataFrame(symbol, offset, limit, datefrom):
-#     print 'symbol="{0}" offset={1} limit={2}'.format(symbol, offset, limit)
-    start = time.time()
+def loadSymbolTechAnalytics(symbol, offset, limit, datefrom):
+    # get in desc order to ensure last dates data is in as limit might cut it out
     cur.execute("select * from stocks where stock=%s and date >= %s order by date desc offset %s limit %s", \
                 (symbol, datefrom, offset, limit))
 
     records = cur.fetchall()
     colNames = np.array(cur.description)[:,0]
     desc_df = pd.DataFrame.from_records(records, columns=colNames)
-    asc_df = desc_df.iloc[::-1] # return descending date
+    asc_df = desc_df.iloc[::-1] # return ascending date
     date = asc_df['date'].as_matrix()
     close = np.asarray(asc_df['Adj Close'].as_matrix(), dtype='float')
     closeSimple = asc_df.close.as_matrix()
@@ -140,24 +139,27 @@ def loadSymbolDataFrame(symbol, offset, limit, datefrom):
     analytics[symbol + '_bbsignallower'] = tempDf.apply(lambda row: row['close'] / row['lowerband'], axis=1)
     analytics.set_index('date')
     
-    retVal = cleanDataFrameFromNans(analytics)
+    # TODO: add more analytics
+    
+    #?? maybe we do not need the below line due to various length history giving issues for prediction vs fitting
+#     retVal = cleanInvalidRows(analytics)
 #     retVal.to_csv(symbol.replace('/', '_') + '_cleanedNansAnzZeroCols.csv', sep=',')
     return retVal
 
-def cleanDataFrameFromNans(dfUnclean):
+def cleanInvalidRows(dfUnclean):
     # arrays still in ascending order!
     # get the first valid index for each column and calculate the max
     firstValidIndexSeries = dfUnclean.apply(lambda col: col.first_valid_index())
     first_valid_loc = firstValidIndexSeries.max()
     df = dfUnclean.loc[first_valid_loc:]
-    df = df.dropna(axis=1, how='all')
+#     df = df.dropna(axis=1, how='all')
     
     # get the last valid index for each column and calculate the min
     lastValidIndexSeries = df.apply(lambda col: col.last_valid_index())
     last_valid_loc = lastValidIndexSeries.min()
     df = df.loc[:last_valid_loc]
-    df = df.dropna(axis=1, how='all')       # rop all NaN
-    df = df.loc[:, (df != 0).any(axis=0)]   # remove all zeros columns
+#     df = df.dropna(axis=1, how='all')       # rop all NaN
+#     df = df.loc[:, (df != 0).any(axis=0)]   # remove all zeros columns
 #     df = df.replace(0, np.NaN)
     return df
 

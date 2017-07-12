@@ -354,7 +354,7 @@ def syncaggr():
 def getDefaultArg(argNum, dflt):
     if len(sys.argv) < argNum + 1:
         par = dflt
-        print 'As argument number {0} was not supplied the default \'{1}\' is used'.format(argNum, dflt)
+#         print 'As argument number {0} was not supplied the default \'{1}\' is used'.format(argNum, dflt)
     else:
         par = sys.argv[argNum]
     return par;
@@ -365,7 +365,7 @@ def main():
     if os.environ.get('PGHOST') is None:
         os.environ['PGHOST'] = PGHOST # visible in this process + all children
 
-    print 'PGHOST={0}'.format(os.environ.get('PGHOST'))
+#     print 'PGHOST={0}'.format(os.environ.get('PGHOST'))
     v2ops.init()
 
     if len(sys.argv) >= 2:
@@ -399,7 +399,6 @@ def main():
         elif sys.argv[1] == 'v2FitAndSave':
             v2ops.fitAndSave(getDefaultArg(2, '^AORD'), getDefaultArg(3, 'True') == 'True')
         elif sys.argv[1] == 'v2Predict':
-            print "Expecting v2GammaCost, v2FitAndSave() and v2Features have been called earlier to optimize and save classifier"
             v2ops.predict(getDefaultArg(2, '^AORD'), getDefaultArg(3, '0'))
         elif sys.argv[1] == 'v2mvc':
             (colNames, X_allDataSet, y_allPredictions, dateList) = ti.loadDataSet('^AORD', False, 30, 2000)
