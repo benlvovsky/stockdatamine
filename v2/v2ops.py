@@ -336,8 +336,11 @@ def predict(symbolCSV, offset=0):
     for symbol in symbolList:
         (clf, l_scaler) = loadClassifier(symbol)
         (colNames, X_allDataSetUnscaled, y_predictions, datesList) = \
-                        loadDataSet(symbol, limit=PREDICTATASETLENGTH)
-        X_allDataSet    = l_scaler.transform(X_allDataSetUnscaled)
+                        loadDataSet(symbol, limit=FITDATASETLENGTH)
+        dfCompr = pd.DataFrame(X_allDataSetUnscaled)
+        dfCompr.to_csv(symbol + '_X_allDataSetUnscaled.csv', sep=',')
+        
+        X_allDataSet    = l_scaler.transform(X_allDataSetUnscaled)  
 #         X_allDataSet    = X_allDataSet[0:PREDICTATASETLENGTH,:]
 #         y_predictions   = y_predictions[0:PREDICTATASETLENGTH,]
 #         datesList       = datesList[0:PREDICTATASETLENGTH,]
