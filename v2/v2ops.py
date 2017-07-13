@@ -138,9 +138,15 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
         grid = gridSearch(clf, X_allDataSet[:GAMMACOSTDATASETLENGTH, :], y_allPredictions[:GAMMACOSTDATASETLENGTH])
 #         grid = zoomInGridSearch(clf, X_allDataSet[:DATASETLENGTH, :], y_allPredictions[:DATASETLENGTH])
         bestParams = grid.best_params_
-        query = ("UPDATE v2.instrumentsprops SET bestcost={0}, bestgamma={1} WHERE symbol = '{2}';"
+        query = (
+            '''
+            INSERT INTO v2.instrumentsprops(symbol) 
+                select {2} from v2.instrumentsprops i 
+                    where not exists 
+                        (select 1 from v2.instrumentsprops i2 where i2.symbol = {2});
+            UPDATE v2.instrumentsprops SET bestcost={0}, bestgamma={1} WHERE symbol = '{2}';
+            '''
                  .format(bestParams['C'], bestParams['gamma'], symbol))
-    
         cur.execute(query)
         
         print '{0} found Cost={1} gamma={2} bestScore={3}, saved'.\
@@ -152,20 +158,16 @@ def fitAndSave(symbolCSV, bestFeautures = False):
     symbolList = symbolCSV.split(",")
     cur = conn.cursor()
     for symbol in symbolList:
-#         (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, bestFeautures, offset=200, limit=FITDATASETLENGTH)
         (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, offset=0, 
                                 limit=FITDATASETLENGTH)
         X_reduced = X_allDataSetUnscaled[TESTDATASETLENGTH:,]
         y_reduced = y_allPredictions[TESTDATASETLENGTH:,]
-#         print ' all data shape: {0}, X_reduced shape: {1}'.format(X_allDataSetUnscaled.shape, X_reduced.shape)
 
-# using global         g_scaler = StandardScaler()
         X_allDataSet = g_scaler.fit_transform(X_reduced)
         decision_function_shape='ovr'
         bestParams = loadBestParams(symbol)
         clfTrained = svm.SVC(kernel='rbf', \
-#                              C=10,
-# use default for now C and gamma         C=bestParams[0], gamma=bestParams[1], \
+                             C=bestParams[0], gamma=bestParams[1], \
                              decision_function_shape=decision_function_shape).fit(X_allDataSet, y_reduced)
         binDump = pickle.dumps(clfTrained)
         binDumpScaler = pickle.dumps(g_scaler)
@@ -309,8 +311,10 @@ def testPerformance(symbolCSV):
 def isPredictionCorrect(prediction, priceDiff):
     if type(priceDiff) is str:
         return "Unknown"
+    elif prediction == 'undef' or ti.formatLabel(priceDiff) == 'undef':
+        return 'some undef'
     else:
-        return prediction == ti.formatLabel(priceDiff)
+        return str(prediction == ti.formatLabel(priceDiff))
 #         return  (priceDiff > 1) and (prediction == 1) or \
 #             (priceDiff <= 1) and (prediction == 0)
 #         return  (priceDiff > 1 + MOVEPRCNT) and (prediction == 1) or \
@@ -331,8 +335,10 @@ def predict(symbolCSV, offset=0):
     symbolList = symbolCSV.split(",")
     cur = conn.cursor()
     print "Using offset={0}".format(offset)
-    print "DF date,Date From,Symbol,Orig Price,Prediction For Date,Last Available Date Price,prediction," \
-                "Price Diff,Is Correct"
+    print '{:^10s} {:^10s} {:^10s} {:^10s} {:^10s} {:^10s} {:^5s} {:^10s} {:^10s}'.format(
+        "DF date","Date From","Symbol","Orig Price","Pred Date",
+        "Last avail Price","prediction",
+        "Price Diff","Is Correct")
     for symbol in symbolList:
         (clf, l_scaler) = loadClassifier(symbol)
         (colNames, X_allDataSetUnscaled, y_predictions, datesList) = \
@@ -341,9 +347,9 @@ def predict(symbolCSV, offset=0):
         dfCompr.to_csv(symbol + '_X_allDataSetUnscaled.csv', sep=',')
         
         X_allDataSet    = l_scaler.transform(X_allDataSetUnscaled)  
-#         X_allDataSet    = X_allDataSet[0:PREDICTATASETLENGTH,:]
-#         y_predictions   = y_predictions[0:PREDICTATASETLENGTH,]
-#         datesList       = datesList[0:PREDICTATASETLENGTH,]
+        X_allDataSet    = X_allDataSet[:PREDICTATASETLENGTH,]
+        y_predictions   = y_predictions[:PREDICTATASETLENGTH,]
+        datesList       = datesList[:PREDICTATASETLENGTH,]
 
         np.savetxt(symbol + "_dates.csv", datesList, "%s", ",")
         offsetInt = int(offset)
@@ -387,16 +393,16 @@ def predict(symbolCSV, offset=0):
 #         exit(1)
 #         print "Using samples from array:\n{0}\nshape:{1}".format(X_allDataSet, X_allDataSet.shape)
 #         print "Using first from predictions array: {0}".format(prediction)
-        print '{:10s} {:10s} {:10s} {:10s} {:10s} {:10s} {:10s} {:5.4f} {:10s}'\
+        print '{:^10s} {:^10s} {:^10s} {:>10.2f} {:^10s} {:>10.2f} {:^10s} {:>5.4f} {:^10s}'\
             .format(#l_scaler.get_params(), 
                     str(theDate),
                     str(dbFoundDate), 
                     symbol, 
-                    str(dbFoundStockPrice), 
-                    predictionForDate, 
-                    str(lastAvailableDateStockPrice),
+                    dbFoundStockPrice, 
+                    str(predictionForDate), 
+                    lastAvailableDateStockPrice,
                     str(thePrediction), 
                     priceDiff,
-                    str(isPredictionCorrect(thePrediction, priceDiff)))
+                    isPredictionCorrect(thePrediction, priceDiff))
 
 #########################

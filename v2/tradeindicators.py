@@ -17,21 +17,25 @@ fullDataFrame = None
 conn = cm.getdbcon()
 cur = conn.cursor()
 backShiftDays = -30
-difftreshhold = 0.01
+difftreshhold = 0.02
 
-def formatLabel_(x):
-    if x > 1:
-        return 'up'
-    else:
-        return 'down'
+# def formatLabel_(x):
+#     if x > 1:
+#         return 'up'
+#     else:
+#         return 'down'
 
 def formatLabel(x):
-    if x > 1 + difftreshhold:
+    upper = 1 + difftreshhold
+    lower = 1 - difftreshhold
+    if x > upper:
         return 'up'
-    elif x <= 1 - difftreshhold:
+    elif upper >= x >= lower:
+        return 'undef'
+    elif lower > x >= 0:
         return 'down'
     else:
-        return 'undef'
+        return '???'
 
 def getFullDataFrameInstance(isUseBestFeautures, offset, limit, datefrom, useCache, symbol='_'):
     global fullDataFrame
@@ -124,14 +128,21 @@ def loadSymbolTechAnalytics(symbol, offset, limit, datefrom):
     tempDf = pd.DataFrame()
     tempDf['close'] = close
     analytics[symbol + '_rsi'] = ta.RSI(close)
-    macd, signal, analytics[symbol + '_macdhist'] = ta.MACD(close, fastperiod=12, slowperiod=26, signalperiod=9)
-    analytics[symbol + '_mfi'] = ta.MFI(high, low, close, volume, timeperiod=14)
-    analytics[symbol + '_roc'] = ta.ROC(close, timeperiod=10)
-    tempDf['stochk'], tempDf['stochd'] = ta.STOCH(high, low, close, fastk_period=5, slowk_period=3, slowk_matype=0, slowd_period=3, slowd_matype=0)
+    macd, signal, analytics[symbol + '_macdhist1'] = ta.MACD(close, fastperiod=12, slowperiod=26, signalperiod=9)
+    macd, signal, analytics[symbol + '_macdhist2'] = ta.MACD(close, fastperiod=8, slowperiod=17, signalperiod=9)
+    analytics[symbol + '_mfi1'] = ta.MFI(high, low, close, volume, timeperiod=14)
+    analytics[symbol + '_mfi2'] = ta.MFI(high, low, close, volume, timeperiod=20)
+    analytics[symbol + '_roc1'] = ta.ROC(close, timeperiod=10)
+    analytics[symbol + '_roc2'] = ta.ROC(close, timeperiod=20)
+    tempDf['stochk1'], tempDf['stochd1'] = ta.STOCH(high, low, close, fastk_period=5, slowk_period=3, slowk_matype=0, slowd_period=3, slowd_matype=0)
+    tempDf['stochk2'], tempDf['stochd2'] = ta.STOCH(high, low, close, fastk_period=10, slowk_period=6, slowk_matype=0, slowd_period=6, slowd_matype=0)
 #     analytics[symbol + '_stochsignal'] = asc_df.apply(stochdif, axis=1)
-    analytics[symbol + '_stochsignal'] = tempDf.apply(lambda row: row['stochk'] - row['stochd'], axis=1)
-    analytics[symbol + '_willr'] = ta.WILLR(high, low, close, timeperiod=14)
-    analytics[symbol + '_adx'] = ta.ADX(high, low, close, timeperiod=14)
+    analytics[symbol + '_stochsignal1'] = tempDf.apply(lambda row: row['stochk1'] - row['stochd1'], axis=1)
+    analytics[symbol + '_stochsignal2'] = tempDf.apply(lambda row: row['stochk2'] - row['stochd2'], axis=1)
+    analytics[symbol + '_willr1'] = ta.WILLR(high, low, close, timeperiod=14)
+    analytics[symbol + '_willr2'] = ta.WILLR(high, low, close, timeperiod=28)
+    analytics[symbol + '_adx1'] = ta.ADX(high, low, close, timeperiod=14)
+    analytics[symbol + '_adx2'] = ta.ADX(high, low, close, timeperiod=28)
     analytics[symbol + '_ultosc'] = ta.ULTOSC(high, low, close, timeperiod1=7, timeperiod2=14, timeperiod3=28)
     analytics[symbol + '_obv'] = ta.OBV(close, volume)
     tempDf['upperband'], tempDf['middleband'], tempDf['lowerband'] = ta.BBANDS(close, timeperiod=5, nbdevup=2, nbdevdn=2, matype=0)
@@ -144,7 +155,7 @@ def loadSymbolTechAnalytics(symbol, offset, limit, datefrom):
     #?? maybe we do not need the below line due to various length history giving issues for prediction vs fitting
 #     retVal = cleanInvalidRows(analytics)
 #     retVal.to_csv(symbol.replace('/', '_') + '_cleanedNansAnzZeroCols.csv', sep=',')
-    return retVal
+    return analytics
 
 def cleanInvalidRows(dfUnclean):
     # arrays still in ascending order!
@@ -158,6 +169,9 @@ def cleanInvalidRows(dfUnclean):
     lastValidIndexSeries = df.apply(lambda col: col.last_valid_index())
     last_valid_loc = lastValidIndexSeries.min()
     df = df.loc[:last_valid_loc]
+    
+    lastValidIndexSeries.to_csv('lastValidIndexSeries.csv', sep=',')
+    firstValidIndexSeries.to_csv('firstValidIndexSeries.csv', sep=',')
 #     df = df.dropna(axis=1, how='all')       # rop all NaN
 #     df = df.loc[:, (df != 0).any(axis=0)]   # remove all zeros columns
 #     df = df.replace(0, np.NaN)

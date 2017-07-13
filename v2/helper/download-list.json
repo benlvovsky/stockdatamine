@@ -7,7 +7,7 @@
 			"id" : "8830"
 		}, {
 			"name" : "^N225",
-			"id" : "946058"
+			"id" : "178"
 		}, {
 			"name" : "^NDX",
 			"id" : "20"
@@ -18,26 +18,23 @@
 			"name" : "^SSEC",
 			"id" : "40820"
 		}, {
-			"name" : "^BSESN",
-			"id" : "39929"
+			"name" : "^FTWIINDL",
+			"id" : "28920"
 		}, {
 			"name" : "^JKSE",
 			"id" : "29049"
 		}, {
-			"name" : "^KLSE",
-			"id" : "29078"
+			"name" : "^FTWIMALL",
+			"id" : "29074"
 		}, {
-			"name" : "^NZDOW",
-			"id" : "41141"
-		}, {
-			"name" : "^STI",
-			"id" : "40006"
+			"name" : "^FTWISGPL",
+			"id" : "28869"
 		}, {
 			"name" : "^KS11",
 			"id" : "37426"
 		}, {
-			"name" : "^TWII",
-			"id" : "38017"
+			"name" : "^FTWITWNL",
+			"id" : "29173"
 		}, {
 			"name" : "^BVSP",
 			"id" : "17920"
@@ -50,9 +47,6 @@
 		}, {
 			"name" : "^BFX",
 			"id" : "14601"
-		}, {
-			"name" : "^OSEAX",
-			"id" : "49497"
 		}, {
 			"name" : "^OMXSPI",
 			"id" : "25683"
