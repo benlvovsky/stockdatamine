@@ -46,9 +46,23 @@ def getFullDataFrameInstance(isUseBestFeautures, offset, limit, datefrom, useCac
 
     return fullDataFrame
 
+def onlyGoodFeatures(fullDataFrame, symbol):
+    cur.execute("select bestattributes from v2.instrumentsprops where symbol = '{}'".format(symbol))
+    bestFeatures = cur.fetchone()
+    bestColList = bestFeatures[0].split(',')
+    retVal = fullDataFrame[bestColList]
+    return retVal
+
 def loadDataSet(symbol, isUseBestFeautures, offset, limit, datefrom, useCache=cm.isUseCache):
     fullDataFrame = getFullDataFrameInstance(isUseBestFeautures, offset, limit, datefrom, useCache, symbol)
     
+#     sys.stdout.write('Orig fullDataFrame shape = {}'.format(fullDataFrame.shape))
+    if isUseBestFeautures:
+        workingDataFrame = onlyGoodFeatures(fullDataFrame, symbol)
+#         sys.stdout.write('. Only good features filtered. Best col shape = {}\n'.format(workingDataFrame.shape))
+    else:
+        workingDataFrame = fullDataFrame
+
     #classificationLabels calculation
     closeColumn = symbol + '_close'
     mlDf = pd.DataFrame()
@@ -58,20 +72,14 @@ def loadDataSet(symbol, isUseBestFeautures, offset, limit, datefrom, useCache=cm
     mlDf['labelFormat']  = (mlDf['close'] / mlDf['backshift']).map(formatLabel)
     classificationLabels = (mlDf['close'] / mlDf['backshift']).map(formatLabel)
 #     mlDf.to_csv(symbol + '_shiftsDFTest.csv', sep=',')
-#     exit(1)
 
-#     print fullDataFrame.index.values
     #ret vals creation
     p = re.compile('^.+_close$')
-    closeOnlyColNames = filter(p.match, fullDataFrame.columns.values)
-    noCloseDf = fullDataFrame.drop(closeOnlyColNames, axis=1)
+    closeOnlyColNames = filter(p.match, workingDataFrame.columns.values)
+    noCloseDf = workingDataFrame.drop(closeOnlyColNames, axis=1)
     noCloseColNames = noCloseDf.columns.values
-#     noCloseDf.to_csv('concatDFTestNoCloseCols.csv', sep=',')
     X_dataSet = noCloseDf.as_matrix()
     y_predictions = classificationLabels.values
-#     print "{0}".format(','.join(y_predictions))
-#     exit(1)
-#     dateList = fullDataFrame.index.values
     dateList = noCloseDf.index.values
     return (noCloseColNames, X_dataSet, y_predictions, dateList)
 

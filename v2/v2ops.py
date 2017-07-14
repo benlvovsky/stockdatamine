@@ -15,7 +15,6 @@ from sklearn.model_selection._split import KFold, StratifiedShuffleSplit,\
     StratifiedKFold
 import tradeindicators as ti
 
-conn = None
 FEATURESELECTIONDATASETLENGTH = cm.FEATURESELECTIONDATASETLENGTH
 DATASETLENGTH                 = cm.DATASETLENGTH         
 GAMMACOSTDATASETLENGTH        = cm.GAMMACOSTDATASETLENGTH
@@ -27,11 +26,18 @@ FITDATEFROM                   = dt.datetime.strptime('1982-01-01','%Y-%m-%d')
 # cv = KFold(n_splits=5, shuffle=True) #, random_state=42)
 # cv = StratifiedShuffleSplit(n_splits=10, test_size=0.1, random_state=42)
 cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
-g_scaler = MinMaxScaler()
+FEATURES_SELECTION_CV = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+g_scaler = StandardScaler()
+# g_scaler = MinMaxScaler()
+
+conn = cm.getdbcon()
+cur = conn.cursor()
 
 def init():
     global conn
+    global cur
     conn = cm.getdbcon()
+    cur = conn.cursor()
 
 def redefineLogRange(origRange, centerValue, rangeLength):
     centerIdxArr, = np.where(origRange >= centerValue) # we will use the first index of that condition and it will be close enough 
@@ -123,14 +129,13 @@ def v2analysis(symbol = '^AORD'):
         print '-------------------'
     
     print '                               ...done in {0} seconds'.format(time.time() - start)
-    
+
 def gammaCostCalc(symbolCSV, bestFeautures = False):
     symbolList = symbolCSV.split(",")
 #     DATALENGTH = 1000
-    cur = conn.cursor()
     for symbol in symbolList:
         (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet( \
-                                        symbol, bestFeautures, limit=GAMMACOSTDATASETLENGTH)    
+                                        symbol, isUseBestFeautures=bestFeautures, limit=GAMMACOSTDATASETLENGTH)    
         X_allDataSet = g_scaler.fit_transform(X_allDataSetUnscaled)
         decision_function_shape='ovr'
         clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
@@ -141,9 +146,8 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
         query = (
             '''
             INSERT INTO v2.instrumentsprops(symbol) 
-                select {2} from v2.instrumentsprops i 
-                    where not exists 
-                        (select 1 from v2.instrumentsprops i2 where i2.symbol = {2});
+                select '{2}' where not exists 
+                        (select 1 from v2.instrumentsprops i2 where i2.symbol = '{2}');
             UPDATE v2.instrumentsprops SET bestcost={0}, bestgamma={1} WHERE symbol = '{2}';
             '''
                  .format(bestParams['C'], bestParams['gamma'], symbol))
@@ -154,11 +158,10 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
 
     cur.close();
 
-def fitAndSave(symbolCSV, bestFeautures = False):
+def fitAndSave(symbolCSV, bestFeautures):
     symbolList = symbolCSV.split(",")
-    cur = conn.cursor()
     for symbol in symbolList:
-        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, offset=0, 
+        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, offset=0, isUseBestFeautures=bestFeautures,
                                 limit=FITDATASETLENGTH)
         X_reduced = X_allDataSetUnscaled[TESTDATASETLENGTH:,]
         y_reduced = y_allPredictions[TESTDATASETLENGTH:,]
@@ -183,7 +186,6 @@ def loadDataSet(symbol, isUseBestFeautures = False, offset=0, limit=DATASETLENGT
     return ti.loadDataSet(symbol, isUseBestFeautures, offset, limit, datefrom)
 
 def loadDataSet_(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLENGTH):
-    cur = conn.cursor()
     if isUseBestFeautures:
         print 'Using best features. isUseBestFeautures = {0}, offset={1}, limit={2}'.format(isUseBestFeautures, offset, limit)
         cur.execute("select bestattributes from v2.instrumentsprops where symbol = '{0}'".format(symbol))
@@ -224,56 +226,54 @@ def loadDataSet_(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLEN
     dateList = numpyRecords[:, 0]
     return (colNames, X_allDataSet, y_allPredictions, dateList)
 
-def getCrossValMeanScore(clf, dataSet, predictions):
+def getCrossValMeanScore(clf, dataSet, predictions, cv=cv):
     scores = cross_val_score(clf, dataSet, predictions, cv=cv)
     return (scores.mean(), scores.std())
 
 def loadBestParams(symbol):
     query = "select bestcost, bestgamma from v2.instrumentsprops WHERE symbol='{0}';".format(symbol)
-    cur = conn.cursor()
     cur.execute(query)
     bestParams = cur.fetchone()
-#     print 'bestParams={0}'.format(bestParams)
     return bestParams
 
 def optimiseFeautures(symbolCSV):
     symbolList = symbolCSV.split(",")
-    cur = conn.cursor()
     for symbol in symbolList:
-        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(
-                            symbol, offset=50, limit=FEATURESELECTIONDATASETLENGTH)
-# using global        g_scaler = StandardScaler()
-        X_allDataSet = g_scaler.fit_transform(X_allDataSetUnscaled)
+        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList) = loadDataSet(symbol, limit=DATASETLENGTH)
+        X_allDataSet    = g_scaler.fit_transform(X_allDataSetUnscaled)
+        X_allDataSet    = X_allDataSet[:FEATURESELECTIONDATASETLENGTH,]
+        y_predictions   = y_predictions[:FEATURESELECTIONDATASETLENGTH,]
+        datesList       = datesList[:FEATURESELECTIONDATASETLENGTH,]
+
         print "Optimizing features for '{0}'".format(symbol)
-        decision_function_shape='ovr'
         bestParams = loadBestParams(symbol)
 
         clfLoaded = svm.SVC(kernel='rbf', 
-# use default for now                 C=bestParams[0],\
-# use default for now                 gamma=bestParams[1], \
-                            decision_function_shape=decision_function_shape).fit(X_allDataSet, y_allPredictions)
+#                 C=bestParams[0],\
+#                 gamma=bestParams[1], \
+                 decision_function_shape='ovr').fit(X_allDataSet, y_allPredictions)
 
         excludedIndexes = []
         excludedCols = []
         goodIndexes = []
         goodCols = []
-        (bestMeanScore, bestMeanStd) = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions)
+        (bestMeanScore, bestMeanStd) = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions, cv=FEATURES_SELECTION_CV)
         X_reduced = np.copy(X_allDataSet)
         for curIdx, colName in enumerate(colNames):
             testExcludedIndexes = np.append(excludedIndexes, curIdx)
             testX_reduced = np.delete(X_reduced, testExcludedIndexes, axis=1)
-            (meanScore, meanStd) = getCrossValMeanScore(clfLoaded, testX_reduced, y_allPredictions)
+            (meanScore, meanStd) = getCrossValMeanScore(clfLoaded, testX_reduced, y_allPredictions, cv=FEATURES_SELECTION_CV)
             if bestMeanScore/bestMeanStd <= meanScore/meanStd:
                 excludedIndexes.append(curIdx)
                 excludedCols.append(colName)
-                print 'Excluded column {0}. bestMeanScore/bestMeanStd {1}/{2} <= meanScore/meanStd {3}/{4}'\
+                print 'Excluded {}. best MeanScore/MeanStd {:>6.5f}/{:>6.5f} <= meanScore/meanStd {:>6.5f}/{:>6.5f}'\
                     .format(colName, bestMeanScore, bestMeanStd, meanScore, meanStd)
                 bestMeanScore = meanScore
                 bestMeanStd = meanStd
             else:
                 goodCols.append(colName)
                 goodIndexes.append(curIdx)
-                print 'Column {0} is good. bestMeanScore/bestMeanStd {1}/{2} > meanScore/meanStd {3}/{4}'\
+                print 'Left     {}. best MeanScore/MeanStd {:>6.5f}/{:>6.5f} > meanScore/meanStd {:>6.5f}/{:>6.5f}'\
                     .format(colName, bestMeanScore, bestMeanStd, meanScore, meanStd)
         
         goodColsStr = ','.join(goodCols)
@@ -284,29 +284,23 @@ def optimiseFeautures(symbolCSV):
                  .format(goodColsStr, excludedColsStr, bestMeanScore, symbol))
         cur.execute(query)
         conn.commit()               # commit separately to ensure this is in as the next operation might fail 
-        print 'optimiseFeautures done. bestMeanScore={0}, bestMeanStd={1}'.format(bestMeanScore, bestMeanStd)
+        print '{} optimiseFeautures done. best MeanScore={}, MeanStd={}'.format(symbol, bestMeanScore, bestMeanStd)
 
-def testPerformance(symbolCSV):
+def testPerformance(symbolCSV, isUseBestFeautures):
     symbolList = symbolCSV.split(",")
 
     for symbol in symbolList:
-#         (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, True, offset=200, limit=DATASETLENGTH)
-#         (colNames, X_allDataSetTestUnscaled, y_allPredictionsTest, dateList) = loadDataSet(symbol, True, offset=100, limit=100)
-#         print ' all data shape: {0}, test shape: {1}'.format(X_allDataSet.shape, X_allDataSetTestUnscaled.shape)
         (clf, l_scaler) = loadClassifier(symbol)
-        (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, isUseBestFeautures=False, offset=0, limit=FITDATASETLENGTH)
+        (colNames, X_allDataSet, y_allPredictions, dateList) = loadDataSet(symbol, isUseBestFeautures=isUseBestFeautures, offset=0, limit=FITDATASETLENGTH)
         X_allDataSetScaled = l_scaler.transform(X_allDataSet)
         X_reduced = X_allDataSetScaled[TESTDATASETLENGTH:,]
         y_reduced = y_allPredictions[TESTDATASETLENGTH:,]
         X_test = X_allDataSetScaled[0:TESTDATASETLENGTH,]
         y_test = y_allPredictions[0:TESTDATASETLENGTH,]
 
-#         print ' all data shape: {0}, X_reduced shape: {1}, X_test shape: {2}'.format(X_allDataSetScaled.shape, X_reduced.shape, X_test.shape)
         (meanScore, std) = getCrossValMeanScore(clf, X_reduced, y_reduced)
         print '%6s: meanScore=%.3f std=%.3f  clf score on test=%.3f' % \
             (symbol, meanScore, std, clf.score(X_test, y_test))
-#         print '{0} meanScore = {1}, std = {2}, clf score on test = {3}'.\
-#             format(symbol, meanScore, std, clf.score(X_test, y_test))
 
 def isPredictionCorrect(prediction, priceDiff):
     if type(priceDiff) is str:
@@ -315,14 +309,8 @@ def isPredictionCorrect(prediction, priceDiff):
         return 'some undef'
     else:
         return str(prediction == ti.formatLabel(priceDiff))
-#         return  (priceDiff > 1) and (prediction == 1) or \
-#             (priceDiff <= 1) and (prediction == 0)
-#         return  (priceDiff > 1 + MOVEPRCNT) and (prediction == 1) or \
-#             (priceDiff < 1 - MOVEPRCNT) and (prediction == 2) or \
-#             (1 - MOVEPRCNT <= priceDiff <= 1 + MOVEPRCNT) and (prediction == 0)
 
 def loadClassifier(symbol):
-    cur = conn.cursor()
     cur.execute("SELECT classifierdump, scalerdump FROM v2.instrumentsprops where symbol=%s;", (symbol, ))
     blob = cur.fetchone()
     readClfDump = blob[0]
@@ -331,9 +319,8 @@ def loadClassifier(symbol):
     scalerLoaded = pickle.loads(readScalerDump)
     return (clfLoaded, scalerLoaded)
 
-def predict(symbolCSV, offset=0):
+def predict(symbolCSV, offset=0, isUseBestFeautures=True):
     symbolList = symbolCSV.split(",")
-    cur = conn.cursor()
     print "Using offset={0}".format(offset)
     print '{:^10s} {:^10s} {:^10s} {:^10s} {:^10s} {:^10s} {:^5s} {:^10s} {:^10s}'.format(
         "DF date","Date From","Symbol","Orig Price","Pred Date",
@@ -342,11 +329,11 @@ def predict(symbolCSV, offset=0):
     for symbol in symbolList:
         (clf, l_scaler) = loadClassifier(symbol)
         (colNames, X_allDataSetUnscaled, y_predictions, datesList) = \
-                        loadDataSet(symbol, limit=FITDATASETLENGTH)
+                        loadDataSet(symbol, limit=FITDATASETLENGTH, isUseBestFeautures=isUseBestFeautures)
         dfCompr = pd.DataFrame(X_allDataSetUnscaled)
         dfCompr.to_csv(symbol + '_X_allDataSetUnscaled.csv', sep=',')
-        
-        X_allDataSet    = l_scaler.transform(X_allDataSetUnscaled)  
+
+        X_allDataSet    = l_scaler.transform(X_allDataSetUnscaled)
         X_allDataSet    = X_allDataSet[:PREDICTATASETLENGTH,]
         y_predictions   = y_predictions[:PREDICTATASETLENGTH,]
         datesList       = datesList[:PREDICTATASETLENGTH,]
@@ -383,26 +370,25 @@ def predict(symbolCSV, offset=0):
                 'Outcome Actual': y_predictions,
                 'Outcome Predicted': prediction
                 })
+        dfCompr['Right'] = dfCompr['Outcome Actual'] == dfCompr['Outcome Predicted']
+        dfCompr['OK'] = dfCompr.apply(lambda row: row['Outcome Actual'] == row['Outcome Predicted'] or \
+                                        row['Outcome Actual'] == 'undef' or \
+                                        row['Outcome Predicted'] == 'undef', axis=1)
+        dfCompr['Wrong'] = dfCompr.apply(lambda row: row['Outcome Actual'] != row['Outcome Predicted'] and \
+                                        row['Outcome Actual'] != 'undef' and \
+                                        row['Outcome Predicted'] != 'undef', axis=1)
         dfCompr.to_csv(symbol + '_comparison.csv', sep=',')
 
-#         print >>open('outome_' + symbol + '_prdctd.txt', 'w+'), '\n'.join(map(str, prediction))
 #         print >>open('outome_' + symbol + '_actual.txt', 'w+'), '\n'.join(map(str, y_predictions))
         thePrediction = prediction[offsetInt]
-#         print ','.join(clf.predict(X_allDataSet))
-#         print ','.join(map(str, X_allDataSet[:30,]))
-#         exit(1)
-#         print "Using samples from array:\n{0}\nshape:{1}".format(X_allDataSet, X_allDataSet.shape)
-#         print "Using first from predictions array: {0}".format(prediction)
-        print '{:^10s} {:^10s} {:^10s} {:>10.2f} {:^10s} {:>10.2f} {:^10s} {:>5.4f} {:^10s}'\
+        print '{:^10s} {:^10s} {:^10s} {:>10.2f} {:^10s} {:>10s} {:^10s} {:>9s} {:^10s}'\
             .format(#l_scaler.get_params(), 
                     str(theDate),
                     str(dbFoundDate), 
                     symbol, 
-                    dbFoundStockPrice, 
+                    dbFoundStockPrice,
                     str(predictionForDate), 
                     lastAvailableDateStockPrice,
                     str(thePrediction), 
-                    priceDiff,
+                    str(priceDiff),
                     isPredictionCorrect(thePrediction, priceDiff))
-
-#########################
