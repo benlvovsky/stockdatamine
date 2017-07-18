@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-import v2.v2ops as v2ops
+import common as cm
 import tradeindicators as ti
-from common import *
+import v2.v2ops as v2ops
 from downloaddata import *
 
 availableCommands = """Allowed commands:

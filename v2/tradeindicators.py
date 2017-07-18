@@ -1,12 +1,15 @@
 #create matrix for ml with various trading indicators 
+import common as cm
 import talib as ta
 import numpy as np
 import pandas as pd
-import common as cm
 import time
 import json
 import re
 import sys
+from psycopg2._psycopg import cursor
+from matplotlib.cbook import Null
+import yaml
 
 # earliestDatTime = "2015-05-12"
 allinstr = []
@@ -14,25 +17,50 @@ allinstr = []
 global fullDataFrame
 fullDataFrame = None
 
-conn = cm.getdbcon()
-cur = conn.cursor()
-backShiftDays = -30
-difftreshhold = 0.02
+settingsMap = None
 
-# def formatLabel_(x):
-#     if x > 1:
-#         return 'up'
-#     else:
-#         return 'down'
+if settingsMap is None:
+    f = open('./v2/settings.yaml')
+    settingsMap = yaml.safe_load(f)
+    f.close()
 
-def formatLabel(x):
-    upper = 1 + difftreshhold
-    lower = 1 - difftreshhold
-    if x > upper:
+# conn = cm.getdbcon()
+# settingsMap = cm.loadSettings()
+cursor = None
+
+def cur():
+    global cursor
+    if cursor is None:
+        cursor = cm.getdbcon().cursor()
+    return cursor
+
+# backShiftDays = -30
+# difftreshhold = 0.02
+# upper = 1 + difftreshhold
+# lower = 1 - difftreshhold
+# print '++++++++++++++++{}'.format(cm.settingsMap)
+
+def backShiftDays():
+    return settingsMap["root"]["trdeindicators"]["backShiftDays"]
+
+def difftreshhold():
+    return settingsMap["root"]["trdeindicators"]["difftreshhold"]
+
+def upper():
+    return settingsMap["root"]["trdeindicators"]["upper"]
+
+def lower():
+    return settingsMap["root"]["trdeindicators"]["lower"]
+
+# print 'backShiftDays={}'.format(backShiftDays)
+# exit(1)
+
+def formatLabel(priceDiff):
+    if priceDiff > upper():
         return 'up'
-    elif upper >= x >= lower:
+    elif upper() >= priceDiff >= lower():
         return 'undef'
-    elif lower > x >= 0:
+    elif lower > priceDiff >= 0:
         return 'down'
     else:
         return '???'
@@ -47,8 +75,8 @@ def getFullDataFrameInstance(isUseBestFeautures, offset, limit, datefrom, useCac
     return fullDataFrame
 
 def onlyGoodFeatures(fullDataFrame, symbol):
-    cur.execute("select bestattributes from v2.instrumentsprops where symbol = '{}'".format(symbol))
-    bestFeatures = cur.fetchone()
+    cur().execute("select bestattributes from v2.instrumentsprops where symbol = '{}'".format(symbol))
+    bestFeatures = cur().fetchone()
     bestColList = bestFeatures[0].split(',')
     retVal = fullDataFrame[bestColList]
     return retVal
@@ -67,8 +95,8 @@ def loadDataSet(symbol, isUseBestFeautures, offset, limit, datefrom, useCache=cm
     closeColumn = symbol + '_close'
     mlDf = pd.DataFrame()
     mlDf['close']        =  fullDataFrame[closeColumn]
-    mlDf['backshift']    =  fullDataFrame[closeColumn].shift(backShiftDays)
-    mlDf['backshiftdiff']=  fullDataFrame[closeColumn] / fullDataFrame[closeColumn].shift(backShiftDays)
+    mlDf['backshift']    =  fullDataFrame[closeColumn].shift(backShiftDays())
+    mlDf['backshiftdiff']=  fullDataFrame[closeColumn] / fullDataFrame[closeColumn].shift(backShiftDays())
     mlDf['labelFormat']  = (mlDf['close'] / mlDf['backshift']).map(formatLabel)
     classificationLabels = (mlDf['close'] / mlDf['backshift']).map(formatLabel)
 #     mlDf.to_csv(symbol + '_shiftsDFTest.csv', sep=',')
@@ -115,11 +143,11 @@ def loadCleanAllDataFrame(isUseBestFeautures, offset, limit, datefrom, symbol = 
 
 def loadSymbolTechAnalytics(symbol, offset, limit, datefrom):
     # get in desc order to ensure last dates data is in as limit might cut it out
-    cur.execute("select * from stocks where stock=%s and date >= %s order by date desc offset %s limit %s", \
+    cur().execute("select * from stocks where stock=%s and date >= %s order by date desc offset %s limit %s", \
                 (symbol, datefrom, offset, limit))
 
-    records = cur.fetchall()
-    colNames = np.array(cur.description)[:,0]
+    records = cur().fetchall()
+    colNames = np.array(cur().description)[:,0]
     desc_df = pd.DataFrame.from_records(records, columns=colNames)
     asc_df = desc_df.iloc[::-1] # return ascending date
     date = asc_df['date'].as_matrix()

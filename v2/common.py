@@ -3,57 +3,30 @@ import csv
 import subprocess
 import sys
 import psycopg2
-import yaml
 
-settingsMap = None
+PGHOST='postgres_ml'
+svmCost="100"
+svmNuDefault=0.556015
+offset=50
+limit=480
+cv=10
+dataminestocksViewName="v2.dataminestocks_py"
+startNu=0.00000001
+initialStepNu=0.1
 
-if settingsMap is None:
-	f = open('./v2/settings.yaml')
-	settingsMap = yaml.safe_load(f)
-	f.close()
+FEATURESELECTIONDATASETLENGTH	= 300
+DATASETLENGTH					= 2000
+GAMMACOSTDATASETLENGTH			= 5000
+FITDATASETLENGTH				= 6000
+TESTDATASETLENGTH				= 100
+PREDICTATASETLENGTH				= 100
+isUseCache						= True
 
-PGHOST							= settingsMap["root"]["common"]["PGHOST"]
-svmNuDefault					= settingsMap["root"]["common"]["svmNuDefault"]					
-svmCost							= settingsMap["root"]["common"]["svmCost"]
-offset							= settingsMap["root"]["common"]["offset"]				
-limit							= settingsMap["root"]["common"]["limit"]				
-cv								= settingsMap["root"]["common"]["cv"]				
-dataminestocksViewName			= settingsMap["root"]["common"]["dataminestocksViewName"]			
-startNu							= settingsMap["root"]["common"]["startNu"]			
-initialStepNu					= settingsMap["root"]["common"]["initialStepNu"]		
-FEATURESELECTIONDATASETLENGTH	= settingsMap["root"]["common"]["FEATURESELECTIONDATASETLENGTH"]	
-DATASETLENGTH					= settingsMap["root"]["common"]["DATASETLENGTH"] 
-GAMMACOSTDATASETLENGTH			= settingsMap["root"]["common"]["GAMMACOSTDATASETLENGTH"]
-FITDATASETLENGTH				= settingsMap["root"]["common"]["FITDATASETLENGTH"]
-TESTDATASETLENGTH				= settingsMap["root"]["common"]["TESTDATASETLENGTH"]
-PREDICTATASETLENGTH				= settingsMap["root"]["common"]["PREDICTATASETLENGTH"] 
-isUseCache						= settingsMap["root"]["common"]["isUseCache"]
-LSLIB							= settingsMap["root"]["common"]["LSLIB"]
-dbnameConst						= settingsMap["root"]["common"]["dbnameConst"]
+LSLIB = "libsvm-3.21"
+# LSLIB = "libsvm-3.17-GPU_x64-linux-v1.2"
 
-# PGHOST='postgres_ml'
-# svmCost="100"
-# svmNuDefault=0.556015
-# offset=50
-# limit=480
-# cv=10
-# dataminestocksViewName="v2.dataminestocks_py"
-# startNu=0.00000001
-# initialStepNu=0.1
-# 
-# FEATURESELECTIONDATASETLENGTH	= 300
-# DATASETLENGTH					= 2000
-# GAMMACOSTDATASETLENGTH			= 5000
-# FITDATASETLENGTH				= 6000
-# TESTDATASETLENGTH				= 100
-# PREDICTATASETLENGTH				= 100
-# isUseCache						= True
-# 
-# LSLIB = "libsvm-3.21"
-# # LSLIB = "libsvm-3.17-GPU_x64-linux-v1.2"
-# 
-# #dbnameConst="dataminestocks1"
-# dbnameConst="postgres"
+#dbnameConst="dataminestocks1"
+dbnameConst="postgres"
 
 def getdbcon(dbname=dbnameConst):
 	return psycopg2.connect("dbname = '{0}' user = 'postgres' password = 'postgres'".format(dbname))

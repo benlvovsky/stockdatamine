@@ -3,6 +3,7 @@ import csv
 import pandas as pd
 import numpy as np
 from sklearn import svm #, feature_selection #, metrics, datasets
+import tradeindicators as ti
 import common as cm
 import time
 from sklearn.model_selection import cross_val_score, train_test_split, GridSearchCV
@@ -13,7 +14,6 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing.data import Normalizer
 from sklearn.model_selection._split import KFold, StratifiedShuffleSplit,\
     StratifiedKFold
-import tradeindicators as ti
 
 FEATURESELECTIONDATASETLENGTH = cm.FEATURESELECTIONDATASETLENGTH
 DATASETLENGTH                 = cm.DATASETLENGTH         
@@ -26,6 +26,7 @@ FITDATEFROM                   = dt.datetime.strptime('1982-01-01','%Y-%m-%d')
 # cv = KFold(n_splits=5, shuffle=True) #, random_state=42)
 # cv = StratifiedShuffleSplit(n_splits=10, test_size=0.1, random_state=42)
 cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+gammaCostCv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 FEATURES_SELECTION_CV = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 g_scaler = StandardScaler()
 # g_scaler = MinMaxScaler()
@@ -87,7 +88,7 @@ def gridSearch(clf, X, y):
     gamma_range = np.logspace(-9, 3, 13)
     C_range = np.logspace(-2, 10, 13)
     param_grid = dict(gamma=gamma_range, C=C_range)
-    grid = GridSearchCV(clf, param_grid=param_grid, cv=cv, n_jobs=-1)
+    grid = GridSearchCV(clf, param_grid=param_grid, cv=gammaCostCv, n_jobs=-1)
     grid.fit(X, y)
     return grid
 
@@ -303,10 +304,10 @@ def testPerformance(symbolCSV, isUseBestFeautures):
             (symbol, meanScore, std, clf.score(X_test, y_test))
 
 def isPredictionCorrect(prediction, priceDiff):
-    if type(priceDiff) is str:
-        return "Unknown"
+    if priceDiff is None:
+        return "None"
     elif prediction == 'undef' or ti.formatLabel(priceDiff) == 'undef':
-        return 'some undef'
+        return 'someUndef'
     else:
         return str(prediction == ti.formatLabel(priceDiff))
 
@@ -355,10 +356,12 @@ def predict(symbolCSV, offset=0, isUseBestFeautures=True):
             predictionForDate = stockDateAndPriceInAMonthList[0][0]
             lastAvailableDateStockPrice = stockDateAndPriceInAMonthList[0][1]
             priceDiff = lastAvailableDateStockPrice/dbFoundStockPrice
+            priceDiffStr = '{:>12.11f}'.format(priceDiff)
         else:
             predictionForDate = 'None'
-            lastAvailableDateStockPrice = 'None'
-            priceDiff = 'None'
+            lastAvailableDateStockPrice = -1
+            priceDiff = None
+            priceDiffStr = 'None'
 
 #         prediction = clf.predict(toPredictDataSet)
         prediction = clf.predict(X_allDataSet)
@@ -370,7 +373,7 @@ def predict(symbolCSV, offset=0, isUseBestFeautures=True):
                 'Outcome Actual': y_predictions,
                 'Outcome Predicted': prediction
                 })
-        dfCompr['Right'] = dfCompr['Outcome Actual'] == dfCompr['Outcome Predicted']
+        dfCompr['Just right'] = (dfCompr['Outcome Actual'] == dfCompr['Outcome Predicted'])
         dfCompr['OK'] = dfCompr.apply(lambda row: row['Outcome Actual'] == row['Outcome Predicted'] or \
                                         row['Outcome Actual'] == 'undef' or \
                                         row['Outcome Predicted'] == 'undef', axis=1)
@@ -379,16 +382,14 @@ def predict(symbolCSV, offset=0, isUseBestFeautures=True):
                                         row['Outcome Predicted'] != 'undef', axis=1)
         dfCompr.to_csv(symbol + '_comparison.csv', sep=',')
 
-#         print >>open('outome_' + symbol + '_actual.txt', 'w+'), '\n'.join(map(str, y_predictions))
         thePrediction = prediction[offsetInt]
-        print '{:^10s} {:^10s} {:^10s} {:>10.2f} {:^10s} {:>10s} {:^10s} {:>9s} {:^10s}'\
-            .format(#l_scaler.get_params(), 
-                    str(theDate),
+        print '{:^10s} {:^10s} {:^10s} {:>10.2f} {:^10s} {:>10.2f} {:^10s} {:>10s} {:^10s}'\
+            .format(str(theDate),
                     str(dbFoundDate), 
                     symbol, 
                     dbFoundStockPrice,
                     str(predictionForDate), 
                     lastAvailableDateStockPrice,
-                    str(thePrediction), 
-                    str(priceDiff),
+                    thePrediction,
+                    priceDiffStr,
                     isPredictionCorrect(thePrediction, priceDiff))
