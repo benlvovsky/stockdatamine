@@ -9,19 +9,22 @@ import time
 from sklearn.model_selection import cross_val_score, train_test_split, GridSearchCV
 import pickle
 import psycopg2
+import settings as st
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing.data import Normalizer
 from sklearn.model_selection._split import KFold, StratifiedShuffleSplit,\
     StratifiedKFold
 
-FEATURESELECTIONDATASETLENGTH = cm.FEATURESELECTIONDATASETLENGTH
-DATASETLENGTH                 = cm.DATASETLENGTH         
-GAMMACOSTDATASETLENGTH        = cm.GAMMACOSTDATASETLENGTH
-FITDATASETLENGTH              = cm.FITDATASETLENGTH      
-TESTDATASETLENGTH             = cm.TESTDATASETLENGTH     
-PREDICTATASETLENGTH           = cm.PREDICTATASETLENGTH     
+FEATURESELECTIONDATASETLENGTH = st.DICT["root"]["common"]["FEATURESELECTIONDATASETLENGTH"]    
+DATASETLENGTH                 = st.DICT["root"]["common"]["DATASETLENGTH"] 
+GAMMACOSTDATASETLENGTH        = st.DICT["root"]["common"]["GAMMACOSTDATASETLENGTH"]
+FITDATASETLENGTH              = st.DICT["root"]["common"]["FITDATASETLENGTH"]
+TESTDATASETLENGTH             = st.DICT["root"]["common"]["TESTDATASETLENGTH"]
+PREDICTATASETLENGTH           = st.DICT["root"]["common"]["PREDICTATASETLENGTH"] 
 FITDATEFROM                   = dt.datetime.strptime('1982-01-01','%Y-%m-%d')
+
 # FITDATEFROM                   = dt.datetime.strptime('2000-01-01','%Y-%m-%d')
 # cv = KFold(n_splits=5, shuffle=True) #, random_state=42)
 # cv = StratifiedShuffleSplit(n_splits=10, test_size=0.1, random_state=42)

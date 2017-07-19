@@ -10,27 +10,18 @@ import sys
 from psycopg2._psycopg import cursor
 from matplotlib.cbook import Null
 import yaml
+import settings as st
 
 # earliestDatTime = "2015-05-12"
 allinstr = []
 
-global fullDataFrame
 fullDataFrame = None
 
-settingsMap = None
+backShiftDays = st.DICT["root"]["trdeindicators"]["backShiftDays"]
+difftreshhold = st.DICT["root"]["trdeindicators"]["difftreshhold"]
+upper         = st.DICT["root"]["trdeindicators"]["upper"]
+lower         = st.DICT["root"]["trdeindicators"]["lower"]
 
-if settingsMap is None:
-    f = open('./v2/settings.yaml')
-    settingsMap = yaml.safe_load(f)
-    f.close()
-
-backShiftDays = settingsMap["root"]["trdeindicators"]["backShiftDays"]
-difftreshhold = settingsMap["root"]["trdeindicators"]["difftreshhold"]
-upper         = settingsMap["root"]["trdeindicators"]["upper"]
-lower         = settingsMap["root"]["trdeindicators"]["lower"]
-
-# conn = cm.getdbcon()
-# settingsMap = cm.loadSettings()
 cursor = None
 
 def cur():
@@ -197,9 +188,6 @@ def cleanInvalidRows(dfUnclean):
     
     lastValidIndexSeries.to_csv('lastValidIndexSeries.csv', sep=',')
     firstValidIndexSeries.to_csv('firstValidIndexSeries.csv', sep=',')
-#     df = df.dropna(axis=1, how='all')       # rop all NaN
-#     df = df.loc[:, (df != 0).any(axis=0)]   # remove all zeros columns
-#     df = df.replace(0, np.NaN)
     return df
 
 def loadAllInstrJson():
@@ -207,7 +195,7 @@ def loadAllInstrJson():
     allinstr = []
     with open('v2/helper/download-list.json') as json_data:
         jsonDict = json.load(json_data)
-    for instr in jsonDict["allInstr"]:
+    for instr in jsonDict:
         allinstr.append(instr["name"])
     
     return allinstr
