@@ -24,6 +24,11 @@ if settingsMap is None:
     settingsMap = yaml.safe_load(f)
     f.close()
 
+backShiftDays = settingsMap["root"]["trdeindicators"]["backShiftDays"]
+difftreshhold = settingsMap["root"]["trdeindicators"]["difftreshhold"]
+upper         = settingsMap["root"]["trdeindicators"]["upper"]
+lower         = settingsMap["root"]["trdeindicators"]["lower"]
+
 # conn = cm.getdbcon()
 # settingsMap = cm.loadSettings()
 cursor = None
@@ -38,27 +43,11 @@ def cur():
 # difftreshhold = 0.02
 # upper = 1 + difftreshhold
 # lower = 1 - difftreshhold
-# print '++++++++++++++++{}'.format(cm.settingsMap)
-
-def backShiftDays():
-    return settingsMap["root"]["trdeindicators"]["backShiftDays"]
-
-def difftreshhold():
-    return settingsMap["root"]["trdeindicators"]["difftreshhold"]
-
-def upper():
-    return settingsMap["root"]["trdeindicators"]["upper"]
-
-def lower():
-    return settingsMap["root"]["trdeindicators"]["lower"]
-
-# print 'backShiftDays={}'.format(backShiftDays)
-# exit(1)
 
 def formatLabel(priceDiff):
-    if priceDiff > upper():
+    if priceDiff > upper:
         return 'up'
-    elif upper() >= priceDiff >= lower():
+    elif upper >= priceDiff >= lower:
         return 'undef'
     elif lower > priceDiff >= 0:
         return 'down'
@@ -95,8 +84,8 @@ def loadDataSet(symbol, isUseBestFeautures, offset, limit, datefrom, useCache=cm
     closeColumn = symbol + '_close'
     mlDf = pd.DataFrame()
     mlDf['close']        =  fullDataFrame[closeColumn]
-    mlDf['backshift']    =  fullDataFrame[closeColumn].shift(backShiftDays())
-    mlDf['backshiftdiff']=  fullDataFrame[closeColumn] / fullDataFrame[closeColumn].shift(backShiftDays())
+    mlDf['backshift']    =  fullDataFrame[closeColumn].shift(backShiftDays)
+    mlDf['backshiftdiff']=  fullDataFrame[closeColumn] / fullDataFrame[closeColumn].shift(backShiftDays)
     mlDf['labelFormat']  = (mlDf['close'] / mlDf['backshift']).map(formatLabel)
     classificationLabels = (mlDf['close'] / mlDf['backshift']).map(formatLabel)
 #     mlDf.to_csv(symbol + '_shiftsDFTest.csv', sep=',')
