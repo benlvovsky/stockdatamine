@@ -11,13 +11,13 @@ from psycopg2._psycopg import cursor
 from matplotlib.cbook import Null
 import yaml
 import settings as st
+from numpy import ndarray
 
-# earliestDatTime = "2015-05-12"
 allinstr = []
 
 fullDataFrame = None
 
-backShiftDays = st.DICT["root"]["trdeindicators"]["backShiftDays"]
+futureShiftDays = st.DICT["root"]["trdeindicators"]["futureShiftDays"]
 difftreshhold = st.DICT["root"]["trdeindicators"]["difftreshhold"]
 upper         = st.DICT["root"]["trdeindicators"]["upper"]
 lower         = st.DICT["root"]["trdeindicators"]["lower"]
@@ -29,11 +29,6 @@ def cur():
     if cursor is None:
         cursor = cm.getdbcon().cursor()
     return cursor
-
-# backShiftDays = -30
-# difftreshhold = 0.02
-# upper = 1 + difftreshhold
-# lower = 1 - difftreshhold
 
 def formatLabel(priceDiff):
     if priceDiff > upper:
@@ -64,6 +59,8 @@ def onlyGoodFeatures(fullDataFrame, symbol):
 def loadDataSet(symbol, isUseBestFeautures, offset, limit, datefrom, useCache=cm.isUseCache):
     fullDataFrame = getFullDataFrameInstance(isUseBestFeautures, offset, limit, datefrom, useCache, symbol)
     
+    #array in descending order
+    
 #     sys.stdout.write('Orig fullDataFrame shape = {}'.format(fullDataFrame.shape))
     if isUseBestFeautures:
         workingDataFrame = onlyGoodFeatures(fullDataFrame, symbol)
@@ -74,22 +71,26 @@ def loadDataSet(symbol, isUseBestFeautures, offset, limit, datefrom, useCache=cm
     #classificationLabels calculation
     closeColumn = symbol + '_close'
     mlDf = pd.DataFrame()
-    mlDf['close']        =  fullDataFrame[closeColumn]
-    mlDf['backshift']    =  fullDataFrame[closeColumn].shift(backShiftDays)
-    mlDf['backshiftdiff']=  fullDataFrame[closeColumn] / fullDataFrame[closeColumn].shift(backShiftDays)
-    mlDf['labelFormat']  = (mlDf['close'] / mlDf['backshift']).map(formatLabel)
-    classificationLabels = (mlDf['close'] / mlDf['backshift']).map(formatLabel)
+    mlDf['close']           = fullDataFrame[closeColumn]
+    mlDf['futureShiftDays'] = fullDataFrame[closeColumn].shift(futureShiftDays)
+    mlDf['shiftDiff']       = mlDf['futureShiftDays'] / mlDf['close']
+    mlDf['labelFormat']     = mlDf['shiftDiff'].map(formatLabel)
+    classificationLabels    = mlDf['labelFormat']
 #     mlDf.to_csv(symbol + '_shiftsDFTest.csv', sep=',')
+#     exit(0)
 
     #ret vals creation
     p = re.compile('^.+_close$')
     closeOnlyColNames = filter(p.match, workingDataFrame.columns.values)
     noCloseDf = workingDataFrame.drop(closeOnlyColNames, axis=1)
     noCloseColNames = noCloseDf.columns.values
+    mlSr = pd.Series(noCloseDf.index)
+    mlSr1 = mlSr.shift(futureShiftDays)
     X_dataSet = noCloseDf.as_matrix()
     y_predictions = classificationLabels.values
     dateList = noCloseDf.index.values
-    return (noCloseColNames, X_dataSet, y_predictions, dateList)
+    
+    return (noCloseColNames, X_dataSet, y_predictions, dateList, mlSr1.values)
 
 def loadCleanAllDataFrame(isUseBestFeautures, offset, limit, datefrom, symbol = '_'):
     allinstr = loadAllInstrJson()
@@ -117,6 +118,7 @@ def loadCleanAllDataFrame(isUseBestFeautures, offset, limit, datefrom, symbol = 
 #     df = df.loc[:last_valid_loc]
     df = cleanInvalidRows(joinedDf)
     df = df.dropna(axis=1, how='all')   # clean NaN columns
+    df = df.reindex(fill_value=np.NaN)
     df = df.fillna(method='ffill').fillna(method='bfill')   #fill missing values
     
     return df.iloc[::-1] # return descending date

@@ -21,7 +21,7 @@ root:
     #dbnameConst: "dataminestocks1"
     dbnameConst: "postgres"
   trdeindicators:
-    backShiftDays: -30
+    futureShiftDays: 30
     difftreshhold: 0.02
     upper: 1.02
     lower: 0.98
