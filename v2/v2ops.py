@@ -25,11 +25,15 @@ FITDATASETLENGTH              = st.DICT["root"]["common"]["FITDATASETLENGTH"]
 TESTDATASETLENGTH             = st.DICT["root"]["common"]["TESTDATASETLENGTH"]
 PREDICTATASETLENGTH           = st.DICT["root"]["common"]["PREDICTATASETLENGTH"] 
 FITDATEFROM                   = dt.datetime.strptime('1982-01-01','%Y-%m-%d')
+USEGAMMANADCOST               = st.DICT["root"]["common"]["useGammaAndCost"]
+
+# print "USEGAMMANADCOST = {} {}".format(USEGAMMANADCOST, USEGAMMANADCOST == False)
+# exit(0)
 
 # FITDATEFROM                   = dt.datetime.strptime('2000-01-01','%Y-%m-%d')
 # cv = KFold(n_splits=5, shuffle=True) #, random_state=42)
 # cv = StratifiedShuffleSplit(n_splits=10, test_size=0.1, random_state=42)
-cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+crossNumVal = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
 gammaCostCv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 FEATURES_SELECTION_CV = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 g_scaler = StandardScaler()
@@ -78,7 +82,7 @@ def zoomInGridSearch(clf, X, y):
     rangeLength = 16
     for i in range(3):
         param_grid = dict(gamma=gamma_range, C=C_range)
-        grid = GridSearchCV(clf, param_grid=param_grid, cv=cv, n_jobs=-1)
+        grid = GridSearchCV(clf, param_grid=param_grid, cv=crossNumVal, n_jobs=-1)
         grid.fit(X, y)
         print "Step {0}: startC={1}, endC={2}, startGamma={3}, endGamma={4}, best params={5}, score={6}"\
             .format(i, startC, endC, startGamma, endGamma, grid.best_params_, grid.best_score_)
@@ -128,7 +132,7 @@ def v2analysis(symbol = '^AORD'):
         print 'Classifier: {0}'.format(clf)
         print 'test score={0}'.format(clf.score(X_test, y_test))
 #         cv = StratifiedKFold(n_splits=5, test_size=0.3, random_state=0)
-        scores = cross_val_score(clf, X_allDataSet, y_allPredictions, cv=cv)
+        scores = cross_val_score(clf, X_allDataSet, y_allPredictions, cv=crossNumVal)
         print 'cross val scores={0}'.format(scores)
         print("Accuracy as a mean score and the 95 %% confidence interval of the score estimate : %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
         print '-------------------'
@@ -141,6 +145,7 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
     for symbol in symbolList:
         (colNames, X_allDataSetUnscaled, y_allPredictions, dateList, datePredList) = loadDataSet( \
                                         symbol, isUseBestFeautures=bestFeautures, limit=GAMMACOSTDATASETLENGTH)    
+        (idx, X_allDataSetUnscaled, y_allPredictions) = validPredictionsOnlyDataSet(X_allDataSetUnscaled, y_allPredictions)
         X_allDataSet = g_scaler.fit_transform(X_allDataSetUnscaled)
         decision_function_shape='ovr'
         clf = svm.SVC(kernel='rbf', decision_function_shape=decision_function_shape)
@@ -176,7 +181,7 @@ def fitAndSave(symbolCSV, bestFeautures):
         (colNames, X_allDataSetUnscaled, y_allPredictions, dateList, datePredList) = loadDataSet(symbol, offset=0, isUseBestFeautures=bestFeautures,
                                 limit=FITDATASETLENGTH)
         
-        (X_allDataSetUnscaled, y_allPredictions) = validPredictionsOnlySet(X_allDataSetUnscaled, y_allPredictions)
+        (idx, X_allDataSetUnscaled, y_allPredictions) = validPredictionsOnlyDataSet(X_allDataSetUnscaled, y_allPredictions)
 
         #get reduced set for fitting vs test set 
         X_reduced = X_allDataSetUnscaled[TESTDATASETLENGTH:,]
@@ -187,7 +192,7 @@ def fitAndSave(symbolCSV, bestFeautures):
         decision_function_shape='ovr'
         bestParams = loadBestParams(symbol)
         clfTrained = svm.SVC(kernel='rbf', \
-                             C=bestParams[0], gamma=bestParams[1], \
+                            C=bestParams[0], gamma=bestParams[1], \
                              decision_function_shape=decision_function_shape).fit(X_allDataSet, y_reduced)
         binDump = pickle.dumps(clfTrained)
         binDumpScaler = pickle.dumps(g_scaler)
@@ -243,14 +248,18 @@ def loadDataSet_(symbol, isUseBestFeautures = False, offset=50, limit=DATASETLEN
     dateList = numpyRecords[:, 0]
     return (colNames, X_allDataSet, y_allPredictions, dateList)
 
-def getCrossValMeanScore(clf, dataSet, predictions, cv=cv):
-    scores = cross_val_score(clf, dataSet, predictions, cv=cv)
+def getCrossValMeanScore(clf, dataSet, predictions, cv=crossNumVal):
+    scores = cross_val_score(clf, dataSet, predictions, cv=crossNumVal)
     return (scores.mean(), scores.std())
 
 def loadBestParams(symbol):
-    query = "select bestcost, bestgamma from v2.instrumentsprops WHERE symbol='{0}';".format(symbol)
-    cur.execute(query)
-    bestParams = cur.fetchone()
+    if USEGAMMANADCOST:
+        query = "select bestcost, bestgamma from v2.instrumentsprops WHERE symbol='{0}';".format(symbol)
+        cur.execute(query)
+        bestParams = cur.fetchone()
+    else:
+        bestParams = [1.0, 'auto']
+
     return bestParams
 
 def optimiseFeautures(symbolCSV):
@@ -267,8 +276,8 @@ def optimiseFeautures(symbolCSV):
         bestParams = loadBestParams(symbol)
 
         clfLoaded = svm.SVC(kernel='rbf', 
-#                 C=bestParams[0],\
-#                 gamma=bestParams[1], \
+                C=bestParams[0],\
+                gamma=bestParams[1], \
                  decision_function_shape='ovr').fit(X_allDataSet, y_allPredictions)
 
         excludedIndexes = []
@@ -319,8 +328,8 @@ def testPerformance(symbolCSV, isUseBestFeautures):
         y_test = y_allPredictions[0:TESTDATASETLENGTH,]
 
         (meanScore, std) = getCrossValMeanScore(clf, X_reduced, y_reduced)
-        print '%6s: meanScore=%.3f std=%.3f  clf score on test=%.3f' % \
-            (symbol, meanScore, std, clf.score(X_test, y_test))
+        print '%6s: meanScore=%.3f, std=%.3f, clf score on test=%5.3f, score on all=%5.3f' % \
+            (symbol, meanScore, std, clf.score(X_test, y_test), clf.score(X_reduced, y_reduced))
 
 def isPredictionCorrect(prediction, priceDiff):
     if priceDiff is None:
@@ -341,7 +350,7 @@ def loadClassifier(symbol):
 
 def predict(symbolCSV, offset=0, isUseBestFeautures=True):
     symbolList = symbolCSV.split(",")
-    print "Using offset={0}".format(offset)
+#     print "Using offset={0}".format(offset)
     print '{:^13s} {:^13s} {:^13s} {:^13s} {:^13s} {:^13s} {:^13s} {:^15s}'.format(
 #         "DF date",
         "Date From","Symbol","Orig Price","Pred Date",
@@ -351,7 +360,6 @@ def predict(symbolCSV, offset=0, isUseBestFeautures=True):
         (clf, l_scaler) = loadClassifier(symbol)
         (colNames, X_allDataSetUnscaled, y_predictions, datesList, predictForDates) = \
                         loadDataSet(symbol, limit=FITDATASETLENGTH, isUseBestFeautures=isUseBestFeautures)
-#         print type(datesList), type(predictForDates)
         dfCompr = pd.DataFrame(X_allDataSetUnscaled)
         dfCompr.to_csv(symbol + '_X_allDataSetUnscaled.csv', sep=',')
 

@@ -20,6 +20,8 @@ root:
     # LSLIB: "libsvm-3.17-GPU_x64-linux-v1.2"
     #dbnameConst: "dataminestocks1"
     dbnameConst: "postgres"
+    useGammaAndCost: False
+    useOptimisedFeaturesDefault: False
   trdeindicators:
     futureShiftDays: 30
     difftreshhold: 0.02

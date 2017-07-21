@@ -1,9 +1,11 @@
 #!/usr/bin/env python
-
 import common as cm
 import tradeindicators as ti
 import v2.v2ops as v2ops
 from downloaddata import *
+import v2.settings as st
+
+USEOPTIMISEDFEATURES = st.DICT["root"]["common"]["useOptimisedFeaturesDefault"]
 
 availableCommands = """Allowed commands:
    'attr':                                for attributes optimization                                       
@@ -391,15 +393,15 @@ def main():
         elif sys.argv[1] == 'v2':
             v2ops.v2analysis(getDefaultArg(2, '^AORD'))
         elif sys.argv[1] == 'v2GammaCost':
-            v2ops.gammaCostCalc(getDefaultArg(2, '^AORD'), getDefaultArg(3, 'False') == 'True')
+            v2ops.gammaCostCalc(getDefaultArg(2, '^AORD'), getDefaultArg(3, str(USEOPTIMISEDFEATURES)) == 'True')
         elif sys.argv[1] == 'v2Features':
             v2ops.optimiseFeautures(getDefaultArg(2, '^AORD'))
         elif sys.argv[1] == 'v2TestPerf':
-            v2ops.testPerformance(getDefaultArg(2, '^AORD'), getDefaultArg(3, 'True') == 'True')
+            v2ops.testPerformance(getDefaultArg(2, '^AORD'), getDefaultArg(3, str(USEOPTIMISEDFEATURES)) == 'True')
         elif sys.argv[1] == 'v2FitAndSave':
-            v2ops.fitAndSave(getDefaultArg(2, '^AORD'), getDefaultArg(3, 'True') == 'True')
+            v2ops.fitAndSave(getDefaultArg(2, '^AORD'), getDefaultArg(3, str(USEOPTIMISEDFEATURES)) == 'True')
         elif sys.argv[1] == 'v2Predict':
-            v2ops.predict(getDefaultArg(2, '^AORD'), getDefaultArg(3, '0'), getDefaultArg(4, 'True') == 'True')
+            v2ops.predict(getDefaultArg(2, '^AORD'), getDefaultArg(3, '0'), getDefaultArg(4, str(USEOPTIMISEDFEATURES)) == 'True')
         elif sys.argv[1] == 'v2mvc':
             (colNames, X_allDataSet, y_allPredictions, dateList) = ti.loadDataSet('^AORD', False, 30, 2000)
             print colNames, X_allDataSet, y_allPredictions, dateList
