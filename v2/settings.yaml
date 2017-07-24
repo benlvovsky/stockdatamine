@@ -13,15 +13,13 @@ root:
     DATASETLENGTH: 2000
     GAMMACOSTDATASETLENGTH: 5000
     FITDATASETLENGTH: 6000
-    TESTDATASETLENGTH: 100
+    TESTDATASETLENGTH: 300
     PREDICTATASETLENGTH: 100
     isUseCache: True
     LSLIB: "libsvm-3.21"
-    # LSLIB: "libsvm-3.17-GPU_x64-linux-v1.2"
-    #dbnameConst: "dataminestocks1"
     dbnameConst: "postgres"
     useGammaAndCost: False
-    useOptimisedFeaturesDefault: False
+    useOptimisedFeaturesDefault: True
   trdeindicators:
     futureShiftDays: 30
     difftreshhold: 0.02

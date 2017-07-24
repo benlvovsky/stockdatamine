@@ -149,7 +149,7 @@ INSERT INTO v2.instrumentsprops(symbol, active) select '^AXUJ', true where not e
 ./go.py v2FitAndSave ^AORD,^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ True
 ./go.py v2GammaCost  ^AORD,^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ True
 ./go.py v2Predict    ^AORD,^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ 0 True
-./go.py v2Features   ^AORD,^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ True
+./go.py v2Features   CBA.AX,^AORD,^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ True
 ./go.py v2TestPerf   ^AORD,^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ
 
 ./v2preml.sh 20 > predictions.html
@@ -172,3 +172,6 @@ node investing-get.js -l -a -s 01/01/1987 -e 01/01/1989 -d >> a.txt
 node investing-get.js -l -a -s 01/01/1985 -e 01/01/1987 -d >> a.txt
 node investing-get.js -l -a -s 01/01/1983 -e 01/01/1985 -d >> a.txt
 node investing-get.js -l -a -s 01/01/1981 -e 01/01/1983 -d >> a.txt
+
+cat ../investing-historical-data/b.txt | ./go.py upload
+ 

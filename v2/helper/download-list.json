@@ -1,5 +1,9 @@
 	[
 		{
+			"name" : "CBA.AX",
+			"country" : "AU",
+			"id" : "625"
+		}, {
 			"name" : "Gold",
 			"country" : "US",
 			"id" : "8830"

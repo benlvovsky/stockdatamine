@@ -69,3 +69,7 @@ __pycache__/
 /^AXXJ_comparison.csv
 /^AORD_cacheable.csv
 /^AXDJ_cacheable.csv
+/CBA.AX_X_allDataSetUnscaled.csv
+/CBA.AX_cacheable.csv
+/CBA.AX_comparison.csv
+/CBA.AX_dates.csv

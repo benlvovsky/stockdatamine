@@ -196,6 +196,15 @@ def fitAndSave(symbolCSV, bestFeautures):
                              decision_function_shape=decision_function_shape).fit(X_allDataSet, y_reduced)
         binDump = pickle.dumps(clfTrained)
         binDumpScaler = pickle.dumps(g_scaler)
+        query = (
+            '''
+            INSERT INTO v2.instrumentsprops(symbol) 
+                select '{0}' where not exists 
+                        (select 1 from v2.instrumentsprops i2 where i2.symbol = '{0}');
+            '''
+             .format(symbol))
+        cur.execute(query)
+
         cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s, scalerdump=%s where symbol=%s", \
                     (psycopg2.Binary(binDump), psycopg2.Binary(binDumpScaler), symbol))
         conn.commit()
@@ -269,8 +278,7 @@ def optimiseFeautures(symbolCSV):
         (idx, X_allDataSetUnscaled, y_allPredictions) = validPredictionsOnlyDataSet(X_allDataSetUnscaled, y_allPredictions)
         X_allDataSet    = g_scaler.fit_transform(X_allDataSetUnscaled)
         X_allDataSet    = X_allDataSet[:FEATURESELECTIONDATASETLENGTH,]
-        y_predictions   = y_predictions[:FEATURESELECTIONDATASETLENGTH,]
-        datesList       = datesList[:FEATURESELECTIONDATASETLENGTH,]
+        y_allPredictions= y_allPredictions[:FEATURESELECTIONDATASETLENGTH,]
 
         print "Optimizing features for '{0}'".format(symbol)
         bestParams = loadBestParams(symbol)
@@ -290,19 +298,22 @@ def optimiseFeautures(symbolCSV):
             testExcludedIndexes = np.append(excludedIndexes, curIdx)
             testX_reduced = np.delete(X_reduced, testExcludedIndexes, axis=1)
             (meanScore, meanStd) = getCrossValMeanScore(clfLoaded, testX_reduced, y_allPredictions, cv=FEATURES_SELECTION_CV)
-            if bestMeanScore/bestMeanStd <= meanScore/meanStd:
+#             if bestMeanScore/bestMeanStd <= meanScore/meanStd:
+            if meanScore < bestMeanScore:
                 excludedIndexes.append(curIdx)
                 excludedCols.append(colName)
-                print 'Excluded {}. best MeanScore/MeanStd {:>6.5f}/{:>6.5f} <= meanScore/meanStd {:>6.5f}/{:>6.5f}'\
-                    .format(colName, bestMeanScore, bestMeanStd, meanScore, meanStd)
-                bestMeanScore = meanScore
-                bestMeanStd = meanStd
+#                 print 'Excluded {}. best MeanScore/MeanStd {:>6.5f}/{:>6.5f} <= meanScore/meanStd {:>6.5f}/{:>6.5f}'\
+                print 'Excluded  {}. CurMeanScore {:>6.5f} < BestMeanScore {:>6.5f}'\
+                    .format(colName, meanScore, bestMeanScore)
             else:
                 goodCols.append(colName)
                 goodIndexes.append(curIdx)
-                print 'Left     {}. best MeanScore/MeanStd {:>6.5f}/{:>6.5f} > meanScore/meanStd {:>6.5f}/{:>6.5f}'\
-                    .format(colName, bestMeanScore, bestMeanStd, meanScore, meanStd)
-        
+#                 print 'Left     {}. best MeanScore/MeanStd {:>6.5f}/{:>6.5f} > meanScore/meanStd {:>6.5f}/{:>6.5f}'\
+                print 'Left good {}. CurMeanScore {:>6.5f} >= BestMeanScore {:>6.5f}'\
+                    .format(colName, meanScore, bestMeanScore)
+                bestMeanScore = meanScore
+                bestMeanStd = meanStd
+
         goodColsStr = ','.join(goodCols)
         excludedColsStr = ','.join(excludedCols)
         
@@ -412,12 +423,12 @@ def predict(symbolCSV, offset=0, isUseBestFeautures=True):
         dfCompr.to_csv(symbol + '_comparison.csv', sep=',')
 
         thePrediction = prediction[offsetInt]
-        print '{:^13s} {:^13s} {:>10.2f} {:^13s} {:>10.2f} {:^13s} {:>13s} {:>15s}'\
+        print '{:^13s} {:^13s} {:>12.2f} {:^13s} {:>12.2f} {:^13s} {:>13s} {:>15s}'\
             .format(#str(theDate),
                     str(dbFoundDate),
                     symbol, 
                     dbFoundStockPrice,
-                    str(predictionForDate), 
+                    str(predictionForDate),
                     lastAvailableDateStockPrice,
                     thePrediction,
                     priceDiffStr,
