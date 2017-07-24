@@ -153,11 +153,9 @@ def gammaCostCalc(symbolCSV, bestFeautures = False):
         grid = gridSearch(clf, X_allDataSet[:GAMMACOSTDATASETLENGTH, :], y_allPredictions[:GAMMACOSTDATASETLENGTH])
 #         grid = zoomInGridSearch(clf, X_allDataSet[:DATASETLENGTH, :], y_allPredictions[:DATASETLENGTH])
         bestParams = grid.best_params_
+        ensureInstrumentExists(symbol)
         query = (
             '''
-            INSERT INTO v2.instrumentsprops(symbol) 
-                select '{2}' where not exists 
-                        (select 1 from v2.instrumentsprops i2 where i2.symbol = '{2}');
             UPDATE v2.instrumentsprops SET bestcost={0}, bestgamma={1} WHERE symbol = '{2}';
             '''
                  .format(bestParams['C'], bestParams['gamma'], symbol))
@@ -174,6 +172,15 @@ def validPredictionsOnlyDataSet(X_dataSet, y_predictions):
 
     #remove invalid predictions due to future undefined results
     return (validIdx, X_dataSet[validIdx:,], y_predictions[validIdx:,])
+
+
+def ensureInstrumentExists(symbol):
+    query = '''
+    INSERT INTO v2.instrumentsprops(symbol) 
+        select '{0}' where not exists 
+                (select 1 from v2.instrumentsprops i2 where i2.symbol = '{0}');
+    '''.format(symbol)
+    cur.execute(query)
 
 def fitAndSave(symbolCSV, bestFeautures):
     symbolList = symbolCSV.split(",")
@@ -196,15 +203,8 @@ def fitAndSave(symbolCSV, bestFeautures):
                              decision_function_shape=decision_function_shape).fit(X_allDataSet, y_reduced)
         binDump = pickle.dumps(clfTrained)
         binDumpScaler = pickle.dumps(g_scaler)
-        query = (
-            '''
-            INSERT INTO v2.instrumentsprops(symbol) 
-                select '{0}' where not exists 
-                        (select 1 from v2.instrumentsprops i2 where i2.symbol = '{0}');
-            '''
-             .format(symbol))
-        cur.execute(query)
-
+        
+        ensureInstrumentExists(symbol)
         cur.execute("UPDATE v2.instrumentsprops SET classifierdump=%s, scalerdump=%s where symbol=%s", \
                     (psycopg2.Binary(binDump), psycopg2.Binary(binDumpScaler), symbol))
         conn.commit()
@@ -273,8 +273,10 @@ def loadBestParams(symbol):
 
 def optimiseFeautures(symbolCSV):
     symbolList = symbolCSV.split(",")
+    isUseBestFeautures = st.DICT["root"]["common"]["useGammaAndCost"]
     for symbol in symbolList:
-        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList, datePredList) = loadDataSet(symbol, limit=DATASETLENGTH)
+        (colNames, X_allDataSetUnscaled, y_allPredictions, dateList, datePredList) = \
+                loadDataSet(symbol, limit=DATASETLENGTH, isUseBestFeautures=isUseBestFeautures)
         (idx, X_allDataSetUnscaled, y_allPredictions) = validPredictionsOnlyDataSet(X_allDataSetUnscaled, y_allPredictions)
         X_allDataSet    = g_scaler.fit_transform(X_allDataSetUnscaled)
         X_allDataSet    = X_allDataSet[:FEATURESELECTIONDATASETLENGTH,]
@@ -297,26 +299,27 @@ def optimiseFeautures(symbolCSV):
         for curIdx, colName in enumerate(colNames):
             testExcludedIndexes = np.append(excludedIndexes, curIdx)
             testX_reduced = np.delete(X_reduced, testExcludedIndexes, axis=1)
-            (meanScore, meanStd) = getCrossValMeanScore(clfLoaded, testX_reduced, y_allPredictions, cv=FEATURES_SELECTION_CV)
-#             if bestMeanScore/bestMeanStd <= meanScore/meanStd:
-            if meanScore < bestMeanScore:
+            (meanScoreExcluded, meanStdExcluded) = getCrossValMeanScore(clfLoaded, testX_reduced, y_allPredictions, cv=FEATURES_SELECTION_CV)
+#             if bestMeanScore/bestMeanStd <= meanScoreExcluded/meanStdExcluded:
+            if meanScoreExcluded > bestMeanScore: #if excluded is better then exclude
                 excludedIndexes.append(curIdx)
                 excludedCols.append(colName)
-#                 print 'Excluded {}. best MeanScore/MeanStd {:>6.5f}/{:>6.5f} <= meanScore/meanStd {:>6.5f}/{:>6.5f}'\
-                print 'Excluded  {}. CurMeanScore {:>6.5f} < BestMeanScore {:>6.5f}'\
-                    .format(colName, meanScore, bestMeanScore)
-            else:
+#                 print 'Excluded {}. best MeanScore/MeanStd {:>6.5f}/{:>6.5f} <= meanScoreExcluded/meanStdExcluded {:>6.5f}/{:>6.5f}'\
+                print 'Excluded  {}. CurMeanScore {:>6.5f} > BestMeanScore {:>6.5f}'\
+                    .format(colName, meanScoreExcluded, bestMeanScore)
+            else:#if excluded is worse then do not exclude - leave as good
                 goodCols.append(colName)
                 goodIndexes.append(curIdx)
-#                 print 'Left     {}. best MeanScore/MeanStd {:>6.5f}/{:>6.5f} > meanScore/meanStd {:>6.5f}/{:>6.5f}'\
-                print 'Left good {}. CurMeanScore {:>6.5f} >= BestMeanScore {:>6.5f}'\
-                    .format(colName, meanScore, bestMeanScore)
-                bestMeanScore = meanScore
-                bestMeanStd = meanStd
+#                 print 'Left     {}. best MeanScore/MeanStd {:>6.5f}/{:>6.5f} > meanScoreExcluded/meanStdExcluded {:>6.5f}/{:>6.5f}'\
+                print 'Left good {}. CurMeanScore {:>6.5f} <= BestMeanScore {:>6.5f}'\
+                    .format(colName, meanScoreExcluded, bestMeanScore)
+                bestMeanScore = meanScoreExcluded
+                bestMeanStd = meanStdExcluded
 
         goodColsStr = ','.join(goodCols)
         excludedColsStr = ','.join(excludedCols)
         
+        ensureInstrumentExists(symbol)
         query = ("UPDATE v2.instrumentsprops SET bestattributes='{0}', excludedattributes='{1}', bestcorrelation={2}"
                  " WHERE symbol = '{3}';"
                  .format(goodColsStr, excludedColsStr, bestMeanScore, symbol))

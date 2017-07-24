@@ -25,3 +25,7 @@ root:
     difftreshhold: 0.02
     upper: 1.02
     lower: 0.98
+featureselection:
+  instruments: CBA.AX,^AORD,^AXDJ,^AXSJ,^AXEJ,^AXFJ,^AXXJ,^AXHJ,^AXNJ,^AXIJ,^AXMJ,^AXJR,^AXUJ
+  reselect: False # reselect (if True) or not using preselected previously bestfeatures
+  
