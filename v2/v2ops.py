@@ -271,6 +271,30 @@ def loadBestParams(symbol):
 
     return bestParams
 
+def instrFeaturesSelect(colNames, X_all, predictions, clfLoaded):
+    excludedCols = []
+    goodCols = []
+    excludedIndexes = []
+    goodIndexes = []
+
+    bestMeanScore, bestStd = getCrossValMeanScore(clfLoaded, X_all, predictions, cv=FEATURES_SELECTION_CV)
+    for curIdx, colName in enumerate(colNames):
+        testExcludedIndexes = np.append(excludedIndexes, curIdx)
+        testX_reduced = np.delete(X_all, testExcludedIndexes, axis=1)
+        meanScoreExcluded, meanStdExcluded = getCrossValMeanScore(clfLoaded, testX_reduced, predictions, cv=FEATURES_SELECTION_CV)
+        if meanScoreExcluded >= bestMeanScore: #if excluded is better then exclude
+            excludedIndexes.append(curIdx)
+            excludedCols.append(colName) #                 print 'Excluded {}. best MeanScore/MeanStd {:>6.5f}/{:>6.5f} <= meanScoreExcluded/meanStdExcluded {:>6.5f}/{:>6.5f}'\
+            print 'Excluded  {:25s} ExcludedMeanScore {:>6.5f} >= CurBestMeanScore {:>6.5f}'.format(colName, meanScoreExcluded, bestMeanScore)
+            bestMeanScore = meanScoreExcluded
+            bestMeanStd = meanStdExcluded
+        else:
+            goodCols.append(colName)
+            goodIndexes.append(curIdx)
+            print 'Left good {:25s} ExcludedMeanScore {:>6.5f}  < CurBestMeanScore {:>6.5f}'.format(colName, meanScoreExcluded, bestMeanScore) #if excluded is worse or same then do not exclude - leave as good
+
+    return bestMeanScore, bestMeanStd, excludedCols, goodCols
+
 def optimiseFeautures(symbolCSV):
     symbolList = symbolCSV.split(",")
     isUseBestFeautures = st.DICT["root"]["common"]["useGammaAndCost"]
@@ -290,31 +314,8 @@ def optimiseFeautures(symbolCSV):
                 gamma=bestParams[1], \
                  decision_function_shape='ovr').fit(X_allDataSet, y_allPredictions)
 
-        excludedIndexes = []
-        excludedCols = []
-        goodIndexes = []
-        goodCols = []
-        (bestMeanScore, bestMeanStd) = getCrossValMeanScore(clfLoaded, X_allDataSet, y_allPredictions, cv=FEATURES_SELECTION_CV)
         X_reduced = np.copy(X_allDataSet)
-        for curIdx, colName in enumerate(colNames):
-            testExcludedIndexes = np.append(excludedIndexes, curIdx)
-            testX_reduced = np.delete(X_reduced, testExcludedIndexes, axis=1)
-            (meanScoreExcluded, meanStdExcluded) = getCrossValMeanScore(clfLoaded, testX_reduced, y_allPredictions, cv=FEATURES_SELECTION_CV)
-#             if bestMeanScore/bestMeanStd <= meanScoreExcluded/meanStdExcluded:
-            if meanScoreExcluded > bestMeanScore: #if excluded is better then exclude
-                excludedIndexes.append(curIdx)
-                excludedCols.append(colName)
-#                 print 'Excluded {}. best MeanScore/MeanStd {:>6.5f}/{:>6.5f} <= meanScoreExcluded/meanStdExcluded {:>6.5f}/{:>6.5f}'\
-                print 'Excluded  {}. CurMeanScore {:>6.5f} > BestMeanScore {:>6.5f}'\
-                    .format(colName, meanScoreExcluded, bestMeanScore)
-            else:#if excluded is worse then do not exclude - leave as good
-                goodCols.append(colName)
-                goodIndexes.append(curIdx)
-#                 print 'Left     {}. best MeanScore/MeanStd {:>6.5f}/{:>6.5f} > meanScoreExcluded/meanStdExcluded {:>6.5f}/{:>6.5f}'\
-                print 'Left good {}. CurMeanScore {:>6.5f} <= BestMeanScore {:>6.5f}'\
-                    .format(colName, meanScoreExcluded, bestMeanScore)
-                bestMeanScore = meanScoreExcluded
-                bestMeanStd = meanStdExcluded
+        bestMeanScore, bestMeanStd, excludedCols, goodCols = instrFeaturesSelect(colNames, X_reduced, y_allPredictions, clfLoaded)
 
         goodColsStr = ','.join(goodCols)
         excludedColsStr = ','.join(excludedCols)
